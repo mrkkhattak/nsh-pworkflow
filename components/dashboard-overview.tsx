@@ -8,11 +8,23 @@ import { AlertTriangle, Users, MessageSquare, FileText } from "lucide-react"
 import { AssessmentDialog } from "@/components/assessment-dialog"
 import { getPatientById, getAssessmentById } from "@/lib/nsh-assessment-mock"
 
-const mockPatients = Array.from({ length: 15 }, (_, i) => ({
-  id: i + 1,
-  healthIndexScore: Math.floor(Math.random() * 100),
-  unreadMessages: Math.floor(Math.random() * 5),
-}))
+const mockPatients = [
+  { id: 1, healthIndexScore: 75, unreadMessages: 2 },
+  { id: 2, healthIndexScore: 42, unreadMessages: 3 },
+  { id: 3, healthIndexScore: 68, unreadMessages: 0 },
+  { id: 4, healthIndexScore: 55, unreadMessages: 1 },
+  { id: 5, healthIndexScore: 82, unreadMessages: 4 },
+  { id: 6, healthIndexScore: 38, unreadMessages: 2 },
+  { id: 7, healthIndexScore: 91, unreadMessages: 0 },
+  { id: 8, healthIndexScore: 47, unreadMessages: 3 },
+  { id: 9, healthIndexScore: 73, unreadMessages: 1 },
+  { id: 10, healthIndexScore: 29, unreadMessages: 2 },
+  { id: 11, healthIndexScore: 64, unreadMessages: 0 },
+  { id: 12, healthIndexScore: 51, unreadMessages: 1 },
+  { id: 13, healthIndexScore: 88, unreadMessages: 2 },
+  { id: 14, healthIndexScore: 35, unreadMessages: 4 },
+  { id: 15, healthIndexScore: 70, unreadMessages: 1 },
+]
 
 const riskAlerts = [
   {
