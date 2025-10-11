@@ -1,12 +1,14 @@
 import { AssessmentDetail } from "@/components/assessment/assessment-detail"
-import { getPatientAssessment } from "@/lib/prom-mock"
+import { getAssessmentById, getPatientById } from "@/lib/nsh-assessment-mock"
 
 export default function Page({ params }: { params: { patientId: string; date: string } }) {
   const pid = Number.parseInt(params.patientId, 10)
   const decodedDate = decodeURIComponent(params.date)
-  const data = getPatientAssessment(pid, decodedDate)
 
-  if (!data) {
+  const patient = getPatientById(pid)
+  const assessment = getAssessmentById(pid, decodedDate)
+
+  if (!patient || !assessment) {
     return (
       <div className="p-6">
         <p className="text-sm text-muted-foreground">No assessment found for patient {params.patientId}.</p>
@@ -14,5 +16,5 @@ export default function Page({ params }: { params: { patientId: string; date: st
     )
   }
 
-  return <AssessmentDetail patient={data.patient} assessment={data.assessment} history={data.history} />
+  return <AssessmentDetail patient={patient} assessment={assessment} />
 }
