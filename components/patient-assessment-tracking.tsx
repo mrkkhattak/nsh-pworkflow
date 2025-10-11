@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -13,6 +12,8 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Lege
 import { InterventionTimeline } from "@/components/intervention-timeline"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { GoalTemplatesSystem } from "@/components/goal-templates-system"
+import { AssessmentDialog } from "@/components/assessment-dialog"
+import { getPatientById, getAssessmentById } from "@/lib/nsh-assessment-mock"
 import {
   TrendingDown,
   TrendingUp,
@@ -392,6 +393,8 @@ export function PatientAssessmentTracking() {
   const [isGoalDialogOpen, setIsGoalDialogOpen] = useState(false)
   const [createGoalOpen, setCreateGoalOpen] = useState(false)
   const [goalsOptions, setGoalsOptions] = useState<{ id: string; label: string }[]>([])
+  const [assessmentDialogOpen, setAssessmentDialogOpen] = useState(false)
+  const [selectedAssessmentDate, setSelectedAssessmentDate] = useState<string | null>(null)
 
   const currentPatientData =
     mockPromDataByPatient[selectedPatient as keyof typeof mockPromDataByPatient] || mockPromDataByPatient[1]
@@ -829,12 +832,17 @@ export function PatientAssessmentTracking() {
                             {assessment.overallRisk} risk
                           </Badge>
                         </div>
-                        <Link href={`/assessments/${currentPatientData.patient.id}/${encodeURIComponent(assessment.date)}`}>
-                          <Button variant="outline" size="sm">
-                            <FileText className="h-4 w-4 mr-2" />
-                            View Details
-                          </Button>
-                        </Link>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedAssessmentDate(assessment.date)
+                            setAssessmentDialogOpen(true)
+                          }}
+                        >
+                          <FileText className="h-4 w-4 mr-2" />
+                          View Details
+                        </Button>
                       </div>
 
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-3">
@@ -1024,6 +1032,14 @@ export function PatientAssessmentTracking() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Assessment Dialog */}
+      <AssessmentDialog
+        open={assessmentDialogOpen}
+        onOpenChange={setAssessmentDialogOpen}
+        patient={selectedAssessmentDate ? getPatientById(currentPatientData.patient.id) : null}
+        assessment={selectedAssessmentDate ? getAssessmentById(currentPatientData.patient.id, selectedAssessmentDate) : null}
+      />
     </div>
   )
 }

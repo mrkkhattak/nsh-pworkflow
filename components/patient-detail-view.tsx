@@ -11,6 +11,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { QuickScheduleDialog } from "@/components/quick-schedule-dialog"
 import { PatientAssessmentTracking } from "@/components/patient-assessment-tracking"
 import { MessagingTeamHub } from "@/components/messaging-team-hub"
+import { AssessmentDialog } from "@/components/assessment-dialog"
+import { getPatientById, getAssessmentById } from "@/lib/nsh-assessment-mock"
 import {
   Phone,
   Mail,
@@ -179,6 +181,8 @@ export function PatientDetailView() {
   const [activeTab, setActiveTab] = useState("overview")
   const [showQuickSchedule, setShowQuickSchedule] = useState(false)
   const [responsesOpenFor, setResponsesOpenFor] = useState<string | null>(null)
+  const [assessmentDialogOpen, setAssessmentDialogOpen] = useState(false)
+  const [selectedAssessmentDate, setSelectedAssessmentDate] = useState<string | null>(null)
 
   // Persist view state and scroll per ERR-PDV-004
   useState(() => {
@@ -552,12 +556,17 @@ export function PatientDetailView() {
                       </div>
                       <div className="flex items-center gap-2">
                         <Badge variant="outline">{assessment.provider}</Badge>
-                        <Link href={`/assessments/${mockPatientDetail.id}/${encodeURIComponent(assessment.date)}`}>
-                          <Button variant="outline" size="sm">
-                            <FileText className="h-4 w-4 mr-2" />
-                            View Details
-                          </Button>
-                        </Link>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedAssessmentDate(assessment.date)
+                            setAssessmentDialogOpen(true)
+                          }}
+                        >
+                          <FileText className="h-4 w-4 mr-2" />
+                          View Details
+                        </Button>
                       </div>
                     </div>
                   </CardContent>
@@ -748,6 +757,14 @@ export function PatientDetailView() {
           // Handle successful scheduling
           console.log("Appointment scheduled successfully")
         }}
+      />
+
+      {/* Assessment Dialog */}
+      <AssessmentDialog
+        open={assessmentDialogOpen}
+        onOpenChange={setAssessmentDialogOpen}
+        patient={selectedAssessmentDate ? getPatientById(mockPatientDetail.id) : null}
+        assessment={selectedAssessmentDate ? getAssessmentById(mockPatientDetail.id, selectedAssessmentDate) : null}
       />
     </div>
   )
