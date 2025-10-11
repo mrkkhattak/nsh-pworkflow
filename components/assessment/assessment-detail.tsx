@@ -97,6 +97,8 @@ export function AssessmentDetail({ patient, assessment }: Props) {
                   icon={iconMap[dimension.id] || <Heart className="h-5 w-5 text-gray-600" />}
                   interpretation={dimension.interpretation}
                   riskLevel={dimension.riskLevel}
+                  clickable={true}
+                  linkHref={`/assessments/${patient.id}/${encodeURIComponent(assessment.date)}/${dimension.id}`}
                 />
               ))}
             </div>
