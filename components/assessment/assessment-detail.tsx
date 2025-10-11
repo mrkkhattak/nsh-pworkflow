@@ -1,12 +1,14 @@
 "use client"
 
+import { useRouter } from "next/navigation"
 import { ScoreCard } from "./score-card"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { Assessment, Patient } from "@/lib/nsh-assessment-mock"
 import { getRiskColor, getRiskLabel } from "@/lib/nsh-assessment-mock"
-import { Activity, Brain, Heart, Zap, Users, Stethoscope, Building2, TrendingUp } from "lucide-react"
+import { Activity, Brain, Heart, Zap, Users, Stethoscope, Building2, TrendingUp, ArrowLeft } from "lucide-react"
 
 type Props = {
   patient: Patient
@@ -14,6 +16,7 @@ type Props = {
 }
 
 export function AssessmentDetail({ patient, assessment }: Props) {
+  const router = useRouter()
   const ghi = assessment.globalHealthIndex
   const ghiRiskLevel = assessment.dimensions.find((d) => d.score === ghi)?.riskLevel || "green"
 
@@ -33,7 +36,18 @@ export function AssessmentDetail({ patient, assessment }: Props) {
   }
 
   return (
-    <div className="space-y-8 p-6 bg-gray-50/30 min-h-screen">
+    <div className="space-y-8">
+      <div className="flex items-center gap-4">
+        <Button
+          variant="outline"
+          onClick={() => router.back()}
+          className="bg-white hover:bg-gray-50"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back
+        </Button>
+      </div>
+
       <div className="space-y-1">
         <h1 className="text-3xl font-semibold text-gray-900 text-balance">Assessment Details</h1>
         <p className="text-gray-600">
@@ -101,13 +115,10 @@ export function AssessmentDetail({ patient, assessment }: Props) {
                 <div className="space-y-2">
                   {assessment.opportunities.strengths.map((opp, idx) => (
                     <div key={idx} className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
-                      <div className="flex items-center justify-between mb-1">
+                      <div className="mb-1">
                         <span className="font-medium text-sm text-gray-900">
                           {opp.subcategoryName || opp.dimensionName}
                         </span>
-                        <Badge variant="outline" className="text-emerald-700 border-emerald-300">
-                          Score: {opp.score}
-                        </Badge>
                       </div>
                       <p className="text-xs text-gray-600">{opp.recommendation}</p>
                     </div>
@@ -120,13 +131,10 @@ export function AssessmentDetail({ patient, assessment }: Props) {
                 <div className="space-y-2">
                   {assessment.opportunities.moderate.map((opp, idx) => (
                     <div key={idx} className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                      <div className="flex items-center justify-between mb-1">
+                      <div className="mb-1">
                         <span className="font-medium text-sm text-gray-900">
                           {opp.subcategoryName || opp.dimensionName}
                         </span>
-                        <Badge variant="outline" className="text-yellow-700 border-yellow-300">
-                          Score: {opp.score}
-                        </Badge>
                       </div>
                       <p className="text-xs text-gray-600">{opp.recommendation}</p>
                     </div>
@@ -139,13 +147,10 @@ export function AssessmentDetail({ patient, assessment }: Props) {
                 <div className="space-y-2">
                   {assessment.opportunities.critical.map((opp, idx) => (
                     <div key={idx} className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                      <div className="flex items-center justify-between mb-1">
+                      <div className="mb-1">
                         <span className="font-medium text-sm text-gray-900">
                           {opp.subcategoryName || opp.dimensionName}
                         </span>
-                        <Badge variant="outline" className="text-orange-700 border-orange-300">
-                          Score: {opp.score}
-                        </Badge>
                       </div>
                       <p className="text-xs text-gray-600">{opp.recommendation}</p>
                     </div>
@@ -321,9 +326,6 @@ export function AssessmentDetail({ patient, assessment }: Props) {
                     <p className="text-sm font-medium text-gray-900 mb-1">{response.question}</p>
                     <p className="text-sm text-gray-700">
                       <span className="font-medium">Response:</span> {response.responseText}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {new Date(response.timestamp).toLocaleString()}
                     </p>
                   </div>
                 ))}
