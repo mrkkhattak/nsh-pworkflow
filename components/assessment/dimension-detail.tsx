@@ -447,17 +447,6 @@ export function DimensionDetail({ patient, assessment, dimension }: Props) {
                   </ResponsiveContainer>
                 </ChartContainer>
               </div>
-
-              <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                <div className="flex items-center gap-2 mb-2">
-                  <TrendingDown className="h-5 w-5 text-green-600" />
-                  <span className="font-semibold text-gray-900">Improving Trend</span>
-                </div>
-                <p className="text-sm text-gray-600">
-                  Score has decreased from 45 to 32 over the past 3 months, indicating positive progress.
-                  Lower scores indicate better health outcomes in this dimension.
-                </p>
-              </div>
             </CardContent>
           </Card>
         </TabsContent>
