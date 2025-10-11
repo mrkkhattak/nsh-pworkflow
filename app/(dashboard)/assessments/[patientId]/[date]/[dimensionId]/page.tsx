@@ -1,14 +1,15 @@
 import { DimensionDetail } from "@/components/assessment/dimension-detail"
 import { getAssessmentById, getPatientById, getDimensionById } from "@/lib/nsh-assessment-mock"
 
-export default function Page({
+export default async function Page({
   params,
 }: {
-  params: { patientId: string; date: string; dimensionId: string }
+  params: Promise<{ patientId: string; date: string; dimensionId: string }>
 }) {
-  const pid = Number.parseInt(params.patientId, 10)
-  const decodedDate = decodeURIComponent(params.date)
-  const dimensionId = params.dimensionId
+  const resolvedParams = await params
+  const pid = Number.parseInt(resolvedParams.patientId, 10)
+  const decodedDate = decodeURIComponent(resolvedParams.date)
+  const dimensionId = resolvedParams.dimensionId
 
   const patient = getPatientById(pid)
   const assessment = getAssessmentById(pid, decodedDate)
@@ -18,7 +19,7 @@ export default function Page({
     return (
       <div className="p-6">
         <p className="text-sm text-muted-foreground">
-          Dimension not found for patient {params.patientId}.
+          Dimension not found for patient {resolvedParams.patientId}.
         </p>
       </div>
     )
