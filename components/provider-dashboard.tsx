@@ -19,7 +19,6 @@ import ReferralManagement from "@/components/referral-management"
 import { SideNavigation } from "@/components/side-navigation"
 import { PatientDetailView } from "@/components/patient-detail-view"
 import { QuickScheduleDialog } from "@/components/quick-schedule-dialog"
-import { AssessmentDialog } from "@/components/assessment-dialog"
 import { getPatientById, getAssessmentById } from "@/lib/nsh-assessment-mock"
 import { useToast } from "@/hooks/use-toast"
 import {
@@ -427,9 +426,6 @@ export function ProviderDashboard() {
   const [dateRange, setDateRange] = useState<DateRange>("last5d")
   const [remindersSent, setRemindersSent] = useState<Record<number, number>>({})
   const [selectedConversationId, setSelectedConversationId] = useState<number | undefined>(undefined)
-  const [assessmentDialogOpen, setAssessmentDialogOpen] = useState(false)
-  const [selectedAssessmentPatientId, setSelectedAssessmentPatientId] = useState<number | null>(null)
-  const [selectedAssessmentDate, setSelectedAssessmentDate] = useState<string | null>(null)
 
   const { toast } = useToast()
 
@@ -617,17 +613,11 @@ export function ProviderDashboard() {
                         View Details
                       </Button>
                     </Link>
-                    <Button
-                      size="sm"
-                      className="bg-red-600 hover:bg-red-700 text-white text-xs"
-                      onClick={() => {
-                        setSelectedAssessmentPatientId(alert.patientId)
-                        setSelectedAssessmentDate(alert.assessmentDate)
-                        setAssessmentDialogOpen(true)
-                      }}
-                    >
-                      {alert.action}
-                    </Button>
+                    <Link href={`/assessments/${alert.patientId}/${encodeURIComponent(alert.assessmentDate || '')}`}>
+                      <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white text-xs">
+                        {alert.action}
+                      </Button>
+                    </Link>
                   </div>
                 </div>
               </div>
@@ -1137,12 +1127,6 @@ export function ProviderDashboard() {
         onScheduled={() => setSelectedPatientForScheduling(null)}
       />
 
-      <AssessmentDialog
-        open={assessmentDialogOpen}
-        onOpenChange={setAssessmentDialogOpen}
-        patient={selectedAssessmentPatientId ? getPatientById(selectedAssessmentPatientId) : null}
-        assessment={selectedAssessmentPatientId && selectedAssessmentDate ? getAssessmentById(selectedAssessmentPatientId, selectedAssessmentDate) : null}
-      />
     </div>
   )
 }

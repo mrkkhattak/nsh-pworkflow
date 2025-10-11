@@ -3,6 +3,7 @@
 import { ScoreCard } from "./score-card"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { Assessment, Patient } from "@/lib/nsh-assessment-mock"
 import { getRiskColor, getRiskLabel } from "@/lib/nsh-assessment-mock"
 import { Activity, Brain, Heart, Zap, Users, Stethoscope, Building2, TrendingUp } from "lucide-react"
@@ -50,97 +51,118 @@ export function AssessmentDetail({ patient, assessment }: Props) {
         riskLevel={ghiRiskLevel}
       />
 
-      <div>
-        <h2 className="text-xl font-semibold text-gray-900 mt-4 mb-3">
-          12 Health Dimensions (Lower Score = Better Health)
-        </h2>
-        <div className="grid grid-cols-1 gap-6">
-          {assessment.dimensions.map((dimension) => (
-            <ScoreCard
-              key={dimension.id}
-              title={dimension.name}
-              score={dimension.score}
-              statusText={getRiskLabel(dimension.riskLevel)}
-              statusColorClass={getRiskColor(dimension.riskLevel)}
-              icon={iconMap[dimension.id] || <Heart className="h-5 w-5 text-gray-600" />}
-              interpretation={dimension.interpretation}
-              riskLevel={dimension.riskLevel}
-            />
-          ))}
-        </div>
-      </div>
+      <Tabs defaultValue="dimensions" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-4 bg-gray-100 p-1 rounded-lg">
+          <TabsTrigger value="dimensions" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+            Health Dimensions
+          </TabsTrigger>
+          <TabsTrigger value="opportunities" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+            Areas of Opportunity
+          </TabsTrigger>
+          <TabsTrigger value="actions" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+            Action Items
+          </TabsTrigger>
+          <TabsTrigger value="questionnaire" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+            Questionnaire Responses
+          </TabsTrigger>
+        </TabsList>
 
-      <Card className="bg-white border-gray-200 shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold">Areas of Opportunity</CardTitle>
-          <CardDescription>Categorized by risk level and priority for intervention</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
+        <TabsContent value="dimensions" className="space-y-6">
           <div>
-            <h3 className="font-semibold text-emerald-700 mb-3">Areas of Strength (Low Risk)</h3>
-            <div className="space-y-2">
-              {assessment.opportunities.strengths.map((opp, idx) => (
-                <div key={idx} className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="font-medium text-sm text-gray-900">
-                      {opp.subcategoryName || opp.dimensionName}
-                    </span>
-                    <Badge variant="outline" className="text-emerald-700 border-emerald-300">
-                      Score: {opp.score}
-                    </Badge>
-                  </div>
-                  <p className="text-xs text-gray-600">{opp.recommendation}</p>
-                </div>
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
+              12 Health Dimensions (Lower Score = Better Health)
+            </h2>
+            <div className="grid grid-cols-1 gap-6">
+              {assessment.dimensions.map((dimension) => (
+                <ScoreCard
+                  key={dimension.id}
+                  title={dimension.name}
+                  score={dimension.score}
+                  statusText={getRiskLabel(dimension.riskLevel)}
+                  statusColorClass={getRiskColor(dimension.riskLevel)}
+                  icon={iconMap[dimension.id] || <Heart className="h-5 w-5 text-gray-600" />}
+                  interpretation={dimension.interpretation}
+                  riskLevel={dimension.riskLevel}
+                />
               ))}
             </div>
           </div>
+        </TabsContent>
 
-          <div>
-            <h3 className="font-semibold text-yellow-700 mb-3">Areas of Moderate Opportunity</h3>
-            <div className="space-y-2">
-              {assessment.opportunities.moderate.map((opp, idx) => (
-                <div key={idx} className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="font-medium text-sm text-gray-900">
-                      {opp.subcategoryName || opp.dimensionName}
-                    </span>
-                    <Badge variant="outline" className="text-yellow-700 border-yellow-300">
-                      Score: {opp.score}
-                    </Badge>
-                  </div>
-                  <p className="text-xs text-gray-600">{opp.recommendation}</p>
+        <TabsContent value="opportunities" className="space-y-6">
+          <Card className="bg-white border-gray-200 shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold">Areas of Opportunity</CardTitle>
+              <CardDescription>Categorized by risk level and priority for intervention</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div>
+                <h3 className="font-semibold text-emerald-700 mb-3">Areas of Strength (Low Risk)</h3>
+                <div className="space-y-2">
+                  {assessment.opportunities.strengths.map((opp, idx) => (
+                    <div key={idx} className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-medium text-sm text-gray-900">
+                          {opp.subcategoryName || opp.dimensionName}
+                        </span>
+                        <Badge variant="outline" className="text-emerald-700 border-emerald-300">
+                          Score: {opp.score}
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-gray-600">{opp.recommendation}</p>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
+              </div>
 
-          <div>
-            <h3 className="font-semibold text-orange-700 mb-3">Areas of Critical Opportunity</h3>
-            <div className="space-y-2">
-              {assessment.opportunities.critical.map((opp, idx) => (
-                <div key={idx} className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="font-medium text-sm text-gray-900">
-                      {opp.subcategoryName || opp.dimensionName}
-                    </span>
-                    <Badge variant="outline" className="text-orange-700 border-orange-300">
-                      Score: {opp.score}
-                    </Badge>
-                  </div>
-                  <p className="text-xs text-gray-600">{opp.recommendation}</p>
+              <div>
+                <h3 className="font-semibold text-yellow-700 mb-3">Areas of Moderate Opportunity</h3>
+                <div className="space-y-2">
+                  {assessment.opportunities.moderate.map((opp, idx) => (
+                    <div key={idx} className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-medium text-sm text-gray-900">
+                          {opp.subcategoryName || opp.dimensionName}
+                        </span>
+                        <Badge variant="outline" className="text-yellow-700 border-yellow-300">
+                          Score: {opp.score}
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-gray-600">{opp.recommendation}</p>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+              </div>
 
-      <Card className="bg-white border-gray-200 shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold">Action Items</CardTitle>
-          <CardDescription>Organized by stakeholder level</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
+              <div>
+                <h3 className="font-semibold text-orange-700 mb-3">Areas of Critical Opportunity</h3>
+                <div className="space-y-2">
+                  {assessment.opportunities.critical.map((opp, idx) => (
+                    <div key={idx} className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-medium text-sm text-gray-900">
+                          {opp.subcategoryName || opp.dimensionName}
+                        </span>
+                        <Badge variant="outline" className="text-orange-700 border-orange-300">
+                          Score: {opp.score}
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-gray-600">{opp.recommendation}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="actions" className="space-y-6">
+          <Card className="bg-white border-gray-200 shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold">Action Items</CardTitle>
+              <CardDescription>Organized by stakeholder level</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
           <div>
             <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
               <Stethoscope className="h-4 w-4" />
@@ -282,30 +304,34 @@ export function AssessmentDetail({ patient, assessment }: Props) {
                 ))}
             </div>
           </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-      <Card className="bg-white border-gray-200 shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold">Questionnaire Responses</CardTitle>
-          <CardDescription>Patient responses from the assessment questionnaire</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {assessment.questionnaireResponses.map((response) => (
-              <div key={response.questionId} className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                <p className="text-sm font-medium text-gray-900 mb-1">{response.question}</p>
-                <p className="text-sm text-gray-700">
-                  <span className="font-medium">Response:</span> {response.responseText}
-                </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  {new Date(response.timestamp).toLocaleString()}
-                </p>
+        <TabsContent value="questionnaire" className="space-y-6">
+          <Card className="bg-white border-gray-200 shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold">Questionnaire Responses</CardTitle>
+              <CardDescription>Patient responses from the assessment questionnaire</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {assessment.questionnaireResponses.map((response) => (
+                  <div key={response.questionId} className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <p className="text-sm font-medium text-gray-900 mb-1">{response.question}</p>
+                    <p className="text-sm text-gray-700">
+                      <span className="font-medium">Response:</span> {response.responseText}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {new Date(response.timestamp).toLocaleString()}
+                    </p>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

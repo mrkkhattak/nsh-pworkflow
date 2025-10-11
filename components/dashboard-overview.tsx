@@ -5,7 +5,6 @@ import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { AlertTriangle, Users, MessageSquare, FileText } from "lucide-react"
-import { AssessmentDialog } from "@/components/assessment-dialog"
 import { getPatientById, getAssessmentById } from "@/lib/nsh-assessment-mock"
 
 const mockPatients = [
@@ -52,9 +51,6 @@ const statusCounts = {
 }
 
 export function DashboardOverview() {
-  const [assessmentDialogOpen, setAssessmentDialogOpen] = useState(false)
-  const [selectedPatientId, setSelectedPatientId] = useState<number | null>(null)
-  const [selectedAssessmentDate, setSelectedAssessmentDate] = useState<string | null>(null)
 
   return (
     <div className="space-y-8">
@@ -84,17 +80,11 @@ export function DashboardOverview() {
                         View Details
                       </Button>
                     </Link>
-                    <Button
-                      size="sm"
-                      className="bg-red-600 hover:bg-red-700 text-white text-xs"
-                      onClick={() => {
-                        setSelectedPatientId(alert.patientId)
-                        setSelectedAssessmentDate(alert.assessmentDate)
-                        setAssessmentDialogOpen(true)
-                      }}
-                    >
-                      {alert.action}
-                    </Button>
+                    <Link href={`/assessments/${alert.patientId}/${encodeURIComponent(alert.assessmentDate)}`}>
+                      <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white text-xs">
+                        {alert.action}
+                      </Button>
+                    </Link>
                   </div>
                 </div>
               </div>
@@ -169,13 +159,6 @@ export function DashboardOverview() {
         </Card>
       </div>
 
-      {/* Assessment Dialog */}
-      <AssessmentDialog
-        open={assessmentDialogOpen}
-        onOpenChange={setAssessmentDialogOpen}
-        patient={selectedPatientId ? getPatientById(selectedPatientId) : null}
-        assessment={selectedPatientId && selectedAssessmentDate ? getAssessmentById(selectedPatientId, selectedAssessmentDate) : null}
-      />
     </div>
   )
 }
