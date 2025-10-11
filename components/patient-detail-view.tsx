@@ -552,10 +552,12 @@ export function PatientDetailView() {
                       </div>
                       <div className="flex items-center gap-2">
                         <Badge variant="outline">{assessment.provider}</Badge>
-                        <Button variant="outline" size="sm">
-                          <FileText className="h-4 w-4 mr-2" />
-                          View Details
-                        </Button>
+                        <Link href={`/assessments/${mockPatientDetail.id}/${encodeURIComponent(assessment.date)}`}>
+                          <Button variant="outline" size="sm">
+                            <FileText className="h-4 w-4 mr-2" />
+                            View Details
+                          </Button>
+                        </Link>
                       </div>
                     </div>
                   </CardContent>

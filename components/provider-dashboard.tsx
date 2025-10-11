@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -63,10 +64,12 @@ interface Patient {
 
 interface RiskAlert {
   id: number
+  patientId: number
   patient: string
   type: string
   description: string
   action: string
+  assessmentDate: string
 }
 
 const mockPatients: Patient[] = [
@@ -390,17 +393,21 @@ const mockPatients: Patient[] = [
 const riskAlerts: RiskAlert[] = [
   {
     id: 1,
+    patientId: 1,
     patient: "Sarah Johnson",
     type: "High Health Index",
     description: "Health Index Score is above 70.",
     action: "Review Assessment",
+    assessmentDate: "2025-01-01",
   },
   {
     id: 2,
+    patientId: 2,
     patient: "Robert Williams",
     type: "Critical Flags",
     description: "Patient has 3 critical flags.",
     action: "Immediate Follow-up",
+    assessmentDate: "2024-12-28",
   },
 ]
 
@@ -600,12 +607,16 @@ export function ProviderDashboard() {
                     <p className="text-sm text-red-700">{alert.description}</p>
                   </div>
                   <div className="flex gap-2 flex-shrink-0">
-                    <Button size="sm" variant="outline" className="text-xs bg-transparent">
-                      View Details
-                    </Button>
-                    <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white text-xs">
-                      {alert.action}
-                    </Button>
+                    <Link href={`/patients/${alert.patientId}`}>
+                      <Button size="sm" variant="outline" className="text-xs bg-transparent">
+                        View Details
+                      </Button>
+                    </Link>
+                    <Link href={`/assessments/${alert.patientId}/${encodeURIComponent(alert.assessmentDate)}`}>
+                      <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white text-xs">
+                        {alert.action}
+                      </Button>
+                    </Link>
                   </div>
                 </div>
               </div>
