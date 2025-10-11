@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -174,11 +175,7 @@ const mockPatientDetail = {
   ],
 }
 
-interface PatientDetailViewProps {
-  onBack?: () => void
-}
-
-export function PatientDetailView({ onBack }: PatientDetailViewProps) {
+export function PatientDetailView() {
   const [activeTab, setActiveTab] = useState("overview")
   const [showQuickSchedule, setShowQuickSchedule] = useState(false)
   const [responsesOpenFor, setResponsesOpenFor] = useState<string | null>(null)
@@ -231,13 +228,13 @@ export function PatientDetailView({ onBack }: PatientDetailViewProps) {
 
   return (
     <div className="space-y-6 p-6 bg-gray-50/30 min-h-screen">
-      {onBack && (
-        <div className="flex items-center gap-4 mb-6">
-          <Button variant="outline" onClick={onBack} className="bg-white hover:bg-gray-50">
+      <div className="flex items-center gap-4 mb-6">
+        <Link href="/patients">
+          <Button variant="outline" className="bg-white hover:bg-gray-50">
             ← Back to Patients
           </Button>
-        </div>
-      )}
+        </Link>
+      </div>
 
       {/* Patient Header */}
       <Card className="shadow-sm border-gray-200 bg-white">

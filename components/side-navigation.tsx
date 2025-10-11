@@ -1,6 +1,8 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
@@ -21,24 +23,27 @@ import {
   UserCog,
 } from "lucide-react"
 
-interface SideNavigationProps {
-  activeTab: string
-  onTabChange: (tab: string) => void
-}
-
 const navigationItems = [
-  { id: "dashboard", label: "Dashboard", icon: Home },
-  { id: "patients", label: "Patient Pipeline", icon: Users, badge: "4" },
-  { id: "tasks", label: "Task Management", icon: KanbanSquare, badge: "12" },
-  { id: "assessments", label: "Outcomes Tracking", icon: TrendingUp },
-  { id: "referrals", label: "Referrals", icon: ArrowRightLeft, badge: "2" },
-  { id: "messaging", label: "Messaging", icon: MessageCircle, badge: "7" },
-  { id: "team", label: "Healthcare Team", icon: UserCog },
-  { id: "analytics", label: "Analytics", icon: BarChart3 },
+  { id: "dashboard", label: "Dashboard", icon: Home, href: "/" },
+  { id: "patients", label: "Patient Pipeline", icon: Users, badge: "4", href: "/patients" },
+  { id: "tasks", label: "Task Management", icon: KanbanSquare, badge: "12", href: "/tasks" },
+  { id: "assessments", label: "Outcomes Tracking", icon: TrendingUp, href: "/outcomes" },
+  { id: "referrals", label: "Referrals", icon: ArrowRightLeft, badge: "2", href: "/referrals" },
+  { id: "messaging", label: "Messaging", icon: MessageCircle, badge: "7", href: "/messaging" },
+  { id: "team", label: "Healthcare Team", icon: UserCog, href: "/team" },
+  { id: "analytics", label: "Analytics", icon: BarChart3, href: "/analytics" },
 ]
 
-export function SideNavigation({ activeTab, onTabChange }: SideNavigationProps) {
+export function SideNavigation() {
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const pathname = usePathname()
+
+  const isActive = (href: string) => {
+    if (href === "/") {
+      return pathname === "/"
+    }
+    return pathname.startsWith(href)
+  }
 
   return (
     <div
@@ -87,31 +92,31 @@ export function SideNavigation({ activeTab, onTabChange }: SideNavigationProps) 
       <div className="flex-1 p-4 space-y-2">
         {navigationItems.map((item) => {
           const Icon = item.icon
-          const isActive = activeTab === item.id
+          const active = isActive(item.href)
 
           return (
-            <Button
-              key={item.id}
-              variant="ghost"
-              onClick={() => onTabChange(item.id)}
-              className={`w-full justify-start h-10 px-3 transition-colors ${
-                isActive
-                  ? "bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90"
-                  : "hover:bg-sidebar-accent text-sidebar-foreground"
-              }`}
-            >
-              <Icon className="h-4 w-4 flex-shrink-0" />
-              {!isCollapsed && (
-                <>
-                  <span className="ml-3 flex-1 text-left">{item.label}</span>
-                  {item.badge && (
-                    <Badge variant="secondary" className="ml-auto text-xs">
-                      {item.badge}
-                    </Badge>
-                  )}
-                </>
-              )}
-            </Button>
+            <Link key={item.id} href={item.href}>
+              <Button
+                variant="ghost"
+                className={`w-full justify-start h-10 px-3 transition-colors ${
+                  active
+                    ? "bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90"
+                    : "hover:bg-sidebar-accent text-sidebar-foreground"
+                }`}
+              >
+                <Icon className="h-4 w-4 flex-shrink-0" />
+                {!isCollapsed && (
+                  <>
+                    <span className="ml-3 flex-1 text-left">{item.label}</span>
+                    {item.badge && (
+                      <Badge variant="secondary" className="ml-auto text-xs">
+                        {item.badge}
+                      </Badge>
+                    )}
+                  </>
+                )}
+              </Button>
+            </Link>
           )
         })}
       </div>
