@@ -4,28 +4,20 @@ import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Legend } from "recharts"
 import { InterventionTimeline } from "@/components/intervention-timeline"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { GoalTemplatesSystem } from "@/components/goal-templates-system"
-import { getPatientById, getAssessmentById } from "@/lib/nsh-assessment-mock"
 import Link from "next/link"
 import {
-  TrendingDown,
-  TrendingUp,
   Calendar,
   FileText,
   CheckCircle,
   Target,
   Activity,
-  Brain,
   Heart,
-  Zap,
-  User,
 } from "lucide-react"
 
 // Mock PROM data for demonstration
@@ -121,281 +113,30 @@ const mockPromDataByPatient = {
       engagement: { baseline: 85, target: 95, current: 100, horizon: "4 months" },
     },
   },
-  2: {
-    patient: {
-      id: 2,
-      name: "Michael Chen",
-      age: 38,
-      condition: "Generalized Anxiety Disorder",
-      enrollmentDate: "2024-09-15",
-      riskLevel: "high",
-      lastAssessment: "2024-12-28",
-    },
-    assessments: [
-      {
-        date: "2024-09-15",
-        burden: 80,
-        medical: 80,
-        utilization: 55,
-        sdoh: 60,
-        diet: 70,
-        physical: 50,
-        sleep: 60,
-        pain: 20,
-        satisfaction: 75,
-        mental: 60,
-        cost: 50,
-        engagement: 70,
-        interventions: ["Started Escitalopram 10mg"],
-      },
-      {
-        date: "2024-10-15",
-        burden: 75,
-        medical: 85,
-        utilization: 60,
-        sdoh: 55,
-        diet: 65,
-        physical: 55,
-        sleep: 55,
-        pain: 15,
-        satisfaction: 70,
-        mental: 55,
-        cost: 55,
-        engagement: 75,
-        interventions: ["Added mindfulness therapy"],
-      },
-      {
-        date: "2024-11-15",
-        burden: 70,
-        medical: 90,
-        utilization: 65,
-        sdoh: 50,
-        diet: 60,
-        physical: 60,
-        sleep: 50,
-        pain: 10,
-        satisfaction: 65,
-        mental: 50,
-        cost: 60,
-        engagement: 80,
-        interventions: ["Increased therapy frequency"],
-      },
-      {
-        date: "2024-12-28",
-        burden: 65,
-        medical: 95,
-        utilization: 70,
-        sdoh: 45,
-        diet: 55,
-        physical: 65,
-        sleep: 45,
-        pain: 5,
-        satisfaction: 60,
-        mental: 45,
-        cost: 65,
-        engagement: 85,
-        interventions: ["Maintained current plan"],
-      },
-    ],
-    goals: {
-      burden: { baseline: 80, target: 25, current: 65, horizon: "4 months" },
-      medical: { baseline: 80, target: 95, current: 95, horizon: "6 months" },
-      utilization: { baseline: 55, target: 85, current: 70, horizon: "4 months" },
-      sdoh: { baseline: 60, target: 25, current: 45, horizon: "4 months" },
-      diet: { baseline: 70, target: 85, current: 55, horizon: "6 months" },
-      physical: { baseline: 50, target: 85, current: 65, horizon: "4 months" },
-      sleep: { baseline: 60, target: 85, current: 45, horizon: "6 months" },
-      pain: { baseline: 20, target: 15, current: 5, horizon: "2 months" },
-      satisfaction: { baseline: 75, target: 80, current: 60, horizon: "6 months" },
-      mental: { baseline: 60, target: 95, current: 45, horizon: "6 months" },
-      cost: { baseline: 50, target: 25, current: 65, horizon: "4 months" },
-      engagement: { baseline: 70, target: 95, current: 85, horizon: "4 months" },
-    },
-  },
-  // Add more patient data as needed
 }
 
 const promDomains = [
-  {
-    id: "burden",
-    name: "Burden of Illness",
-    description: "Overall disease burden assessment",
-    icon: Brain,
-    range: "0-100",
-    interpretation: {
-      minimal: "0-25",
-      mild: "26-50",
-      moderate: "51-75",
-      severe: "76-100",
-    },
-    color: "#3b82f6",
-  },
-  {
-    id: "medical",
-    name: "Medical Management & Adherence",
-    description: "Medication and treatment adherence",
-    icon: Heart,
-    range: "0-100",
-    interpretation: {
-      excellent: "81-100",
-      good: "61-80",
-      fair: "41-60",
-      poor: "0-40",
-    },
-    color: "#10b981",
-  },
-  {
-    id: "utilization",
-    name: "Health Care Utilization",
-    description: "Healthcare service usage patterns",
-    icon: Activity,
-    range: "0-100",
-    interpretation: {
-      low: "0-25",
-      moderate: "26-50",
-      high: "51-75",
-      veryHigh: "76-100",
-    },
-    color: "#f59e0b",
-  },
-  {
-    id: "sdoh",
-    name: "SDOH",
-    description: "Social Determinants of Health",
-    icon: Zap,
-    range: "0-100",
-    interpretation: {
-      stable: "0-25",
-      atRisk: "26-50",
-      unstable: "51-75",
-      critical: "76-100",
-    },
-    color: "#ef4444",
-  },
-  {
-    id: "diet",
-    name: "Diet & Nutrition",
-    description: "Nutritional health assessment",
-    icon: Brain,
-    range: "0-100",
-    interpretation: {
-      excellent: "81-100",
-      good: "61-80",
-      fair: "41-60",
-      poor: "0-40",
-    },
-    color: "#8b5cf6",
-  },
-  {
-    id: "physical",
-    name: "Physical Activity Score",
-    description: "Exercise and physical activity levels",
-    icon: Activity,
-    range: "0-100",
-    interpretation: {
-      veryActive: "81-100",
-      active: "61-80",
-      moderate: "41-60",
-      sedentary: "0-40",
-    },
-    color: "#06b6d4",
-  },
-  {
-    id: "sleep",
-    name: "Sleep Health",
-    description: "Sleep quality and patterns",
-    icon: Heart,
-    range: "0-100",
-    interpretation: {
-      excellent: "81-100",
-      good: "61-80",
-      fair: "41-60",
-      poor: "0-40",
-    },
-    color: "#ec4899",
-  },
-  {
-    id: "pain",
-    name: "Pain & Functional Impact",
-    description: "Pain levels and functional limitations",
-    icon: Zap,
-    range: "0-100",
-    interpretation: {
-      none: "0-25",
-      mild: "26-50",
-      moderate: "51-75",
-      severe: "76-100",
-    },
-    color: "#f97316",
-  },
-  {
-    id: "satisfaction",
-    name: "Patient Satisfaction & Trust",
-    description: "Healthcare satisfaction and provider trust",
-    icon: Heart,
-    range: "0-100",
-    interpretation: {
-      veryHigh: "81-100",
-      high: "61-80",
-      moderate: "41-60",
-      low: "0-40",
-    },
-    color: "#14b8a6",
-  },
-  {
-    id: "mental",
-    name: "Mental Health & Emotional Wellbeing",
-    description: "Psychological and emotional health",
-    icon: Brain,
-    range: "0-100",
-    interpretation: {
-      excellent: "81-100",
-      good: "61-80",
-      fair: "41-60",
-      poor: "0-40",
-    },
-    color: "#6366f1",
-  },
-  {
-    id: "cost",
-    name: "Healthcare Cost & Affordability",
-    description: "Financial burden of healthcare",
-    icon: Activity,
-    range: "0-100",
-    interpretation: {
-      affordable: "0-25",
-      manageable: "26-50",
-      burdensome: "51-75",
-      unaffordable: "76-100",
-    },
-    color: "#84cc16",
-  },
-  {
-    id: "engagement",
-    name: "Patient Engagement & Self Care Ability",
-    description: "Self-management and engagement levels",
-    icon: Zap,
-    range: "0-100",
-    interpretation: {
-      veryHigh: "81-100",
-      high: "61-80",
-      moderate: "41-60",
-      low: "0-40",
-    },
-    color: "#f43f5e",
-  },
+  { id: "burden", name: "Burden of Illness", color: "#3b82f6" },
+  { id: "medical", name: "Medical Management & Adherence", color: "#10b981" },
+  { id: "utilization", name: "Health Care Utilization", color: "#f59e0b" },
+  { id: "sdoh", name: "SDOH", color: "#ef4444" },
+  { id: "diet", name: "Diet & Nutrition", color: "#8b5cf6" },
+  { id: "physical", name: "Physical Activity Score", color: "#06b6d4" },
+  { id: "sleep", name: "Sleep Health", color: "#ec4899" },
+  { id: "pain", name: "Pain & Functional Impact", color: "#f97316" },
+  { id: "satisfaction", name: "Patient Satisfaction & Trust", color: "#14b8a6" },
+  { id: "mental", name: "Mental Health & Emotional Wellbeing", color: "#6366f1" },
+  { id: "cost", name: "Healthcare Cost & Affordability", color: "#84cc16" },
+  { id: "engagement", name: "Patient Engagement & Self Care Ability", color: "#f43f5e" },
 ]
 
 export function PatientAssessmentTracking() {
-  const [selectedPatient, setSelectedPatient] = useState<number>(1)
   const [selectedDimensions, setSelectedDimensions] = useState<string[]>(["burden"])
-  const [selectedTimeframe, setSelectedTimeframe] = useState("6months")
   const [isGoalDialogOpen, setIsGoalDialogOpen] = useState(false)
   const [createGoalOpen, setCreateGoalOpen] = useState(false)
   const [goalsOptions, setGoalsOptions] = useState<{ id: string; label: string }[]>([])
 
-  const currentPatientData =
-    mockPromDataByPatient[selectedPatient as keyof typeof mockPromDataByPatient] || mockPromDataByPatient[1]
+  const currentPatientData = mockPromDataByPatient[1]
 
   // Build tracked dimensions list from chartConfig so it matches what's visualized
   const chartConfig = {
@@ -474,30 +215,6 @@ export function PatientAssessmentTracking() {
     })
   }
 
-  const getProgressStatus = (baseline: number, current: number, target: number) => {
-    const totalImprovement = baseline - target
-    const currentImprovement = baseline - current
-    const progressPercent = (currentImprovement / totalImprovement) * 100
-
-    if (progressPercent >= 100) return { status: "achieved", color: "text-green-600" }
-    if (progressPercent >= 75) return { status: "on-track", color: "text-green-600" }
-    if (progressPercent >= 50) return { status: "progressing", color: "text-yellow-600" }
-    if (progressPercent >= 25) return { status: "slow-progress", color: "text-orange-600" }
-    return { status: "at-risk", color: "text-red-600" }
-  }
-
-  const getClinicalSignificance = (baseline: number, current: number) => {
-    const change = baseline - current
-    const percentChange = (change / baseline) * 100
-
-    if (percentChange >= 50) return { level: "Very Significant", color: "text-green-700", icon: TrendingDown }
-    if (percentChange >= 30) return { level: "Significant", color: "text-green-600", icon: TrendingDown }
-    if (percentChange >= 15) return { level: "Moderate", color: "text-yellow-600", icon: TrendingDown }
-    if (percentChange >= 5) return { level: "Minimal", color: "text-orange-600", icon: TrendingDown }
-    if (percentChange <= -5) return { level: "Worsening", color: "text-red-600", icon: TrendingUp }
-    return { level: "No Change", color: "text-gray-600", icon: TrendingUp }
-  }
-
   const handleGoalCreated = (goal: { id: string; description: string }) => {
     setGoalsOptions((prev) => [{ id: goal.id, label: goal.description }, ...prev])
   }
@@ -516,54 +233,6 @@ export function PatientAssessmentTracking() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Select
-            value={selectedPatient.toString()}
-            onValueChange={(value) => setSelectedPatient(Number.parseInt(value))}
-          >
-            <SelectTrigger className="w-64 border-gray-200 shadow-sm">
-              <div className="flex items-center gap-2">
-                <User className="h-4 w-4 text-gray-500" />
-                <SelectValue placeholder="Select Patient" />
-              </div>
-            </SelectTrigger>
-            <SelectContent>
-              {Object.values(mockPromDataByPatient).map((patientData) => (
-                <SelectItem key={patientData.patient.id} value={patientData.patient.id.toString()}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex flex-col">
-                      <span className="font-medium">{patientData.patient.name}</span>
-                      <span className="text-xs text-gray-500">{patientData.patient.condition}</span>
-                    </div>
-                    <Badge
-                      variant={
-                        patientData.patient.riskLevel === "high"
-                          ? "destructive"
-                          : patientData.patient.riskLevel === "moderate"
-                            ? "secondary"
-                            : "outline"
-                      }
-                      className="ml-2 text-xs"
-                    >
-                      {patientData.patient.riskLevel}
-                    </Badge>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select value={selectedTimeframe} onValueChange={setSelectedTimeframe}>
-            <SelectTrigger className="w-40 border-gray-200 shadow-sm">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="3months">Last 3 Months</SelectItem>
-              <SelectItem value="6months">Last 6 Months</SelectItem>
-              <SelectItem value="1year">Last Year</SelectItem>
-              <SelectItem value="all">All Time</SelectItem>
-            </SelectContent>
-          </Select>
-
           <Button
             className="shadow-sm bg-blue-600 hover:bg-blue-700 border-0"
             onClick={() => setIsGoalDialogOpen(true)}
@@ -579,68 +248,6 @@ export function PatientAssessmentTracking() {
         </div>
       </div>
 
-      {/* PROM Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        {promDomains.map((domain) => {
-          const goal = currentPatientData.goals[domain.id as keyof typeof currentPatientData.goals]
-          const progress = getProgressStatus(goal.baseline, goal.current, goal.target)
-          const significance = getClinicalSignificance(goal.baseline, goal.current)
-          const Icon = domain.icon
-          const SignificanceIcon = significance.icon
-
-          return (
-            <Card
-              key={domain.id}
-              className={`transition-all duration-200 hover:shadow-md border-gray-200 bg-white ${
-                selectedDimensions.includes(domain.id) ? "ring-2 ring-blue-500 shadow-lg" : "hover:shadow-sm"
-              }`}
-            >
-              <CardHeader className="pb-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="p-2 bg-gray-50 rounded-lg">
-                    <Icon className="h-5 w-5 text-gray-600" />
-                  </div>
-                  <Badge variant="outline" className="text-xs bg-gray-50 text-gray-600 border-gray-200">
-                    {domain.range}
-                  </Badge>
-                </div>
-                <CardTitle className="text-base font-medium text-gray-900">{domain.name}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-3xl font-bold text-gray-900">{goal.current}</span>
-                  <div className="flex items-center gap-2 px-2 py-1 bg-gray-50 rounded-lg">
-                    <SignificanceIcon className={`h-4 w-4 ${significance.color}`} />
-                    <span className={`text-xs font-medium ${significance.color}`}>{significance.level}</span>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm text-gray-600">
-                    <span>Progress to Target</span>
-                    <span className="font-medium">
-                      {Math.round(((goal.baseline - goal.current) / (goal.baseline - goal.target)) * 100)}%
-                    </span>
-                  </div>
-                  <Progress
-                    value={((goal.baseline - goal.current) / (goal.baseline - goal.target)) * 100}
-                    className="h-2 bg-gray-100"
-                  />
-                </div>
-
-                <div className="flex justify-between text-xs text-gray-500">
-                  <span>Baseline: {goal.baseline}</span>
-                  <span>Target: {goal.target}</span>
-                </div>
-
-                <Badge variant="outline" className={`text-xs font-medium ${progress.color} bg-white border-current/20`}>
-                  {progress.status.replace("-", " ")}
-                </Badge>
-              </CardContent>
-            </Card>
-          )
-        })}
-      </div>
 
       <Tabs defaultValue="trends" className="space-y-6">
         <TabsList className="grid w-full grid-cols-3 bg-gray-100 p-1 rounded-lg">
