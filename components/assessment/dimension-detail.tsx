@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { ScoreCard } from "./score-card"
 import { RiskScaleBar } from "./risk-scale-bar"
@@ -13,6 +14,9 @@ import { ArrowLeft, Stethoscope, Users, Building2, TrendingUp, TrendingDown, Tar
 import { Progress } from "@/components/ui/progress"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts"
+import { AddGoalDialog } from "@/components/add-goal-dialog"
+import { AddInterventionDialog } from "@/components/add-intervention-dialog"
+import { useToast } from "@/hooks/use-toast"
 
 type Props = {
   patient: Patient
@@ -29,10 +33,18 @@ const mockTrendData = [
 
 export function DimensionDetail({ patient, assessment, dimension }: Props) {
   const router = useRouter()
+  const { toast } = useToast()
+
+  const [showAddGoalDialog, setShowAddGoalDialog] = useState(false)
+  const [showAddInterventionDialog, setShowAddInterventionDialog] = useState(false)
+  const [newGoals, setNewGoals] = useState<DimensionGoal[]>([])
+  const [newInterventions, setNewInterventions] = useState<string[]>([])
 
   const dimensionGoals = getGoalsByDimension(dimension.id)
-  const activeGoals = dimensionGoals.filter((goal) => goal.status !== "achieved" && goal.status !== "cancelled")
-  const activeInterventions = getActiveInterventionsByDimension(dimension.id)
+  const allGoals = [...dimensionGoals, ...newGoals]
+  const activeGoals = allGoals.filter((goal) => goal.status !== "achieved" && goal.status !== "cancelled")
+  const baseInterventions = getActiveInterventionsByDimension(dimension.id)
+  const activeInterventions = [...baseInterventions, ...newInterventions]
 
   const dimensionActionItems = assessment.actionItems.filter((item) => {
     if (item.type === "physician" || item.type === "patient" || item.type === "community") {
@@ -66,6 +78,66 @@ export function DimensionDetail({ patient, assessment, dimension }: Props) {
       label: dimension.name,
       color: dimension.color,
     },
+  }
+
+  const handleAddGoal = (goalData: {
+    description: string
+    baseline: number
+    target: number
+    current: number
+    timeframe: string
+    deadline: string
+  }) => {
+    const progress = Math.round(((goalData.baseline - goalData.current) / (goalData.baseline - goalData.target)) * 100)
+    const newGoal: DimensionGoal = {
+      id: `goal-${dimension.id}-${Date.now()}`,
+      dimensionId: dimension.id,
+      dimensionName: dimension.name,
+      description: goalData.description,
+      baseline: goalData.baseline,
+      target: goalData.target,
+      current: goalData.current,
+      timeframe: goalData.timeframe,
+      deadline: goalData.deadline,
+      progress: Math.max(0, Math.min(100, progress)),
+      status: "on-track",
+      createdDate: new Date().toISOString(),
+      linkedInterventions: [],
+    }
+    setNewGoals([...newGoals, newGoal])
+    toast({
+      title: "Goal Added",
+      description: "New goal has been successfully added.",
+    })
+  }
+
+  const handleAddIntervention = (interventionData: {
+    type: "Medication" | "Lifestyle" | "Therapy" | "Other"
+    date: string
+    details: Record<string, string>
+    notes?: string
+    goalId?: string
+  }) => {
+    let interventionName = ""
+    switch (interventionData.type) {
+      case "Medication":
+        interventionName = `${interventionData.details.drugName} ${interventionData.details.dose}`
+        break
+      case "Lifestyle":
+        interventionName = interventionData.details.specificChange
+        break
+      case "Therapy":
+        interventionName = `${interventionData.details.type} - ${interventionData.details.frequency}`
+        break
+      case "Other":
+        interventionName = interventionData.details.name
+        break
+    }
+    setNewInterventions([...newInterventions, interventionName])
+    toast({
+      title: "Intervention Added",
+      description: "New intervention has been successfully added.",
+    })
   }
 
   return (
@@ -466,7 +538,7 @@ export function DimensionDetail({ patient, assessment, dimension }: Props) {
                     </CardTitle>
                     <CardDescription>Current health improvement goals for {dimension.name}</CardDescription>
                   </div>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" onClick={() => setShowAddGoalDialog(true)}>
                     Add Goal
                   </Button>
                 </div>
@@ -482,24 +554,22 @@ export function DimensionDetail({ patient, assessment, dimension }: Props) {
                   return (
                     <Card
                       key={goal.id}
-                      className={`border ${goal.status === "on-track" ? "border-emerald-200 bg-emerald-50" : goal.status === "at-risk" ? "border-orange-200 bg-orange-50" : "border-gray-200"}`}
+                      className={`border ${goal.status === "at-risk" ? "border-orange-200 bg-orange-50" : "border-gray-200"}`}
                     >
                       <CardContent className="p-4 space-y-3">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
                               <h4 className="font-semibold text-gray-900">{goal.description}</h4>
-                              <Badge
-                                variant={goal.status === "on-track" ? "default" : "secondary"}
-                                className={`${goal.status === "on-track" ? "bg-emerald-600" : goal.status === "at-risk" ? "bg-orange-600" : "bg-gray-600"} text-white`}
-                              >
-                                {goal.status === "on-track" ? (
-                                  <CheckCircle className="h-3 w-3 mr-1" />
-                                ) : (
+                              {goal.status === "at-risk" && (
+                                <Badge
+                                  variant="secondary"
+                                  className="bg-orange-600 text-white"
+                                >
                                   <AlertCircle className="h-3 w-3 mr-1" />
-                                )}
-                                {goal.status.replace("-", " ")}
-                              </Badge>
+                                  at risk
+                                </Badge>
+                              )}
                             </div>
 
                             <div className="grid grid-cols-3 gap-3 text-sm mb-3">
@@ -585,7 +655,7 @@ export function DimensionDetail({ patient, assessment, dimension }: Props) {
                       {activeInterventions.length} active intervention{activeInterventions.length !== 1 ? "s" : ""} for {dimension.name}
                     </CardDescription>
                   </div>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" onClick={() => setShowAddInterventionDialog(true)}>
                     Add Intervention
                   </Button>
                 </div>
@@ -615,10 +685,10 @@ export function DimensionDetail({ patient, assessment, dimension }: Props) {
                     No active goals or interventions for this dimension.
                   </p>
                   <div className="flex items-center justify-center gap-2">
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" onClick={() => setShowAddGoalDialog(true)}>
                       Add Goal
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" onClick={() => setShowAddInterventionDialog(true)}>
                       Add Intervention
                     </Button>
                   </div>
@@ -655,6 +725,24 @@ export function DimensionDetail({ patient, assessment, dimension }: Props) {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <AddGoalDialog
+        open={showAddGoalDialog}
+        onOpenChange={setShowAddGoalDialog}
+        dimensionId={dimension.id}
+        dimensionName={dimension.name}
+        currentScore={dimension.score}
+        onSave={handleAddGoal}
+      />
+
+      <AddInterventionDialog
+        open={showAddInterventionDialog}
+        onOpenChange={setShowAddInterventionDialog}
+        dimensionId={dimension.id}
+        dimensionName={dimension.name}
+        goals={allGoals}
+        onSave={handleAddIntervention}
+      />
     </div>
   )
 }
