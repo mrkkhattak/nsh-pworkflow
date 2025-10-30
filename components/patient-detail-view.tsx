@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { QuickScheduleDialog } from "@/components/quick-schedule-dialog"
 import { PatientAssessmentTracking } from "@/components/patient-assessment-tracking"
 import { MessagingTeamHub } from "@/components/messaging-team-hub"
-import { getPatientById, getAssessmentById } from "@/lib/nsh-assessment-mock"
+import { getPatientById, getAssessmentById, healthDimensionsConfig } from "@/lib/nsh-assessment-mock"
 import {
   Phone,
   Mail,
@@ -735,7 +735,60 @@ export function PatientDetailView() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="progress">
+        <TabsContent value="progress" className="space-y-6">
+          <Card className="shadow-sm border-gray-200 bg-white">
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold">12 Health Dimensions Progress</CardTitle>
+              <p className="text-sm text-gray-600">Current scores across all health dimensions (Lower score = Better health)</p>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {healthDimensionsConfig.map((dimension) => {
+                const mockScore = Math.floor(Math.random() * 100)
+                const mockBaseline = mockScore + Math.floor(Math.random() * 20)
+                const progressPercent = ((mockBaseline - mockScore) / mockBaseline) * 100
+
+                return (
+                  <div key={dimension.id} className="p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3 flex-1">
+                        <div
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: dimension.color }}
+                        />
+                        <div className="flex-1">
+                          <h4 className="font-medium text-gray-900">{dimension.name}</h4>
+                          <p className="text-xs text-gray-600">Baseline: {mockBaseline} → Current: {mockScore}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-6">
+                        <div className="text-center">
+                          <p className="text-2xl font-bold text-gray-900">{mockScore}</p>
+                          <p className="text-xs text-gray-600">Current Score</p>
+                        </div>
+                        <div className="w-48">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs text-gray-600">Progress</span>
+                            <span className="text-xs font-medium text-gray-900">{Math.round(progressPercent)}%</span>
+                          </div>
+                          <Progress
+                            value={progressPercent}
+                            className="h-2"
+                          />
+                        </div>
+                        <Badge
+                          variant={mockScore <= 25 ? "default" : mockScore <= 50 ? "secondary" : mockScore <= 75 ? "outline" : "destructive"}
+                          className="text-xs"
+                        >
+                          {mockScore <= 25 ? "Excellent" : mockScore <= 50 ? "Good" : mockScore <= 75 ? "Fair" : "Needs Attention"}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </CardContent>
+          </Card>
+
           <PatientAssessmentTracking />
         </TabsContent>
       </Tabs>
