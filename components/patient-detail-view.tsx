@@ -182,6 +182,8 @@ export function PatientDetailView() {
   const [showQuickSchedule, setShowQuickSchedule] = useState(false)
   const [responsesOpenFor, setResponsesOpenFor] = useState<string | null>(null)
 
+  const latestAssessment = getAssessmentById(mockPatientDetail.id)
+
   // Persist view state and scroll per ERR-PDV-004
   useState(() => {
     if (typeof window !== "undefined") {
@@ -372,12 +374,15 @@ export function PatientDetailView() {
         }}
         className="space-y-6"
       >
-        <TabsList className="grid w-full grid-cols-6 bg-gray-100 p-1 rounded-lg">
+        <TabsList className="grid w-full grid-cols-7 bg-gray-100 p-1 rounded-lg">
           <TabsTrigger value="overview" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
             Overview
           </TabsTrigger>
           <TabsTrigger value="assessments" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
             Assessments
+          </TabsTrigger>
+          <TabsTrigger value="opportunities" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+            Areas of Opportunity
           </TabsTrigger>
           <TabsTrigger value="medications" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
             Medications
@@ -567,6 +572,112 @@ export function PatientDetailView() {
               ))}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="opportunities" className="space-y-6">
+          {latestAssessment ? (
+            <Card className="shadow-sm border-gray-200 bg-white">
+              <CardHeader>
+                <CardTitle className="text-lg font-semibold">Areas of Opportunity</CardTitle>
+                <p className="text-sm text-gray-600">
+                  All opportunities identified across health dimensions from latest assessment (
+                  {new Date(latestAssessment.date).toLocaleDateString()})
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {latestAssessment.opportunities.strengths.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold text-emerald-700 mb-3">
+                      Areas of Strength (Low Risk) • {latestAssessment.opportunities.strengths.length}
+                    </h3>
+                    <div className="space-y-2">
+                      {latestAssessment.opportunities.strengths.map((opp, idx) => (
+                        <div key={idx} className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+                          <div className="mb-1">
+                            <span className="font-medium text-sm text-gray-900">
+                              {opp.dimensionName}
+                              {opp.subcategoryName && ` - ${opp.subcategoryName}`}
+                            </span>
+                            <Badge variant="outline" className="ml-2 text-emerald-700 border-emerald-300 text-xs">
+                              Score: {opp.score}
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-gray-600">{opp.recommendation}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {latestAssessment.opportunities.moderate.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold text-yellow-700 mb-3">
+                      Areas of Moderate Opportunity • {latestAssessment.opportunities.moderate.length}
+                    </h3>
+                    <div className="space-y-2">
+                      {latestAssessment.opportunities.moderate.map((opp, idx) => (
+                        <div key={idx} className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                          <div className="mb-1">
+                            <span className="font-medium text-sm text-gray-900">
+                              {opp.dimensionName}
+                              {opp.subcategoryName && ` - ${opp.subcategoryName}`}
+                            </span>
+                            <Badge variant="outline" className="ml-2 text-yellow-700 border-yellow-300 text-xs">
+                              Score: {opp.score}
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-gray-600">{opp.recommendation}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {latestAssessment.opportunities.critical.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold text-orange-700 mb-3">
+                      Areas of Critical Opportunity • {latestAssessment.opportunities.critical.length}
+                    </h3>
+                    <div className="space-y-2">
+                      {latestAssessment.opportunities.critical.map((opp, idx) => (
+                        <div key={idx} className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                          <div className="mb-1">
+                            <span className="font-medium text-sm text-gray-900">
+                              {opp.dimensionName}
+                              {opp.subcategoryName && ` - ${opp.subcategoryName}`}
+                            </span>
+                            <Badge variant="outline" className="ml-2 text-orange-700 border-orange-300 text-xs">
+                              Score: {opp.score}
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-gray-600">{opp.recommendation}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {latestAssessment.opportunities.strengths.length === 0 &&
+                  latestAssessment.opportunities.moderate.length === 0 &&
+                  latestAssessment.opportunities.critical.length === 0 && (
+                    <div className="text-center py-8">
+                      <AlertTriangle className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                      <p className="text-sm text-gray-500">No opportunities identified in the latest assessment.</p>
+                    </div>
+                  )}
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="shadow-sm border-gray-200 bg-white">
+              <CardContent className="py-12">
+                <div className="text-center">
+                  <FileText className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                  <p className="text-sm text-gray-500 mb-2">No assessment data available for this patient.</p>
+                  <p className="text-xs text-gray-400">Complete an assessment to see areas of opportunity.</p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         <TabsContent value="medications" className="space-y-6">
