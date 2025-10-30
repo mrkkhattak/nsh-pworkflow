@@ -315,14 +315,19 @@ export function InterventionTimeline({
                 })}
               </div>
               {entry.item?.status === "stopped" && entry.item.stoppedDate && (
-                <div className="flex flex-col gap-1 text-xs text-gray-600 bg-gray-50 p-2 rounded">
-                  <div className="flex items-center gap-1">
-                    <Calendar className="h-3 w-3" />
-                    <span className="font-medium">Stopped:</span>
-                    <span>{new Date(entry.item.stoppedDate).toLocaleDateString()}</span>
+                <div className="flex flex-col gap-1 text-xs text-gray-600 bg-red-50 p-3 rounded border border-red-200">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="bg-red-100 text-red-800 hover:bg-red-100">
+                      <StopCircle className="h-3 w-3 mr-1" />
+                      Stopped
+                    </Badge>
+                    <div className="flex items-center gap-1 text-gray-700">
+                      <Calendar className="h-3 w-3" />
+                      <span>{new Date(entry.item.stoppedDate).toLocaleDateString()}</span>
+                    </div>
                   </div>
                   {entry.item.stoppedReason && (
-                    <div className="flex items-start gap-1">
+                    <div className="flex items-start gap-1 mt-1">
                       <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />
                       <span className="font-medium">Reason:</span>
                       <span className="flex-1">{entry.item.stoppedReason}</span>
