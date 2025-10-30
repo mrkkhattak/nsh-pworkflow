@@ -7,9 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import type { Assessment, Patient, HealthDimension, ActionItem } from "@/lib/nsh-assessment-mock"
-import { getRiskColor, getRiskLabel, getRiskBgColor, getRiskBorderColor } from "@/lib/nsh-assessment-mock"
-import { ArrowLeft, Stethoscope, Users, Building2, TrendingUp, TrendingDown } from "lucide-react"
+import { Progress } from "@/components/ui/progress"
+import type { Assessment, Patient, HealthDimension, ActionItem, Goal, Intervention } from "@/lib/nsh-assessment-mock"
+import { getRiskColor, getRiskLabel, getRiskBgColor, getRiskBorderColor, getGoalsByDimension, getInterventionsByDimension, getInterventionById } from "@/lib/nsh-assessment-mock"
+import { ArrowLeft, Stethoscope, Users, Building2, TrendingUp, TrendingDown, Target, Calendar, CheckCircle, AlertTriangle, Pill, Dumbbell, Brain, Plus, StopCircle } from "lucide-react"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts"
 
@@ -61,6 +62,62 @@ export function DimensionDetail({ patient, assessment, dimension }: Props) {
       label: dimension.name,
       color: dimension.color,
     },
+  }
+
+  const dimensionGoals = getGoalsByDimension(assessment, dimension.id)
+  const dimensionInterventions = getInterventionsByDimension(assessment, dimension.id)
+  const activeGoals = dimensionGoals.filter((g) => g.status !== "achieved" && g.status !== "cancelled")
+  const completedGoals = dimensionGoals.filter((g) => g.status === "achieved")
+  const activeInterventions = dimensionInterventions.filter((i) => i.status === "active")
+  const stoppedInterventions = dimensionInterventions.filter((i) => i.status === "stopped")
+
+  const getStatusColor = (status: Goal["status"]) => {
+    switch (status) {
+      case "achieved":
+        return "bg-green-100 text-green-800"
+      case "on-track":
+        return "bg-blue-100 text-blue-800"
+      case "at-risk":
+        return "bg-red-100 text-red-800"
+      case "cancelled":
+        return "bg-gray-100 text-gray-800"
+      default:
+        return "bg-gray-100 text-gray-800"
+    }
+  }
+
+  const getInterventionTypeIcon = (type: Intervention["type"]) => {
+    switch (type) {
+      case "Medication":
+        return Pill
+      case "Lifestyle":
+        return Dumbbell
+      case "Therapy":
+        return Brain
+      default:
+        return Plus
+    }
+  }
+
+  const getInterventionTypeColor = (type: Intervention["type"]) => {
+    switch (type) {
+      case "Medication":
+        return "text-blue-600 bg-blue-50 border-blue-200"
+      case "Lifestyle":
+        return "text-green-600 bg-green-50 border-green-200"
+      case "Therapy":
+        return "text-purple-600 bg-purple-50 border-purple-200"
+      default:
+        return "text-orange-600 bg-orange-50 border-orange-200"
+    }
+  }
+
+  const getDaysUntilDeadline = (deadline: string) => {
+    const today = new Date()
+    const deadlineDate = new Date(deadline)
+    const diffTime = deadlineDate.getTime() - today.getTime()
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    return diffDays
   }
 
   return (
@@ -397,56 +454,333 @@ export function DimensionDetail({ patient, assessment, dimension }: Props) {
         </TabsContent>
 
         <TabsContent value="progress" className="space-y-6">
+          {/* Goals Section */}
           <Card className="bg-white border-gray-200 shadow-sm">
             <CardHeader>
-              <CardTitle className="text-lg font-semibold">Score Trend</CardTitle>
-              <CardDescription>Historical progress for {dimension.name}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-80 w-full">
-                <ChartContainer config={chartConfig} className="h-full w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={mockTrendData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" opacity={0.7} />
-                      <XAxis
-                        dataKey="date"
-                        stroke="#6b7280"
-                        fontSize={12}
-                        tickMargin={8}
-                      />
-                      <YAxis stroke="#6b7280" fontSize={12} tickMargin={8} domain={[0, 100]} />
-                      <ChartTooltip
-                        content={<ChartTooltipContent />}
-                        contentStyle={{
-                          backgroundColor: "white",
-                          border: "1px solid #e5e7eb",
-                          borderRadius: "8px",
-                          boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-                        }}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="score"
-                        name={dimension.name}
-                        stroke={dimension.color}
-                        strokeWidth={3}
-                        dot={{
-                          fill: dimension.color,
-                          strokeWidth: 2,
-                          r: 5,
-                          stroke: "white",
-                        }}
-                        activeDot={{
-                          r: 7,
-                          stroke: dimension.color,
-                          strokeWidth: 2,
-                          fill: "white",
-                        }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </ChartContainer>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                    <Target className="h-5 w-5" />
+                    Treatment Goals
+                  </CardTitle>
+                  <CardDescription>Active and completed goals for {dimension.name}</CardDescription>
+                </div>
+                <div className="flex items-center gap-4 text-sm">
+                  <div className="text-center">
+                    <div className="text-xl font-bold text-blue-600">{activeGoals.length}</div>
+                    <div className="text-xs text-gray-600">Active</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-xl font-bold text-green-600">{completedGoals.length}</div>
+                    <div className="text-xs text-gray-600">Achieved</div>
+                  </div>
+                </div>
               </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {dimensionGoals.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <Target className="h-12 w-12 mx-auto mb-3 opacity-30" />
+                  <p className="text-sm">No goals have been set for this dimension yet.</p>
+                  <Button variant="outline" size="sm" className="mt-4">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Goal
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  {activeGoals.map((goal) => {
+                    const daysLeft = getDaysUntilDeadline(goal.deadline)
+                    const isApproachingDeadline = daysLeft <= 7 && daysLeft > 0
+                    const isOverdue = daysLeft < 0
+                    const linkedInterventions = goal.linkedInterventionIds
+                      .map((id) => getInterventionById(assessment, id))
+                      .filter(Boolean) as Intervention[]
+
+                    return (
+                      <Card
+                        key={goal.id}
+                        className={`border-l-4 ${
+                          goal.status === "on-track"
+                            ? "border-l-blue-500"
+                            : goal.status === "at-risk"
+                              ? "border-l-red-500"
+                              : "border-l-green-500"
+                        }`}
+                      >
+                        <CardContent className="p-5">
+                          <div className="space-y-4">
+                            {/* Goal Header */}
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <h4 className="font-semibold text-gray-900 text-base">{goal.description}</h4>
+                                <div className="flex items-center gap-3 mt-2 text-sm text-gray-600">
+                                  <Badge variant="outline" className="text-xs">
+                                    {goal.timeframe}
+                                  </Badge>
+                                  <span className="flex items-center gap-1">
+                                    <Calendar className="h-3 w-3" />
+                                    Due: {new Date(goal.deadline).toLocaleDateString()}
+                                  </span>
+                                  {isApproachingDeadline && (
+                                    <Badge variant="outline" className="text-orange-600 border-orange-300">
+                                      {daysLeft} days left
+                                    </Badge>
+                                  )}
+                                  {isOverdue && (
+                                    <Badge variant="destructive" className="text-xs">
+                                      Overdue
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                              <Badge className={getStatusColor(goal.status)}>{goal.status}</Badge>
+                            </div>
+
+                            {/* Goal Progress */}
+                            <div className="grid grid-cols-3 gap-4 py-3 border-y">
+                              <div className="text-center">
+                                <div className="text-2xl font-bold text-gray-900">{goal.baseline}</div>
+                                <div className="text-xs text-gray-600">Baseline</div>
+                              </div>
+                              <div className="text-center">
+                                <div className="text-2xl font-bold text-blue-600">{goal.current}</div>
+                                <div className="text-xs text-gray-600">Current</div>
+                              </div>
+                              <div className="text-center">
+                                <div className="text-2xl font-bold text-green-600">{goal.target}</div>
+                                <div className="text-xs text-gray-600">Target</div>
+                              </div>
+                            </div>
+
+                            <div className="space-y-1">
+                              <div className="flex justify-between text-sm">
+                                <span className="text-gray-600">Progress</span>
+                                <span className="font-semibold text-gray-900">{goal.progress}%</span>
+                              </div>
+                              <Progress value={goal.progress} className="h-2" />
+                            </div>
+
+                            {/* Linked Interventions */}
+                            {linkedInterventions.length > 0 && (
+                              <div className="space-y-2">
+                                <div className="text-xs font-medium text-gray-700">Linked Interventions:</div>
+                                <div className="flex flex-wrap gap-2">
+                                  {linkedInterventions.map((intervention) => {
+                                    const Icon = getInterventionTypeIcon(intervention.type)
+                                    return (
+                                      <Badge
+                                        key={intervention.id}
+                                        variant="outline"
+                                        className="text-xs border px-2 py-1"
+                                      >
+                                        <Icon className="h-3 w-3 mr-1" />
+                                        {intervention.name}
+                                      </Badge>
+                                    )
+                                  })}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Notes */}
+                            {goal.notes && (
+                              <div className="text-sm bg-gray-50 p-3 rounded border border-gray-200">
+                                <span className="font-medium text-gray-700">Notes:</span> {goal.notes}
+                              </div>
+                            )}
+
+                            {/* Warnings */}
+                            {goal.current <= goal.target && goal.status !== "achieved" && (
+                              <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded">
+                                <CheckCircle className="h-5 w-5 text-green-600" />
+                                <span className="text-sm text-green-800 font-medium">
+                                  Target achieved! Consider marking as complete.
+                                </span>
+                              </div>
+                            )}
+
+                            {isOverdue && (
+                              <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded">
+                                <AlertTriangle className="h-5 w-5 text-red-600" />
+                                <span className="text-sm text-red-800 font-medium">
+                                  Goal is overdue. Consider extending deadline or marking as cancelled.
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )
+                  })}
+
+                  {/* Completed Goals */}
+                  {completedGoals.length > 0 && (
+                    <div className="space-y-3 pt-4 border-t">
+                      <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-green-600" />
+                        Completed Goals ({completedGoals.length})
+                      </h4>
+                      {completedGoals.map((goal) => (
+                        <Card key={goal.id} className="border-l-4 border-l-green-500 bg-green-50/30">
+                          <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <h5 className="font-medium text-gray-900">{goal.description}</h5>
+                                <p className="text-sm text-gray-600 mt-1">
+                                  {goal.baseline} → {goal.target} • Completed:{" "}
+                                  {goal.completedDate
+                                    ? new Date(goal.completedDate).toLocaleDateString()
+                                    : "N/A"}
+                                </p>
+                              </div>
+                              <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+                                <CheckCircle className="h-3 w-3 mr-1" />
+                                Achieved
+                              </Badge>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Interventions Section */}
+          <Card className="bg-white border-gray-200 shadow-sm">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg font-semibold">Interventions</CardTitle>
+                  <CardDescription>Treatment interventions for {dimension.name}</CardDescription>
+                </div>
+                <div className="flex items-center gap-4 text-sm">
+                  <div className="text-center">
+                    <div className="text-xl font-bold text-green-600">{activeInterventions.length}</div>
+                    <div className="text-xs text-gray-600">Active</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-xl font-bold text-gray-600">{stoppedInterventions.length}</div>
+                    <div className="text-xs text-gray-600">Stopped</div>
+                  </div>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {dimensionInterventions.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <Pill className="h-12 w-12 mx-auto mb-3 opacity-30" />
+                  <p className="text-sm">No interventions have been recorded for this dimension yet.</p>
+                </div>
+              ) : (
+                <>
+                  {/* Active Interventions */}
+                  {activeInterventions.length > 0 && (
+                    <div className="space-y-3">
+                      <h4 className="text-sm font-semibold text-gray-700">Active Interventions</h4>
+                      {activeInterventions.map((intervention) => {
+                        const Icon = getInterventionTypeIcon(intervention.type)
+                        const colorClass = getInterventionTypeColor(intervention.type)
+
+                        return (
+                          <Card key={intervention.id} className={`border ${colorClass}`}>
+                            <CardContent className="p-4">
+                              <div className="flex items-start gap-3">
+                                <div className={`p-2 rounded ${colorClass}`}>
+                                  <Icon className="h-5 w-5" />
+                                </div>
+                                <div className="flex-1 space-y-2">
+                                  <div className="flex items-start justify-between">
+                                    <div>
+                                      <h5 className="font-semibold text-gray-900">{intervention.name}</h5>
+                                      <p className="text-sm text-gray-600 mt-1">{intervention.details}</p>
+                                    </div>
+                                    <Badge variant="default" className="bg-green-100 text-green-800 hover:bg-green-100">
+                                      Active
+                                    </Badge>
+                                  </div>
+                                  <div className="flex items-center gap-4 text-xs text-gray-600">
+                                    <span className="flex items-center gap-1">
+                                      <Calendar className="h-3 w-3" />
+                                      Started: {new Date(intervention.date).toLocaleDateString()}
+                                    </span>
+                                    <span>By: {intervention.createdBy}</span>
+                                  </div>
+                                  {intervention.notes && (
+                                    <div className="text-sm bg-white/50 p-2 rounded border border-gray-200">
+                                      <span className="font-medium">Notes:</span> {intervention.notes}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        )
+                      })}
+                    </div>
+                  )}
+
+                  {/* Stopped Interventions */}
+                  {stoppedInterventions.length > 0 && (
+                    <div className="space-y-3 pt-4 border-t">
+                      <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                        <StopCircle className="h-4 w-4 text-gray-600" />
+                        Stopped Interventions ({stoppedInterventions.length})
+                      </h4>
+                      {stoppedInterventions.map((intervention) => {
+                        const Icon = getInterventionTypeIcon(intervention.type)
+
+                        return (
+                          <Card
+                            key={intervention.id}
+                            className="border-gray-300 bg-gray-50/50 opacity-75"
+                          >
+                            <CardContent className="p-4">
+                              <div className="flex items-start gap-3">
+                                <div className="p-2 rounded bg-gray-200 text-gray-600">
+                                  <Icon className="h-5 w-5" />
+                                </div>
+                                <div className="flex-1 space-y-2">
+                                  <div className="flex items-start justify-between">
+                                    <div>
+                                      <h5 className="font-semibold text-gray-700 line-through">
+                                        {intervention.name}
+                                      </h5>
+                                      <p className="text-sm text-gray-600">{intervention.details}</p>
+                                    </div>
+                                    <Badge variant="secondary" className="bg-red-100 text-red-800 hover:bg-red-100">
+                                      <StopCircle className="h-3 w-3 mr-1" />
+                                      Stopped
+                                    </Badge>
+                                  </div>
+                                  <div className="flex items-center gap-4 text-xs text-gray-600">
+                                    <span className="flex items-center gap-1">
+                                      <Calendar className="h-3 w-3" />
+                                      {new Date(intervention.date).toLocaleDateString()} -{" "}
+                                      {intervention.stoppedDate
+                                        ? new Date(intervention.stoppedDate).toLocaleDateString()
+                                        : "N/A"}
+                                    </span>
+                                  </div>
+                                  {intervention.stoppedReason && (
+                                    <div className="text-sm bg-red-50 p-2 rounded border border-red-200">
+                                      <span className="font-medium text-red-800">Reason:</span>{" "}
+                                      {intervention.stoppedReason}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        )
+                      })}
+                    </div>
+                  )}
+                </>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
