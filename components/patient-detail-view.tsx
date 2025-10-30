@@ -738,7 +738,7 @@ export function PatientDetailView() {
         <TabsContent value="progress" className="space-y-6">
           <Card className="shadow-sm border-gray-200 bg-white">
             <CardHeader>
-              <CardTitle className="text-lg font-semibold">12 Health Dimensions Progress</CardTitle>
+              <CardTitle className="text-lg font-semibold">Patient Assessment & Outcomes Tracking</CardTitle>
               <p className="text-sm text-gray-600">Current scores across all health dimensions (Lower score = Better health)</p>
             </CardHeader>
             <CardContent className="space-y-3">
