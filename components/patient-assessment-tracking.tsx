@@ -250,12 +250,9 @@ export function PatientAssessmentTracking() {
 
 
       <Tabs defaultValue="trends" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3 bg-gray-100 p-1 rounded-lg">
+        <TabsList className="grid w-full grid-cols-2 bg-gray-100 p-1 rounded-lg">
           <TabsTrigger value="trends" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
             Outcome Trends
-          </TabsTrigger>
-          <TabsTrigger value="assessments" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
-            Assessment History
           </TabsTrigger>
           <TabsTrigger value="birp" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
             BIRP Documentation
@@ -399,68 +396,6 @@ export function PatientAssessmentTracking() {
                   goalsOptions={goalsOptions}
                 />
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="assessments">
-          {/* Assessment History */}
-          <Card className="shadow-sm border-gray-200 bg-white">
-            <CardHeader className="space-y-4">
-              <div>
-                <CardTitle className="text-xl font-semibold text-gray-900">Assessment History</CardTitle>
-                <CardDescription className="text-gray-600 mt-1">
-                  Complete history of patient assessments and scores
-                </CardDescription>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {currentPatientData.assessments
-                .slice()
-                .reverse()
-                .map((assessment, index) => (
-                  <Card key={index} className="border-l-4 border-l-primary">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                          <Calendar className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-medium">{new Date(assessment.date).toLocaleDateString()}</span>
-                          <Badge
-                            variant={
-                              assessment.overallRisk === "high"
-                                ? "destructive"
-                                : assessment.overallRisk === "moderate"
-                                  ? "secondary"
-                                  : "outline"
-                            }
-                          >
-                            {assessment.overallRisk} risk
-                          </Badge>
-                          <Badge variant="outline" className="bg-blue-50 border-blue-200">
-                            MCID: {assessment.burden}%
-                          </Badge>
-                        </div>
-                        <Link href={`/assessments/${currentPatientData.patient.id}/${encodeURIComponent(assessment.date)}`}>
-                          <Button variant="outline" size="sm">
-                            <FileText className="h-4 w-4 mr-2" />
-                            View Details
-                          </Button>
-                        </Link>
-                      </div>
-
-                      {assessment.interventions.length > 0 && (
-                        <div>
-                          <span className="text-sm font-medium text-muted-foreground">Interventions: </span>
-                          {assessment.interventions.map((intervention, i) => (
-                            <Badge key={i} variant="outline" className="mr-1 text-xs">
-                              {intervention}
-                            </Badge>
-                          ))}
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
             </CardContent>
           </Card>
         </TabsContent>
