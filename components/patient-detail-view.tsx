@@ -769,8 +769,6 @@ export function PatientDetailView() {
               })}
             </CardContent>
           </Card>
-
-          <PatientAssessmentTracking />
         </TabsContent>
       </Tabs>
 
