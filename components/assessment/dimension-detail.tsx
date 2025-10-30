@@ -7,9 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import type { Assessment, Patient, HealthDimension, ActionItem } from "@/lib/nsh-assessment-mock"
-import { getRiskColor, getRiskLabel, getRiskBgColor, getRiskBorderColor } from "@/lib/nsh-assessment-mock"
-import { ArrowLeft, Stethoscope, Users, Building2, TrendingUp, TrendingDown } from "lucide-react"
+import type { Assessment, Patient, HealthDimension, ActionItem, DimensionGoal } from "@/lib/nsh-assessment-mock"
+import { getRiskColor, getRiskLabel, getRiskBgColor, getRiskBorderColor, getGoalsByDimension, getActiveInterventionsByDimension } from "@/lib/nsh-assessment-mock"
+import { ArrowLeft, Stethoscope, Users, Building2, TrendingUp, TrendingDown, Target, Activity, Calendar, CheckCircle, AlertCircle } from "lucide-react"
+import { Progress } from "@/components/ui/progress"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts"
 
@@ -28,6 +29,10 @@ const mockTrendData = [
 
 export function DimensionDetail({ patient, assessment, dimension }: Props) {
   const router = useRouter()
+
+  const dimensionGoals = getGoalsByDimension(dimension.id)
+  const activeGoals = dimensionGoals.filter((goal) => goal.status !== "achieved" && goal.status !== "cancelled")
+  const activeInterventions = getActiveInterventionsByDimension(dimension.id)
 
   const dimensionActionItems = assessment.actionItems.filter((item) => {
     if (item.type === "physician" || item.type === "patient" || item.type === "community") {
@@ -449,6 +454,178 @@ export function DimensionDetail({ patient, assessment, dimension }: Props) {
               </div>
             </CardContent>
           </Card>
+
+          {activeGoals.length > 0 && (
+            <Card className="bg-white border-gray-200 shadow-sm">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                      <Target className="h-5 w-5 text-blue-600" />
+                      Active Goals
+                    </CardTitle>
+                    <CardDescription>Current health improvement goals for {dimension.name}</CardDescription>
+                  </div>
+                  <Button variant="outline" size="sm">
+                    Add Goal
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {activeGoals.map((goal) => {
+                  const isOverdue = new Date(goal.deadline) < new Date()
+                  const daysUntilDeadline = Math.ceil(
+                    (new Date(goal.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
+                  )
+                  const isApproaching = daysUntilDeadline > 0 && daysUntilDeadline <= 14
+
+                  return (
+                    <Card
+                      key={goal.id}
+                      className={`border ${goal.status === "on-track" ? "border-emerald-200 bg-emerald-50" : goal.status === "at-risk" ? "border-orange-200 bg-orange-50" : "border-gray-200"}`}
+                    >
+                      <CardContent className="p-4 space-y-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <h4 className="font-semibold text-gray-900">{goal.description}</h4>
+                              <Badge
+                                variant={goal.status === "on-track" ? "default" : "secondary"}
+                                className={`${goal.status === "on-track" ? "bg-emerald-600" : goal.status === "at-risk" ? "bg-orange-600" : "bg-gray-600"} text-white`}
+                              >
+                                {goal.status === "on-track" ? (
+                                  <CheckCircle className="h-3 w-3 mr-1" />
+                                ) : (
+                                  <AlertCircle className="h-3 w-3 mr-1" />
+                                )}
+                                {goal.status.replace("-", " ")}
+                              </Badge>
+                            </div>
+
+                            <div className="grid grid-cols-3 gap-3 text-sm mb-3">
+                              <div>
+                                <span className="text-gray-600">Baseline:</span>
+                                <span className="ml-1 font-semibold text-gray-900">{goal.baseline}</span>
+                              </div>
+                              <div>
+                                <span className="text-gray-600">Current:</span>
+                                <span className="ml-1 font-semibold text-gray-900">{goal.current}</span>
+                              </div>
+                              <div>
+                                <span className="text-gray-600">Target:</span>
+                                <span className="ml-1 font-semibold text-gray-900">{goal.target}</span>
+                              </div>
+                            </div>
+
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between text-sm">
+                                <span className="text-gray-600">Progress</span>
+                                <span className="font-semibold text-gray-900">{goal.progress}%</span>
+                              </div>
+                              <Progress value={goal.progress} className="h-2" />
+                            </div>
+
+                            <div className="flex items-center gap-4 mt-3 text-sm">
+                              <div className="flex items-center gap-1">
+                                <Calendar className="h-4 w-4 text-gray-500" />
+                                <span className="text-gray-600">Deadline:</span>
+                                <span
+                                  className={`font-medium ${
+                                    isOverdue
+                                      ? "text-red-600"
+                                      : isApproaching
+                                        ? "text-orange-600"
+                                        : "text-gray-900"
+                                  }`}
+                                >
+                                  {new Date(goal.deadline).toLocaleDateString()}
+                                  {isOverdue && " (Overdue)"}
+                                  {isApproaching && !isOverdue && ` (${daysUntilDeadline} days)`}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Activity className="h-4 w-4 text-gray-500" />
+                                <span className="text-gray-600">Timeframe:</span>
+                                <span className="font-medium text-gray-900">{goal.timeframe}</span>
+                              </div>
+                            </div>
+
+                            {goal.linkedInterventions.length > 0 && (
+                              <div className="mt-3">
+                                <span className="text-sm text-gray-600 mb-1 block">Linked Interventions:</span>
+                                <div className="flex flex-wrap gap-2">
+                                  {goal.linkedInterventions.map((intervention, idx) => (
+                                    <Badge key={idx} variant="outline" className="text-xs">
+                                      {intervention}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )
+                })}
+              </CardContent>
+            </Card>
+          )}
+
+          {activeInterventions.length > 0 && (
+            <Card className="bg-white border-gray-200 shadow-sm">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                      <Activity className="h-5 w-5 text-blue-600" />
+                      Active Interventions
+                    </CardTitle>
+                    <CardDescription>
+                      {activeInterventions.length} active intervention{activeInterventions.length !== 1 ? "s" : ""} for {dimension.name}
+                    </CardDescription>
+                  </div>
+                  <Button variant="outline" size="sm">
+                    Add Intervention
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-2">
+                  {activeInterventions.map((intervention, idx) => (
+                    <Badge
+                      key={idx}
+                      variant="secondary"
+                      className="px-3 py-1.5 text-sm bg-blue-100 text-blue-800 border border-blue-200"
+                    >
+                      {intervention}
+                    </Badge>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {activeGoals.length === 0 && activeInterventions.length === 0 && (
+            <Card className="bg-white border-gray-200 shadow-sm">
+              <CardContent className="py-8">
+                <div className="text-center">
+                  <Target className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                  <p className="text-sm text-gray-500 mb-4">
+                    No active goals or interventions for this dimension.
+                  </p>
+                  <div className="flex items-center justify-center gap-2">
+                    <Button variant="outline" size="sm">
+                      Add Goal
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      Add Intervention
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         <TabsContent value="questionnaire" className="space-y-6">
