@@ -12,6 +12,7 @@ import { QuickScheduleDialog } from "@/components/quick-schedule-dialog"
 import { PatientAssessmentTracking } from "@/components/patient-assessment-tracking"
 import { MessagingTeamHub } from "@/components/messaging-team-hub"
 import { DimensionProgressCard } from "@/components/dimension-progress-card"
+import { MedicationAdherenceTrends } from "@/components/medication-adherence-trends"
 import { getPatientById, getAssessmentById, healthDimensionsConfig, getGoalsByDimension, getActiveInterventionsByDimension, getRiskLevel } from "@/lib/nsh-assessment-mock"
 import {
   Phone,
@@ -72,6 +73,20 @@ const mockPatientDetail = {
       prescriber: "Dr. Anderson",
       startDate: "2024-10-01",
       adherence: 85,
+      adherenceHistory: [
+        { date: "2024-10-01", adherence: 60, missedDoses: 12 },
+        { date: "2024-10-15", adherence: 65, missedDoses: 10 },
+        { date: "2024-11-01", adherence: 70, missedDoses: 9 },
+        { date: "2024-11-15", adherence: 75, missedDoses: 7 },
+        { date: "2024-12-01", adherence: 80, missedDoses: 6 },
+        { date: "2024-12-15", adherence: 82, missedDoses: 5 },
+        { date: "2025-01-01", adherence: 85, missedDoses: 4 },
+        { date: "2025-01-15", adherence: 85, missedDoses: 4 },
+      ],
+      lastDoseTaken: "2025-01-17 08:30 AM",
+      refillDate: "2025-02-01",
+      adherenceGoal: 90,
+      consecutiveDays: 12,
     },
     {
       name: "Lorazepam",
@@ -80,6 +95,17 @@ const mockPatientDetail = {
       prescriber: "Dr. Anderson",
       startDate: "2024-11-15",
       adherence: 90,
+      adherenceHistory: [
+        { date: "2024-11-15", adherence: 85, missedDoses: 2 },
+        { date: "2024-12-01", adherence: 87, missedDoses: 2 },
+        { date: "2024-12-15", adherence: 88, missedDoses: 1 },
+        { date: "2025-01-01", adherence: 90, missedDoses: 1 },
+        { date: "2025-01-15", adherence: 90, missedDoses: 1 },
+      ],
+      lastDoseTaken: "2025-01-16 10:15 PM",
+      refillDate: "2025-02-15",
+      adherenceGoal: 95,
+      consecutiveDays: 8,
     },
   ],
   vitalSigns: {
@@ -681,6 +707,8 @@ export function PatientDetailView() {
         </TabsContent>
 
         <TabsContent value="medications" className="space-y-6">
+          <MedicationAdherenceTrends medications={mockPatientDetail.currentMedications} />
+
           <Card className="shadow-sm border-gray-200 bg-white">
             <CardHeader>
               <div className="flex items-center justify-between">
