@@ -322,7 +322,7 @@ const mockPatients: Patient[] = [
     actionItemsClosed: 3,
     unreadMessages: 0,
     age: 49,
-    condition: "GAD",
+    condition: "Generalized Anxiety",
     phq9Score: 11,
     nextAppointment: "Not scheduled",
   },
@@ -928,9 +928,7 @@ export function ProviderDashboard() {
                       </TableCell>
                       <TableCell>
                         <div className="text-sm">{formatRelative(patient.lastAssessmentDate)}</div>
-                        {patient.phq9Score && (
-                          <div className="text-xs text-muted-foreground">PHQ-9: {patient.phq9Score}</div>
-                        )}
+                        <div className="text-xs text-muted-foreground">MCID: {patient.healthIndexScore}%</div>
                       </TableCell>
                       <TableCell>
                         <Badge variant={getStatusBadgeVariant(patient.status)} className="capitalize">

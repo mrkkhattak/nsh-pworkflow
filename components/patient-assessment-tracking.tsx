@@ -829,6 +829,9 @@ export function PatientAssessmentTracking() {
                           >
                             {assessment.overallRisk} risk
                           </Badge>
+                          <Badge variant="outline" className="bg-blue-50 border-blue-200">
+                            MCID: {assessment.burden}%
+                          </Badge>
                         </div>
                         <Link href={`/assessments/${currentPatientData.patient.id}/${encodeURIComponent(assessment.date)}`}>
                           <Button variant="outline" size="sm">
@@ -836,17 +839,6 @@ export function PatientAssessmentTracking() {
                             View Details
                           </Button>
                         </Link>
-                      </div>
-
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-3">
-                        {promDomains.map((domain) => (
-                          <div key={domain.id} className="text-center">
-                            <div className="text-lg font-bold">
-                              {assessment[domain.id as keyof typeof assessment] as number}
-                            </div>
-                            <div className="text-xs text-muted-foreground">{domain.name.split(" ")[0]}</div>
-                          </div>
-                        ))}
                       </div>
 
                       {assessment.interventions.length > 0 && (
@@ -895,7 +887,7 @@ export function PatientAssessmentTracking() {
                     </h4>
                     <div className="bg-muted p-3 rounded-lg text-sm">
                       <p>Patient reports improved mood stability over past 2 weeks.</p>
-                      <p>PHQ-9 decreased from 14 → 11. Sleep quality improved.</p>
+                      <p>MCID improved from 14% → 11%. Sleep quality improved.</p>
                       <p className="flex items-center gap-2 mt-2">
                         <CheckCircle className="h-4 w-4 text-green-600" />
                         Medication adherence at 85% (up from 65%)
@@ -944,7 +936,7 @@ export function PatientAssessmentTracking() {
                       <p>• Continue current medication regimen</p>
                       <p>• Follow-up in 4 weeks or sooner if symptoms worsen</p>
                       <p>• Complete nutritionist consultation within 2 weeks</p>
-                      <p>• Patient to complete PHQ-9 in 2 weeks via app</p>
+                      <p>• Patient to complete assessment in 2 weeks via app</p>
                     </div>
                   </div>
 

@@ -115,7 +115,7 @@ const mockPatientDetail = {
   recentAssessments: [
     {
       date: "2025-01-01",
-      type: "PHQ-9",
+      type: "Mental Health - Depression",
       score: 11,
       interpretation: "Moderate Depression",
       change: "Improved",
@@ -123,7 +123,7 @@ const mockPatientDetail = {
     },
     {
       date: "2025-01-01",
-      type: "GAD-7",
+      type: "Mental Health - Anxiety",
       score: 6,
       interpretation: "Mild Anxiety",
       change: "Improved",
@@ -131,7 +131,7 @@ const mockPatientDetail = {
     },
     {
       date: "2024-12-15",
-      type: "WHODAS",
+      type: "Functional Health",
       score: 18,
       interpretation: "Moderate Disability",
       change: "Improved",
@@ -312,7 +312,7 @@ export function PatientDetailView() {
               <div>
                 <p className="text-sm text-gray-600">Last Assessment</p>
                 <p className="text-2xl font-bold text-gray-900">Jan 1</p>
-                <p className="text-xs text-green-600">PHQ-9: 11 (Improved)</p>
+                <p className="text-xs text-green-600">MCID: 11% (Improved)</p>
               </div>
               <Activity className="h-8 w-8 text-blue-600" />
             </div>

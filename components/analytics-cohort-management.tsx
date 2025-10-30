@@ -55,7 +55,7 @@ const cohortData = {
   dimensions: [
     {
       id: "depression",
-      name: "Depression (PHQ-9)",
+      name: "Mental Health - Depression",
       icon: Brain,
       highPerforming: { count: 12, percentage: 27 },
       moderatePerforming: { count: 20, percentage: 45 },
@@ -67,7 +67,7 @@ const cohortData = {
     },
     {
       id: "anxiety",
-      name: "Anxiety (GAD-7)",
+      name: "Mental Health - Anxiety",
       icon: Heart,
       highPerforming: { count: 15, percentage: 34 },
       moderatePerforming: { count: 18, percentage: 41 },
@@ -79,7 +79,7 @@ const cohortData = {
     },
     {
       id: "function",
-      name: "Function (WHODAS)",
+      name: "Functional Health",
       icon: Activity,
       highPerforming: { count: 8, percentage: 20 },
       moderatePerforming: { count: 22, percentage: 55 },
@@ -596,7 +596,7 @@ export function AnalyticsCohortManagement() {
                         stroke={chartConfig.depression.color}
                         strokeWidth={3}
                         dot={{ r: 5, strokeWidth: 2 }}
-                        name="Depression (PHQ-9)"
+                        name="Mental Health - Depression"
                       />
                       <Line
                         type="monotone"
@@ -604,7 +604,7 @@ export function AnalyticsCohortManagement() {
                         stroke={chartConfig.anxiety.color}
                         strokeWidth={3}
                         dot={{ r: 5, strokeWidth: 2 }}
-                        name="Anxiety (GAD-7)"
+                        name="Mental Health - Anxiety"
                       />
                       <Line
                         type="monotone"
@@ -612,7 +612,7 @@ export function AnalyticsCohortManagement() {
                         stroke={chartConfig.function.color}
                         strokeWidth={3}
                         dot={{ r: 5, strokeWidth: 2 }}
-                        name="Function (WHODAS)"
+                        name="Functional Health"
                       />
                       <Line
                         type="monotone"

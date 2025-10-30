@@ -56,12 +56,12 @@ export function AssessmentDetail({ patient, assessment }: Props) {
       </div>
 
       <ScoreCard
-        title="Global Health Index"
+        title="MCID %"
         score={ghi}
         statusText={getRiskLabel(ghiRiskLevel)}
         statusColorClass={getRiskColor(ghiRiskLevel)}
         icon={<Activity className="h-5 w-5 text-gray-600" />}
-        interpretation="The Global Health Index represents the overall health status across all dimensions. Lower scores indicate better health outcomes. This comprehensive metric guides clinical prioritization and treatment planning."
+        interpretation="MCID % (Minimally Clinically Important Difference) represents the percentage of clinically meaningful change in health outcomes. This metric guides clinical prioritization and treatment planning decisions."
         riskLevel={ghiRiskLevel}
       />
 

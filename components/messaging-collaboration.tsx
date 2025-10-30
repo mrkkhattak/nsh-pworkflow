@@ -27,7 +27,7 @@ const mockConversations = [
     role: "Psychiatrist",
     roleType: "provider",
     avatar: "/placeholder.svg?height=40&width=40",
-    lastMessage: "Patient shows significant improvement in PHQ-9 scores.",
+    lastMessage: "Patient shows significant improvement in MCID scores.",
     timestamp: "15m",
     unread: 2,
     online: true,
