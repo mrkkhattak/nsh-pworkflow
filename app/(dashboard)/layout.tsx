@@ -1,3 +1,5 @@
+"use client"
+
 import { SideNavigation } from "@/components/side-navigation"
 import { Button } from "@/components/ui/button"
 import { Bell } from "lucide-react"
