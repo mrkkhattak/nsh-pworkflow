@@ -219,11 +219,12 @@ export function InterventionTimeline({
             <Input type="date" value={newDate} onChange={(e) => setNewDate(e.target.value)} className="w-44" />
             <div className="flex-1">{renderFields()}</div>
           </div>
-          {Array.isArray(goalsOptions) && goalsOptions.length > 0 && (
-            <div className="flex gap-2">
+          {Array.isArray(goalsOptions) && goalsOptions.length > 0 ? (
+            <div className="space-y-1">
+              <Label className="text-xs text-gray-600">Associated Goal (Required)</Label>
               <Select value={selectedGoalId} onValueChange={(v: any) => setSelectedGoalId(v)}>
-                <SelectTrigger className="w-64">
-                  <SelectValue placeholder="Select Goal" />
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select a goal to associate with this intervention" />
                 </SelectTrigger>
                 <SelectContent>
                   {goalsOptions.map((g) => (
@@ -233,6 +234,16 @@ export function InterventionTimeline({
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+          ) : (
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-md">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5" />
+                <div className="text-sm text-amber-800">
+                  <p className="font-medium">Goal Required</p>
+                  <p className="text-xs mt-1">You must create a treatment goal before adding interventions. Click the "Add Goal" button above to create one.</p>
+                </div>
+              </div>
             </div>
           )}
           <Textarea
