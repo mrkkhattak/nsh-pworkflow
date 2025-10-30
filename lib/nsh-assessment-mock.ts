@@ -1186,3 +1186,152 @@ export function getActionItemsByType<T extends ActionItem["type"]>(
 export function getActionItemsByStatus(assessment: Assessment, status: ActionItemStatus): ActionItem[] {
   return assessment.actionItems.filter((item) => item.status === status)
 }
+
+export interface DimensionGoal {
+  id: string
+  dimensionId: string
+  dimensionName: string
+  description: string
+  baseline: number
+  target: number
+  current: number
+  timeframe: string
+  deadline: string
+  progress: number
+  status: "on-track" | "at-risk" | "achieved" | "cancelled"
+  createdDate: string
+  linkedInterventions: string[]
+}
+
+export const mockDimensionGoals: DimensionGoal[] = [
+  {
+    id: "goal-mental-1",
+    dimensionId: "mental",
+    dimensionName: "Mental Health",
+    description: "Reduce depression score by 50%",
+    baseline: 35,
+    target: 18,
+    current: 32,
+    timeframe: "6 months",
+    deadline: "2025-07-01",
+    progress: 18,
+    status: "on-track",
+    createdDate: "2025-01-01",
+    linkedInterventions: ["Sertraline 75mg", "CBT Sessions"],
+  },
+  {
+    id: "goal-mental-2",
+    dimensionId: "mental",
+    dimensionName: "Mental Health",
+    description: "Improve coping skills score to below 30",
+    baseline: 45,
+    target: 28,
+    current: 45,
+    timeframe: "4 months",
+    deadline: "2025-05-01",
+    progress: 0,
+    status: "on-track",
+    createdDate: "2025-01-01",
+    linkedInterventions: ["Mindfulness Meditation"],
+  },
+  {
+    id: "goal-sleep-1",
+    dimensionId: "sleep",
+    dimensionName: "Sleep Health",
+    description: "Increase sleep duration to 7+ hours nightly",
+    baseline: 52,
+    target: 20,
+    current: 44,
+    timeframe: "3 months",
+    deadline: "2025-04-01",
+    progress: 25,
+    status: "on-track",
+    createdDate: "2025-01-01",
+    linkedInterventions: ["Sleep Hygiene Practice"],
+  },
+  {
+    id: "goal-sdoh-1",
+    dimensionId: "sdoh",
+    dimensionName: "Social Determinants of Health",
+    description: "Reduce food insecurity score by 40%",
+    baseline: 45,
+    target: 27,
+    current: 45,
+    timeframe: "6 months",
+    deadline: "2025-07-01",
+    progress: 0,
+    status: "on-track",
+    createdDate: "2025-01-01",
+    linkedInterventions: ["Community Food Bank Access"],
+  },
+  {
+    id: "goal-physical-1",
+    dimensionId: "physical",
+    dimensionName: "Physical Health",
+    description: "Improve strength deficit score to below 20",
+    baseline: 28,
+    target: 18,
+    current: 28,
+    timeframe: "4 months",
+    deadline: "2025-05-01",
+    progress: 0,
+    status: "on-track",
+    createdDate: "2025-01-01",
+    linkedInterventions: ["30-Minute Daily Walks"],
+  },
+  {
+    id: "goal-diet-1",
+    dimensionId: "diet",
+    dimensionName: "Diet & Nutrition",
+    description: "Reduce diet quality issues score by 30%",
+    baseline: 38,
+    target: 27,
+    current: 38,
+    timeframe: "3 months",
+    deadline: "2025-04-01",
+    progress: 0,
+    status: "on-track",
+    createdDate: "2025-01-01",
+    linkedInterventions: ["Meal Planning and Prep"],
+  },
+  {
+    id: "goal-pain-1",
+    dimensionId: "pain",
+    dimensionName: "Pain & Functional Impact",
+    description: "Achieve pain severity below 20",
+    baseline: 30,
+    target: 18,
+    current: 28,
+    timeframe: "3 months",
+    deadline: "2025-04-01",
+    progress: 17,
+    status: "on-track",
+    createdDate: "2025-01-01",
+    linkedInterventions: ["Pain Tracking Log", "Multimodal pain management"],
+  },
+  {
+    id: "goal-cost-1",
+    dimensionId: "cost",
+    dimensionName: "Healthcare Cost & Affordability",
+    description: "Reduce out-of-pocket cost burden to under 40",
+    baseline: 55,
+    target: 38,
+    current: 46,
+    timeframe: "6 months",
+    deadline: "2025-07-01",
+    progress: 53,
+    status: "on-track",
+    createdDate: "2025-01-01",
+    linkedInterventions: ["Financial Counseling Services"],
+  },
+]
+
+export function getGoalsByDimension(dimensionId: string): DimensionGoal[] {
+  return mockDimensionGoals.filter((goal) => goal.dimensionId === dimensionId)
+}
+
+export function getActiveInterventionsByDimension(dimensionId: string): string[] {
+  const goals = getGoalsByDimension(dimensionId)
+  const allInterventions = goals.flatMap((goal) => goal.linkedInterventions)
+  return Array.from(new Set(allInterventions))
+}
