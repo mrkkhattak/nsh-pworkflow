@@ -11,8 +11,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Target, Plus, CheckCircle, AlertCircle, Calendar, Edit, LinkIcon, AlertTriangle } from "lucide-react"
-import { getGoals, createGoal, updateGoal, type Goal as DBGoal } from "@/lib/supabase-client"
-import { useToast } from "@/hooks/use-toast"
 
 const goalTemplates = [
   // Depression Goals
@@ -298,9 +296,24 @@ export function GoalTemplatesSystem({
   openCreateDefault?: boolean
   onGoalCreated?: (goal: { id: string; description: string }) => void
 }) {
-  const [goals, setGoals] = useState<Goal[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-  const { toast } = useToast()
+  const [goals, setGoals] = useState<Goal[]>([
+    {
+      id: "g1",
+      description: "Reduce depression score by 50%",
+      dimension: "phq9",
+      baseline: 18,
+      target: 9,
+      current: 11,
+      timeframe: "6 months",
+      deadline: "2025-07-01",
+      progress: 78,
+      status: "on-track",
+      interventions: ["Sertraline 75mg", "CBT Sessions"],
+      createdDate: "2025-01-01",
+      notes: "Patient showing good progress with combined medication and therapy approach",
+      linkedInterventions: ["Sertraline 75mg", "CBT Sessions"],
+    },
+  ])
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
   const [selectedTemplate, setSelectedTemplate] = useState<string>("")
@@ -319,51 +332,6 @@ export function GoalTemplatesSystem({
   const [newInterventionType, setNewInterventionType] = useState<"Medication" | "Lifestyle" | "Therapy">("Medication")
   const [newInterventionDate, setNewInterventionDate] = useState<string>(new Date().toISOString().slice(0, 10))
   const [newInterventionNotes, setNewInterventionNotes] = useState<string>("")
-
-  useEffect(() => {
-    if (patientId) {
-      loadGoals()
-    }
-  }, [patientId])
-
-  const loadGoals = async () => {
-    if (!patientId) return
-    try {
-      setIsLoading(true)
-      const data = await getGoals(patientId)
-      const mapped = data.map((d) => {
-        const progressValue = d.baseline !== d.target
-          ? Math.round(((d.baseline - d.current) / (d.baseline - d.target)) * 100)
-          : 0
-        return {
-          id: d.id,
-          description: d.description,
-          dimension: d.dimension,
-          baseline: d.baseline,
-          target: d.target,
-          current: d.current,
-          timeframe: d.timeframe,
-          deadline: d.deadline,
-          progress: Math.min(Math.max(progressValue, 0), 100),
-          status: d.status,
-          interventions: [],
-          createdDate: new Date(d.created_at).toISOString().split('T')[0],
-          notes: d.notes,
-          linkedInterventions: [],
-        }
-      })
-      setGoals(mapped)
-    } catch (error) {
-      console.error('Error loading goals:', error)
-      toast({
-        title: "Error",
-        description: "Failed to load goals",
-        variant: "destructive",
-      })
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   useEffect(() => {
     const latest = latestByDimension[selectedDimension]
@@ -423,78 +391,35 @@ export function GoalTemplatesSystem({
     return errors.length === 0
   }
 
-  const handleCreateGoal = async () => {
+  const handleCreateGoal = () => {
     if (!validateGoal()) return
-    if (!patientId) {
-      toast({
-        title: "Error",
-        description: "Patient ID is required",
-        variant: "destructive",
-      })
-      return
+
+    const timeframeData = timeframeOptions.find((t) => t.value === timeframe)
+    const deadline = new Date()
+    deadline.setDate(deadline.getDate() + (timeframeData?.days || 90))
+
+    const newGoal: Goal = {
+      id: `g${goals.length + 1}`,
+      description: customGoal.trim(),
+      dimension: selectedDimension,
+      baseline: baseline as number,
+      target: target as number,
+      current: current as number,
+      timeframe: timeframeData?.label || "3 Months",
+      deadline: deadline.toISOString().split("T")[0],
+      progress: 0,
+      status: "on-track",
+      interventions: selectedInterventions,
+      createdDate: new Date().toISOString().split("T")[0],
+      notes: supervisorReason || undefined,
+      linkedInterventions: selectedInterventions,
     }
 
-    try {
-      setIsLoading(true)
-      const timeframeData = timeframeOptions.find((t) => t.value === timeframe)
-      const deadline = new Date()
-      deadline.setDate(deadline.getDate() + (timeframeData?.days || 90))
+    setGoals([...goals, newGoal])
+    onGoalCreated?.({ id: newGoal.id, description: newGoal.description })
 
-      const newGoalData = await createGoal({
-        patient_id: patientId,
-        description: customGoal.trim(),
-        dimension: selectedDimension,
-        baseline: baseline as number,
-        target: target as number,
-        current: current as number,
-        timeframe: timeframeData?.label || "3 Months",
-        deadline: deadline.toISOString().split("T")[0],
-        status: "on-track",
-        notes: supervisorReason || undefined,
-        created_by: "Dr. Anderson",
-      })
-
-      const progressValue = newGoalData.baseline !== newGoalData.target
-        ? Math.round(((newGoalData.baseline - newGoalData.current) / (newGoalData.baseline - newGoalData.target)) * 100)
-        : 0
-
-      const newGoal: Goal = {
-        id: newGoalData.id,
-        description: newGoalData.description,
-        dimension: newGoalData.dimension,
-        baseline: newGoalData.baseline,
-        target: newGoalData.target,
-        current: newGoalData.current,
-        timeframe: newGoalData.timeframe,
-        deadline: newGoalData.deadline,
-        progress: Math.min(Math.max(progressValue, 0), 100),
-        status: newGoalData.status,
-        interventions: selectedInterventions,
-        createdDate: new Date(newGoalData.created_at).toISOString().split("T")[0],
-        notes: newGoalData.notes,
-        linkedInterventions: selectedInterventions,
-      }
-
-      setGoals([...goals, newGoal])
-      onGoalCreated?.({ id: newGoal.id, description: newGoal.description })
-
-      toast({
-        title: "Success",
-        description: "Goal created successfully",
-      })
-
-      resetForm()
-      setCreateDialogOpen(false)
-    } catch (error) {
-      console.error('Error creating goal:', error)
-      toast({
-        title: "Error",
-        description: "Failed to create goal",
-        variant: "destructive",
-      })
-    } finally {
-      setIsLoading(false)
-    }
+    resetForm()
+    setCreateDialogOpen(false)
   }
 
   const resetForm = () => {
@@ -745,9 +670,7 @@ export function GoalTemplatesSystem({
           >
             Cancel
           </Button>
-          <Button onClick={handleCreateGoal} disabled={isLoading}>
-            {isLoading ? "Creating..." : "Create Goal"}
-          </Button>
+          <Button onClick={handleCreateGoal}>Create Goal</Button>
         </div>
       </div>
     )
