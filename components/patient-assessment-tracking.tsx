@@ -505,16 +505,7 @@ export function PatientAssessmentTracking() {
   return (
     <div className="space-y-8 p-6 bg-gray-50/30 min-h-screen">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="space-y-1">
-          <h2 className="text-3xl font-semibold text-gray-900 tracking-tight">
-            Patient Assessment & Outcomes Tracking
-          </h2>
-          <p className="text-gray-600 text-lg">
-            {currentPatientData.patient.name} • {currentPatientData.patient.age}y •{" "}
-            {currentPatientData.patient.condition}
-          </p>
-        </div>
+      <div className="flex items-center justify-end">
         <div className="flex items-center gap-3">
           <Select
             value={selectedPatient.toString()}
@@ -577,69 +568,6 @@ export function PatientAssessmentTracking() {
             Schedule Assessment
           </Button>
         </div>
-      </div>
-
-      {/* PROM Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        {promDomains.map((domain) => {
-          const goal = currentPatientData.goals[domain.id as keyof typeof currentPatientData.goals]
-          const progress = getProgressStatus(goal.baseline, goal.current, goal.target)
-          const significance = getClinicalSignificance(goal.baseline, goal.current)
-          const Icon = domain.icon
-          const SignificanceIcon = significance.icon
-
-          return (
-            <Card
-              key={domain.id}
-              className={`transition-all duration-200 hover:shadow-md border-gray-200 bg-white ${
-                selectedDimensions.includes(domain.id) ? "ring-2 ring-blue-500 shadow-lg" : "hover:shadow-sm"
-              }`}
-            >
-              <CardHeader className="pb-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="p-2 bg-gray-50 rounded-lg">
-                    <Icon className="h-5 w-5 text-gray-600" />
-                  </div>
-                  <Badge variant="outline" className="text-xs bg-gray-50 text-gray-600 border-gray-200">
-                    {domain.range}
-                  </Badge>
-                </div>
-                <CardTitle className="text-base font-medium text-gray-900">{domain.name}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-3xl font-bold text-gray-900">{goal.current}</span>
-                  <div className="flex items-center gap-2 px-2 py-1 bg-gray-50 rounded-lg">
-                    <SignificanceIcon className={`h-4 w-4 ${significance.color}`} />
-                    <span className={`text-xs font-medium ${significance.color}`}>{significance.level}</span>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm text-gray-600">
-                    <span>Progress to Target</span>
-                    <span className="font-medium">
-                      {Math.round(((goal.baseline - goal.current) / (goal.baseline - goal.target)) * 100)}%
-                    </span>
-                  </div>
-                  <Progress
-                    value={((goal.baseline - goal.current) / (goal.baseline - goal.target)) * 100}
-                    className="h-2 bg-gray-100"
-                  />
-                </div>
-
-                <div className="flex justify-between text-xs text-gray-500">
-                  <span>Baseline: {goal.baseline}</span>
-                  <span>Target: {goal.target}</span>
-                </div>
-
-                <Badge variant="outline" className={`text-xs font-medium ${progress.color} bg-white border-current/20`}>
-                  {progress.status.replace("-", " ")}
-                </Badge>
-              </CardContent>
-            </Card>
-          )
-        })}
       </div>
 
       <Tabs defaultValue="trends" className="space-y-6">
