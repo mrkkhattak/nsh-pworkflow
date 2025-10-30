@@ -33,6 +33,70 @@ type Intervention = {
   stoppedBy?: string
 }
 
+const mockActiveInterventions: Intervention[] = [
+  {
+    id: "mock-1",
+    type: "Medication",
+    date: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+    details: {
+      drugName: "Sertraline",
+      dose: "75mg",
+      frequency: "Daily (morning)"
+    },
+    notes: "Initial dose was 50mg, increased after 2 weeks due to good tolerance",
+    createdBy: "Dr. Sarah Chen",
+    status: "active",
+  },
+  {
+    id: "mock-2",
+    type: "Therapy",
+    date: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+    details: {
+      therapyType: "CBT",
+      frequency: "Weekly",
+      provider: "Lisa Thompson, LCSW"
+    },
+    notes: "Focus on cognitive restructuring and behavioral activation techniques",
+    createdBy: "Dr. Sarah Chen",
+    status: "active",
+  },
+  {
+    id: "mock-3",
+    type: "Lifestyle",
+    date: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+    details: {
+      category: "Exercise",
+      change: "30-minute daily walks"
+    },
+    notes: "Patient reports improved mood and energy with consistent exercise",
+    createdBy: "Dr. Sarah Chen",
+    status: "active",
+  },
+  {
+    id: "mock-4",
+    type: "Lifestyle",
+    date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+    details: {
+      category: "Sleep hygiene",
+      change: "10pm bedtime routine"
+    },
+    notes: "Includes no screens 1 hour before bed, herbal tea, reading",
+    createdBy: "Dr. Sarah Chen",
+    status: "active",
+  },
+  {
+    id: "mock-5",
+    type: "Other",
+    date: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+    details: {
+      customName: "Mindfulness Meditation App"
+    },
+    notes: "Using Calm app, 10 minutes daily guided meditation",
+    createdBy: "Lisa Thompson, LCSW",
+    status: "active",
+  },
+]
+
 export function InterventionTimeline({
   assessments,
   patientId,
@@ -44,7 +108,7 @@ export function InterventionTimeline({
   canEdit?: boolean
   goalsOptions?: { id: string; label: string }[]
 }) {
-  const [items, setItems] = useState<Intervention[]>([])
+  const [items, setItems] = useState<Intervention[]>(mockActiveInterventions)
   const [newType, setNewType] = useState<"Medication" | "Lifestyle" | "Therapy" | "Other">("Medication")
   const [newDate, setNewDate] = useState<string>(new Date().toISOString().slice(0, 10))
   const [notes, setNotes] = useState("")
