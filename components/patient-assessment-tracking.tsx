@@ -534,6 +534,7 @@ export function PatientAssessmentTracking() {
             <DialogTitle>Create Goal</DialogTitle>
           </DialogHeader>
           <GoalTemplatesSystem
+            patientId={currentPatientData.patient.id}
             openCreateDefault
             trackedDimensions={trackedDims}
             defaultDimension={selectedDimensions.length === 1 ? selectedDimensions[0] : undefined}
@@ -551,6 +552,7 @@ export function PatientAssessmentTracking() {
           </DialogHeader>
           <div className="mt-2">
             <GoalTemplatesSystem
+              patientId={currentPatientData.patient.id}
               trackedDimensions={trackedDims}
               defaultDimension={selectedDimensions.length === 1 ? selectedDimensions[0] : undefined}
               latestByDimension={latestByDimension}

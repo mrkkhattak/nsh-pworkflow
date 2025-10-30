@@ -1,15 +1,17 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useMemo, useState, useEffect } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { AlertTriangle, Pill, Dumbbell, Brain, StopCircle, Calendar, Info, Filter } from "lucide-react"
+import { AlertTriangle, Pill, Dumbbell, Brain, StopCircle, Calendar, Info, Filter, Plus as PlusIcon } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
+import { getInterventions, createIntervention, updateIntervention, type Intervention as DBIntervention } from "@/lib/supabase-client"
+import { useToast } from "@/hooks/use-toast"
 
 type Assessment = {
   date: string
@@ -20,7 +22,7 @@ type InterventionStatus = "active" | "stopped" | "completed"
 
 type Intervention = {
   id: string
-  type: "Medication" | "Lifestyle" | "Therapy"
+  type: "Medication" | "Lifestyle" | "Therapy" | "Other"
   date: string
   details: Record<string, string>
   notes?: string
@@ -45,7 +47,7 @@ export function InterventionTimeline({
   goalsOptions?: { id: string; label: string }[]
 }) {
   const [items, setItems] = useState<Intervention[]>([])
-  const [newType, setNewType] = useState<"Medication" | "Lifestyle" | "Therapy">("Medication")
+  const [newType, setNewType] = useState<"Medication" | "Lifestyle" | "Therapy" | "Other">("Medication")
   const [newDate, setNewDate] = useState<string>(new Date().toISOString().slice(0, 10))
   const [notes, setNotes] = useState("")
   const [selectedGoalId, setSelectedGoalId] = useState<string | undefined>(undefined)
@@ -54,11 +56,14 @@ export function InterventionTimeline({
   const [interventionToStop, setInterventionToStop] = useState<Intervention | null>(null)
   const [stopDate, setStopDate] = useState<string>(new Date().toISOString().slice(0, 10))
   const [stopReason, setStopReason] = useState("")
+  const [customInterventionName, setCustomInterventionName] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const { toast } = useToast()
 
-  const typeIcon = (t: Intervention["type"]) => (t === "Medication" ? Pill : t === "Lifestyle" ? Dumbbell : Brain)
+  const typeIcon = (t: Intervention["type"]) => (t === "Medication" ? Pill : t === "Lifestyle" ? Dumbbell : t === "Therapy" ? Brain : PlusIcon)
 
   const colorClass = (t: Intervention["type"]) =>
-    t === "Medication" ? "text-blue-600" : t === "Lifestyle" ? "text-green-600" : "text-purple-600"
+    t === "Medication" ? "text-blue-600" : t === "Lifestyle" ? "text-green-600" : t === "Therapy" ? "text-purple-600" : "text-orange-600"
 
   const renderFields = () => {
     switch (newType) {
@@ -85,30 +90,122 @@ export function InterventionTimeline({
             <Input placeholder="Provider" />
           </div>
         )
+      case "Other":
+        return (
+          <div className="grid grid-cols-1 gap-2">
+            <Input
+              placeholder="Intervention name (e.g., Acupuncture, Support Group)"
+              value={customInterventionName}
+              onChange={(e) => setCustomInterventionName(e.target.value)}
+            />
+          </div>
+        )
     }
   }
 
-  const addIntervention = () => {
+  useEffect(() => {
+    loadInterventions()
+  }, [patientId])
+
+  const loadInterventions = async () => {
+    try {
+      setIsLoading(true)
+      const data = await getInterventions(patientId)
+      const mapped = data.map((d) => ({
+        id: d.id,
+        type: d.type,
+        date: d.date,
+        details: d.details,
+        notes: d.notes,
+        createdBy: d.created_by,
+        goalId: d.goal_id,
+        status: d.status,
+        stoppedDate: d.stopped_date,
+        stoppedReason: d.stopped_reason,
+        stoppedBy: d.stopped_by,
+      }))
+      setItems(mapped)
+    } catch (error) {
+      console.error('Error loading interventions:', error)
+      toast({
+        title: "Error",
+        description: "Failed to load interventions",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const addIntervention = async () => {
     if (!canEdit) return
     if (!selectedGoalId) {
+      toast({
+        title: "Goal Required",
+        description: "Please select a goal to associate with this intervention",
+        variant: "destructive",
+      })
       return
     }
-    const id = `i-${Date.now()}`
-    setItems((prev) => [
-      ...prev,
-      {
-        id,
+    if (newType === "Other" && !customInterventionName.trim()) {
+      toast({
+        title: "Name Required",
+        description: "Please enter a name for the custom intervention",
+        variant: "destructive",
+      })
+      return
+    }
+
+    try {
+      setIsLoading(true)
+      const details: Record<string, string> = {}
+      if (newType === "Other") {
+        details.name = customInterventionName.trim()
+      }
+
+      const newIntervention = await createIntervention({
+        patient_id: patientId,
         type: newType,
         date: newDate,
-        details: {},
+        details,
         notes,
-        createdBy: "Dr. Anderson",
-        goalId: selectedGoalId,
+        goal_id: selectedGoalId,
         status: "active",
-      },
-    ])
-    setNotes("")
-    setSelectedGoalId(undefined)
+        created_by: "Dr. Anderson",
+      })
+
+      setItems((prev) => [
+        ...prev,
+        {
+          id: newIntervention.id,
+          type: newIntervention.type,
+          date: newIntervention.date,
+          details: newIntervention.details,
+          notes: newIntervention.notes,
+          createdBy: newIntervention.created_by,
+          goalId: newIntervention.goal_id,
+          status: newIntervention.status,
+        },
+      ])
+
+      setNotes("")
+      setSelectedGoalId(undefined)
+      setCustomInterventionName("")
+
+      toast({
+        title: "Success",
+        description: "Intervention added successfully",
+      })
+    } catch (error) {
+      console.error('Error adding intervention:', error)
+      toast({
+        title: "Error",
+        description: "Failed to add intervention",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const openStopDialog = (intervention: Intervention) => {
@@ -118,26 +215,50 @@ export function InterventionTimeline({
     setStopDialogOpen(true)
   }
 
-  const confirmStopIntervention = () => {
+  const confirmStopIntervention = async () => {
     if (!interventionToStop || !stopReason.trim()) return
 
-    setItems((prev) =>
-      prev.map((item) =>
-        item.id === interventionToStop.id
-          ? {
-              ...item,
-              status: "stopped",
-              stoppedDate: stopDate,
-              stoppedReason: stopReason,
-              stoppedBy: "Dr. Anderson",
-            }
-          : item
-      )
-    )
+    try {
+      setIsLoading(true)
+      await updateIntervention(interventionToStop.id, {
+        status: "stopped",
+        stopped_date: stopDate,
+        stopped_reason: stopReason,
+        stopped_by: "Dr. Anderson",
+      })
 
-    setStopDialogOpen(false)
-    setInterventionToStop(null)
-    setStopReason("")
+      setItems((prev) =>
+        prev.map((item) =>
+          item.id === interventionToStop.id
+            ? {
+                ...item,
+                status: "stopped",
+                stoppedDate: stopDate,
+                stoppedReason: stopReason,
+                stoppedBy: "Dr. Anderson",
+              }
+            : item
+        )
+      )
+
+      toast({
+        title: "Success",
+        description: "Intervention stopped successfully",
+      })
+
+      setStopDialogOpen(false)
+      setInterventionToStop(null)
+      setStopReason("")
+    } catch (error) {
+      console.error('Error stopping intervention:', error)
+      toast({
+        title: "Error",
+        description: "Failed to stop intervention",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const filteredItems = useMemo(() => {
@@ -150,18 +271,23 @@ export function InterventionTimeline({
 
   const timeline = useMemo(() => {
     const entries = assessments.map((a) => ({ date: a.date, interventions: a.interventions, isManual: false, item: null }))
-    const manual = filteredItems.map((i) => ({
-      date: i.date,
-      interventions: [
-        `${i.type} (manual${
-          i.goalId && goalsOptions?.length
-            ? ` • Goal: ${goalsOptions.find((g) => g.id === i.goalId)?.label ?? i.goalId}`
-            : ""
-        })`,
-      ],
-      isManual: true,
-      item: i,
-    }))
+    const manual = filteredItems.map((i) => {
+      const interventionLabel = i.type === "Other" && i.details?.name
+        ? i.details.name
+        : i.type
+      return {
+        date: i.date,
+        interventions: [
+          `${interventionLabel} (manual${
+            i.goalId && goalsOptions?.length
+              ? ` • Goal: ${goalsOptions.find((g) => g.id === i.goalId)?.label ?? i.goalId}`
+              : ""
+          })`,
+        ],
+        isManual: true,
+        item: i,
+      }
+    })
     return [...entries, ...manual].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
   }, [assessments, filteredItems, goalsOptions])
 
@@ -187,6 +313,7 @@ export function InterventionTimeline({
                 <SelectItem value="Medication">Medication</SelectItem>
                 <SelectItem value="Lifestyle">Lifestyle</SelectItem>
                 <SelectItem value="Therapy">Therapy</SelectItem>
+                <SelectItem value="Other">Other</SelectItem>
               </SelectContent>
             </Select>
             <Input type="date" value={newDate} onChange={(e) => setNewDate(e.target.value)} className="w-44" />
@@ -219,9 +346,9 @@ export function InterventionTimeline({
             <Button
               size="sm"
               onClick={addIntervention}
-              disabled={!canEdit || !(Array.isArray(goalsOptions) && goalsOptions.length > 0 && selectedGoalId)}
+              disabled={!canEdit || !(Array.isArray(goalsOptions) && goalsOptions.length > 0 && selectedGoalId) || isLoading}
             >
-              Save Intervention
+              {isLoading ? "Saving..." : "Save Intervention"}
             </Button>
           </div>
         </CardContent>
@@ -273,7 +400,9 @@ export function InterventionTimeline({
                       ? "Lifestyle"
                       : label.startsWith("Therapy")
                         ? "Therapy"
-                        : ("Therapy" as const)
+                        : label.startsWith("Other")
+                          ? "Other"
+                          : ("Other" as const)
                   const Icon = typeIcon(t)
                   const isStopped = entry.item?.status === "stopped"
                   return (
