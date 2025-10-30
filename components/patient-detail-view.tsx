@@ -12,7 +12,26 @@ import { QuickScheduleDialog } from "@/components/quick-schedule-dialog"
 import { PatientAssessmentTracking } from "@/components/patient-assessment-tracking"
 import { MessagingTeamHub } from "@/components/messaging-team-hub"
 import { getPatientById, getAssessmentById, healthDimensionsConfig } from "@/lib/nsh-assessment-mock"
-import { Phone, Mail, MapPin, Calendar, FileText, Activity, Heart, TriangleAlert as AlertTriangle, MessageSquare, UserCheck, Pill, TrendingUp, TrendingDown, CreditCard as Edit, Plus, ExternalLink, Clock, Video } from "lucide-react"
+import {
+  Phone,
+  Mail,
+  MapPin,
+  Calendar,
+  FileText,
+  Activity,
+  Heart,
+  AlertTriangle,
+  MessageSquare,
+  UserCheck,
+  Pill,
+  TrendingUp,
+  TrendingDown,
+  Edit,
+  Plus,
+  ExternalLink,
+  Clock,
+  Video,
+} from "lucide-react"
 
 // Mock patient data
 const mockPatientDetail = {
@@ -769,6 +788,8 @@ export function PatientDetailView() {
               })}
             </CardContent>
           </Card>
+
+          <PatientAssessmentTracking />
         </TabsContent>
       </Tabs>
 
