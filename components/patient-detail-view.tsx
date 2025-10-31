@@ -13,7 +13,6 @@ import { PatientAssessmentTracking } from "@/components/patient-assessment-track
 import { MessagingTeamHub } from "@/components/messaging-team-hub"
 import { DimensionProgressCard } from "@/components/dimension-progress-card"
 import { MedicationAdherenceTrends } from "@/components/medication-adherence-trends"
-import { PatientOutcomesTracking } from "@/components/patient-outcomes-tracking"
 import { getPatientById, getAssessmentById, healthDimensionsConfig, getGoalsByDimension, getActiveInterventionsByDimension, getRiskLevel } from "@/lib/nsh-assessment-mock"
 import {
   Phone,
@@ -911,8 +910,6 @@ export function PatientDetailView() {
               })}
             </CardContent>
           </Card>
-
-          <PatientOutcomesTracking patientId={mockPatientDetail.id} />
 
           <PatientAssessmentTracking />
         </TabsContent>
