@@ -341,7 +341,17 @@ export function PatientDetailView() {
               <div>
                 <p className="text-sm text-gray-600">Last Assessment</p>
                 <p className="text-2xl font-bold text-gray-900">Jan 1</p>
-                <p className="text-xs text-green-600">MCID: 11% (Improved)</p>
+                {latestAssessment?.mcid && (
+                  <p className={`text-xs ${
+                    latestAssessment.mcid.status === "improved"
+                      ? "text-emerald-600"
+                      : latestAssessment.mcid.status === "worsened"
+                      ? "text-red-600"
+                      : "text-gray-600"
+                  }`}>
+                    MCID: {latestAssessment.mcid.description}
+                  </p>
+                )}
               </div>
               <Activity className="h-8 w-8 text-blue-600" />
             </div>

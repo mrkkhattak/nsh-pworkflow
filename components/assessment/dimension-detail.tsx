@@ -168,6 +168,7 @@ export function DimensionDetail({ patient, assessment, dimension }: Props) {
         statusColorClass={getRiskColor(dimension.riskLevel)}
         interpretation={dimension.interpretation}
         riskLevel={dimension.riskLevel}
+        mcid={dimension.mcid}
       />
 
       <Tabs defaultValue="subcategories" className="space-y-6">

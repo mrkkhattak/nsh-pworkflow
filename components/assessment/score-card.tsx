@@ -5,8 +5,9 @@ import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { RiskScaleBar } from "./risk-scale-bar"
+import { MCIDDisplay } from "./mcid-display"
 import { Info } from "lucide-react"
-import type { RiskLevel } from "@/lib/nsh-assessment-mock"
+import type { RiskLevel, MCIDData } from "@/lib/nsh-assessment-mock"
 import { getRiskBgColor, getRiskBorderColor } from "@/lib/nsh-assessment-mock"
 
 type ScoreCardProps = {
@@ -19,6 +20,7 @@ type ScoreCardProps = {
   riskLevel: RiskLevel
   clickable?: boolean
   linkHref?: string
+  mcid?: MCIDData
 }
 
 export function ScoreCard({
@@ -31,6 +33,7 @@ export function ScoreCard({
   riskLevel,
   clickable = false,
   linkHref,
+  mcid,
 }: ScoreCardProps) {
   const cardContent = (
     <Card className={`bg-white border ${getRiskBorderColor(riskLevel)} shadow-sm ${
@@ -58,6 +61,12 @@ export function ScoreCard({
         <RiskScaleBar score={score} riskLevel={riskLevel} ariaLabel={`${title} score is ${score} out of 100`} />
 
         <div className={`text-sm font-semibold ${statusColorClass}`}>{statusText}</div>
+
+        {mcid && (
+          <div className="pt-2 border-t border-gray-100">
+            <MCIDDisplay mcid={mcid} size="sm" />
+          </div>
+        )}
 
         <div className={`rounded-md ${getRiskBgColor(riskLevel)} p-3 text-sm text-gray-700`}>
           <div className="font-medium mb-1">Interpretation</div>

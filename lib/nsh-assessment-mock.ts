@@ -2,6 +2,24 @@ export type RiskLevel = "green" | "yellow" | "orange" | "red"
 
 export type ActionItemStatus = "pending" | "in_progress" | "completed"
 
+export type MCIDStatus = "improved" | "worsened" | "stable" | "no-baseline"
+
+export interface MCIDData {
+  current: number
+  baseline: number
+  change: number
+  changePercent: number
+  status: MCIDStatus
+  isClinicallySiginificant: boolean
+  description: string
+}
+
+export interface DimensionMCID {
+  dimensionId: string
+  dimensionName: string
+  mcid: MCIDData
+}
+
 export interface Subcategory {
   id: string
   name: string
@@ -18,6 +36,7 @@ export interface HealthDimension {
   interpretation: string
   color: string
   subcategories: Subcategory[]
+  mcid?: MCIDData
 }
 
 export interface PhysicianActionItem {
@@ -100,6 +119,8 @@ export interface Assessment {
   }
   questionnaireResponses: QuestionResponse[]
   interventions: string[]
+  mcid?: MCIDData
+  dimensionMCIDs?: DimensionMCID[]
 }
 
 export interface Patient {
@@ -903,6 +924,7 @@ export const mockAssessmentData: Record<number, { patient: Patient; assessments:
               "Overall physical health is in good standing with excellent cardiovascular indicators and mobility. Minor strength deficits noted but not concerning. Continue current activity level.",
             color: "#10b981",
             subcategories: physicalSubcategories,
+            mcid: calculateMCID(28, 21, 5),
           },
           {
             id: "mental",
@@ -913,6 +935,7 @@ export const mockAssessmentData: Record<number, { patient: Patient; assessments:
               "Moderate mental health symptoms present. Depressive and anxiety symptoms are responding to treatment but require continued monitoring. Cognitive function remains excellent.",
             color: "#6366f1",
             subcategories: mentalSubcategories,
+            mcid: calculateMCID(42, 32, 5),
           },
           {
             id: "sdoh",
@@ -923,6 +946,7 @@ export const mockAssessmentData: Record<number, { patient: Patient; assessments:
               "Some social determinant challenges identified, particularly food insecurity and financial stress. Housing stable. Community resources have been connected.",
             color: "#ef4444",
             subcategories: sdohSubcategories,
+            mcid: calculateMCID(45, 36, 5),
           },
           {
             id: "engagement",
@@ -933,6 +957,7 @@ export const mockAssessmentData: Record<number, { patient: Patient; assessments:
               "Excellent patient engagement across all measures. Strong medication adherence, appointment attendance, and self-monitoring practices. Patient is an active participant in care.",
             color: "#f43f5e",
             subcategories: engagementSubcategories,
+            mcid: calculateMCID(25, 18, 5),
           },
           {
             id: "burden",
@@ -943,6 +968,7 @@ export const mockAssessmentData: Record<number, { patient: Patient; assessments:
               "Moderate illness burden affecting quality of life. Symptoms and functional limitations present but improving with current treatment plan.",
             color: "#3b82f6",
             subcategories: burdenSubcategories,
+            mcid: calculateMCID(48, 34, 5),
           },
           {
             id: "medical",
@@ -953,6 +979,7 @@ export const mockAssessmentData: Record<number, { patient: Patient; assessments:
               "Strong medical management with excellent treatment adherence and good understanding of conditions. Minor care coordination gaps being addressed.",
             color: "#8b5cf6",
             subcategories: medicalSubcategories,
+            mcid: calculateMCID(30, 23, 5),
           },
           {
             id: "utilization",
@@ -963,6 +990,7 @@ export const mockAssessmentData: Record<number, { patient: Patient; assessments:
               "Appropriate healthcare utilization patterns. Low ER and hospitalization rates indicate effective outpatient management.",
             color: "#f59e0b",
             subcategories: utilizationSubcategories,
+            mcid: calculateMCID(22, 17, 5),
           },
           {
             id: "diet",
@@ -973,6 +1001,7 @@ export const mockAssessmentData: Record<number, { patient: Patient; assessments:
               "Diet quality needs improvement. High processed food intake and irregular eating patterns. Nutrition counseling has been initiated.",
             color: "#84cc16",
             subcategories: dietSubcategories,
+            mcid: calculateMCID(40, 33, 5),
           },
           {
             id: "sleep",
@@ -983,6 +1012,7 @@ export const mockAssessmentData: Record<number, { patient: Patient; assessments:
               "Sleep health is a significant concern. Quality and duration issues affecting daytime functioning. Sleep hygiene education provided and sleep study being considered.",
             color: "#ec4899",
             subcategories: sleepSubcategories,
+            mcid: calculateMCID(55, 44, 5),
           },
           {
             id: "pain",
@@ -993,6 +1023,7 @@ export const mockAssessmentData: Record<number, { patient: Patient; assessments:
               "Moderate chronic pain affecting function. Multimodal pain management approach showing some benefit. Physical therapy ongoing.",
             color: "#f97316",
             subcategories: painSubcategories,
+            mcid: calculateMCID(35, 28, 5),
           },
           {
             id: "satisfaction",
@@ -1003,6 +1034,7 @@ export const mockAssessmentData: Record<number, { patient: Patient; assessments:
               "High satisfaction with care team and services. Strong therapeutic relationships established. Minor wait time concerns noted.",
             color: "#14b8a6",
             subcategories: satisfactionSubcategories,
+            mcid: calculateMCID(20, 16, 5),
           },
           {
             id: "cost",
@@ -1013,6 +1045,7 @@ export const mockAssessmentData: Record<number, { patient: Patient; assessments:
               "Healthcare costs creating moderate financial burden. Out-of-pocket expenses affecting some treatment decisions. Financial assistance programs being explored.",
             color: "#06b6d4",
             subcategories: costSubcategories,
+            mcid: calculateMCID(58, 46, 5),
           },
         ],
         actionItems: [
@@ -1139,6 +1172,7 @@ export const mockAssessmentData: Record<number, { patient: Patient; assessments:
           "Connected to community food bank services",
           "Started sleep hygiene education program",
         ],
+        mcid: calculateMCID(42, 31, 5),
       },
     ],
   },
@@ -1334,4 +1368,59 @@ export function getActiveInterventionsByDimension(dimensionId: string): string[]
   const goals = getGoalsByDimension(dimensionId)
   const allInterventions = goals.flatMap((goal) => goal.linkedInterventions)
   return Array.from(new Set(allInterventions))
+}
+
+// MCID Calculation Utilities
+export function calculateMCID(baseline: number, current: number, threshold: number = 5): MCIDData {
+  const change = baseline - current
+  const changePercent = baseline !== 0 ? Math.round((change / baseline) * 100) : 0
+
+  let status: MCIDStatus
+  if (baseline === 0 || baseline === current) {
+    status = "stable"
+  } else if (Math.abs(change) < threshold) {
+    status = "stable"
+  } else if (change > 0) {
+    status = "improved"
+  } else {
+    status = "worsened"
+  }
+
+  const isClinicallySiginificant = Math.abs(change) >= threshold
+
+  return {
+    current,
+    baseline,
+    change,
+    changePercent,
+    status,
+    isClinicallySiginificant,
+    description: formatMCIDDescription(change, status)
+  }
+}
+
+export function formatMCIDDescription(change: number, status: MCIDStatus): string {
+  const absChange = Math.abs(change)
+
+  if (status === "stable") {
+    return "Stable (no clinically significant change)"
+  } else if (status === "improved") {
+    return `Improved by ${absChange} points`
+  } else if (status === "worsened") {
+    return `Worsened by ${absChange} points`
+  } else {
+    return "No baseline available"
+  }
+}
+
+export function getMCIDStatus(mcid?: MCIDData): MCIDStatus {
+  return mcid?.status || "no-baseline"
+}
+
+export function getMCIDChangeDescription(mcid?: MCIDData): string {
+  return mcid?.description || "No baseline data available"
+}
+
+export function isMCIDSignificant(mcid?: MCIDData): boolean {
+  return mcid?.isClinicallySiginificant || false
 }
