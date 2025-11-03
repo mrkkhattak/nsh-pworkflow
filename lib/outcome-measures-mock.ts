@@ -224,3 +224,63 @@ export function filterOutcomesByRiskLevel(riskLevel: string): QuarterlyOutcome[]
   if (riskLevel === 'all') return quarterlyOutcomeData;
   return quarterlyOutcomeData.filter(d => d.riskLevel === riskLevel);
 }
+
+export interface PatientOutcomeStats {
+  latest: QuarterlyOutcome;
+  previous?: QuarterlyOutcome;
+  readmissionsChange?: { value: number; percentage: number; direction: 'up' | 'down' | 'stable' };
+  hospitalizationsChange?: { value: number; percentage: number; direction: 'up' | 'down' | 'stable' };
+  edVisitsChange?: { value: number; percentage: number; direction: 'up' | 'down' | 'stable' };
+  functionalCapacityChange?: { value: number; percentage: number; direction: 'up' | 'down' | 'stable' };
+}
+
+export function getPatientOutcomeStats(patientId: string): PatientOutcomeStats | null {
+  const outcomes = getPatientOutcomes(patientId);
+  if (outcomes.length === 0) return null;
+
+  outcomes.sort((a, b) => {
+    const aIndex = years.indexOf(a.year) * 4 + quarters.indexOf(a.quarter);
+    const bIndex = years.indexOf(b.year) * 4 + quarters.indexOf(b.quarter);
+    return bIndex - aIndex;
+  });
+
+  const latest = outcomes[0];
+  const previous = outcomes[1];
+
+  const result: PatientOutcomeStats = { latest };
+
+  if (previous) {
+    result.previous = previous;
+    result.readmissionsChange = getQuarterOverQuarterChange(latest.readmissions, previous.readmissions);
+    result.hospitalizationsChange = getQuarterOverQuarterChange(latest.hospitalizations, previous.hospitalizations);
+    result.edVisitsChange = getQuarterOverQuarterChange(latest.edVisits, previous.edVisits);
+    result.functionalCapacityChange = getQuarterOverQuarterChange(latest.functionalCapacity, previous.functionalCapacity);
+  }
+
+  return result;
+}
+
+export function getPatientOutcomeTrends(patientId: string, startYear: number, startQuarter: string, endYear: number, endQuarter: string): QuarterlyTrend[] {
+  const outcomes = getPatientOutcomes(patientId).filter(outcome => {
+    const startQIndex = years.indexOf(startYear) * 4 + quarters.indexOf(startQuarter);
+    const endQIndex = years.indexOf(endYear) * 4 + quarters.indexOf(endQuarter);
+    const currentQIndex = years.indexOf(outcome.year) * 4 + quarters.indexOf(outcome.quarter);
+
+    return currentQIndex >= startQIndex && currentQIndex <= endQIndex;
+  });
+
+  outcomes.sort((a, b) => {
+    const aIndex = years.indexOf(a.year) * 4 + quarters.indexOf(a.quarter);
+    const bIndex = years.indexOf(b.year) * 4 + quarters.indexOf(b.quarter);
+    return aIndex - bIndex;
+  });
+
+  return outcomes.map(outcome => ({
+    quarter: `${outcome.quarter} ${outcome.year}`,
+    year: outcome.year,
+    readmissions: outcome.readmissions,
+    hospitalizations: outcome.hospitalizations,
+    edVisits: outcome.edVisits,
+    functionalCapacity: outcome.functionalCapacity,
+  }));
+}

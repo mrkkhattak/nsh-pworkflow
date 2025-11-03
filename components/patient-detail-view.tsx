@@ -13,6 +13,7 @@ import { PatientAssessmentTracking } from "@/components/patient-assessment-track
 import { MessagingTeamHub } from "@/components/messaging-team-hub"
 import { DimensionProgressCard } from "@/components/dimension-progress-card"
 import { MedicationAdherenceTrends } from "@/components/medication-adherence-trends"
+import { PatientOutcomeMeasures } from "@/components/patient-outcome-measures"
 import { getPatientById, getAssessmentById, healthDimensionsConfig, getGoalsByDimension, getActiveInterventionsByDimension, getRiskLevel } from "@/lib/nsh-assessment-mock"
 import {
   Phone,
@@ -412,7 +413,7 @@ export function PatientDetailView() {
         }}
         className="space-y-6"
       >
-        <TabsList className="grid w-full grid-cols-6 bg-gray-100 p-1 rounded-lg">
+        <TabsList className="grid w-full grid-cols-7 bg-gray-100 p-1 rounded-lg">
           <TabsTrigger value="overview" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
             Overview
           </TabsTrigger>
@@ -427,6 +428,9 @@ export function PatientDetailView() {
           </TabsTrigger>
           <TabsTrigger value="medications" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
             Medications
+          </TabsTrigger>
+          <TabsTrigger value="outcomes" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+            Outcome Measures
           </TabsTrigger>
           <TabsTrigger value="progress" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
             Progress
@@ -863,6 +867,10 @@ export function PatientDetailView() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="outcomes" className="space-y-6">
+          <PatientOutcomeMeasures patientId={mockPatientDetail.id.toString()} />
         </TabsContent>
 
         <TabsContent value="progress" className="space-y-6">
