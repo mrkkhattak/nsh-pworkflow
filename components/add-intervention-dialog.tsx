@@ -18,6 +18,7 @@ interface AddInterventionDialogProps {
   onSave: (intervention: {
     type: "Medication" | "Lifestyle" | "Therapy" | "Other"
     date: string
+    endDate?: string
     details: Record<string, string>
     notes?: string
     goalId?: string
@@ -34,6 +35,7 @@ export function AddInterventionDialog({
 }: AddInterventionDialogProps) {
   const [interventionType, setInterventionType] = useState<"Medication" | "Lifestyle" | "Therapy" | "Other">("Medication")
   const [startDate, setStartDate] = useState<string>(new Date().toISOString().slice(0, 10))
+  const [endDate, setEndDate] = useState<string>("")
   const [notes, setNotes] = useState("")
   const [selectedGoalId, setSelectedGoalId] = useState<string | undefined>(undefined)
 
@@ -53,6 +55,7 @@ export function AddInterventionDialog({
   const resetForm = () => {
     setInterventionType("Medication")
     setStartDate(new Date().toISOString().slice(0, 10))
+    setEndDate("")
     setNotes("")
     setSelectedGoalId(undefined)
     setDrugName("")
@@ -96,6 +99,7 @@ export function AddInterventionDialog({
     onSave({
       type: interventionType,
       date: startDate,
+      endDate: endDate.trim() || undefined,
       details,
       notes: notes.trim() || undefined,
       goalId: selectedGoalId,
@@ -264,6 +268,31 @@ export function AddInterventionDialog({
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
             />
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="endDate">End Date (Optional)</Label>
+              {endDate && (
+                <button
+                  type="button"
+                  onClick={() => setEndDate("")}
+                  className="text-xs text-gray-500 hover:text-gray-700"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+            <Input
+              id="endDate"
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              min={startDate}
+            />
+            <p className="text-xs text-gray-500">
+              Planned duration of the intervention. This is separate from stopping an intervention early.
+            </p>
           </div>
 
           {goals.length > 0 && (

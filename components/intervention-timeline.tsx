@@ -22,6 +22,7 @@ type Intervention = {
   id: string
   type: "Medication" | "Lifestyle" | "Therapy" | "Other"
   date: string
+  endDate?: string
   details: Record<string, string>
   notes?: string
   parentId?: string
@@ -38,6 +39,7 @@ const mockActiveInterventions: Intervention[] = [
     id: "mock-1",
     type: "Medication",
     date: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+    endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
     details: {
       drugName: "Sertraline",
       dose: "75mg",
@@ -51,6 +53,7 @@ const mockActiveInterventions: Intervention[] = [
     id: "mock-2",
     type: "Therapy",
     date: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+    endDate: new Date(Date.now() + 120 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
     details: {
       therapyType: "CBT",
       frequency: "Weekly",
@@ -76,6 +79,7 @@ const mockActiveInterventions: Intervention[] = [
     id: "mock-4",
     type: "Lifestyle",
     date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+    endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
     details: {
       category: "Sleep hygiene",
       change: "10pm bedtime routine"
@@ -401,6 +405,12 @@ export function InterventionTimeline({
                           >
                             {entry.item.status === "active" ? "Active" : "Stopped"}
                           </Badge>
+                          {entry.item.endDate && (
+                            <div className="flex items-center gap-1 text-xs text-gray-600">
+                              <Calendar className="h-3 w-3" />
+                              <span>End: {new Date(entry.item.endDate).toLocaleDateString()}</span>
+                            </div>
+                          )}
                           {entry.item.status === "active" && canEdit && (
                             <Button
                               variant="ghost"

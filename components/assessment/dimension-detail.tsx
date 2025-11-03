@@ -114,6 +114,7 @@ export function DimensionDetail({ patient, assessment, dimension }: Props) {
   const handleAddIntervention = (interventionData: {
     type: "Medication" | "Lifestyle" | "Therapy" | "Other"
     date: string
+    endDate?: string
     details: Record<string, string>
     notes?: string
     goalId?: string
