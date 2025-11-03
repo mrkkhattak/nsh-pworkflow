@@ -1,16 +1,21 @@
 "use client"
 
+import { useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { type DimensionGoal, healthDimensionsConfig } from "@/lib/nsh-assessment-mock"
-import { Target, Calendar, TrendingDown, CheckCircle, AlertCircle, Activity } from "lucide-react"
+import { Target, Calendar, TrendingDown, CheckCircle, AlertCircle, Activity, ChevronDown, ChevronUp } from "lucide-react"
+import { PatientInterventionCard } from "@/components/patient-portal/patient-intervention-card"
+import { getInterventionDetailsForGoal } from "@/lib/intervention-data"
 
 interface PatientGoalCardProps {
   goal: DimensionGoal
 }
 
 export function PatientGoalCard({ goal }: PatientGoalCardProps) {
+  const [isExpanded, setIsExpanded] = useState(false)
+
   const getDaysUntilDeadline = (deadline: string) => {
     const today = new Date()
     const deadlineDate = new Date(deadline)
@@ -47,6 +52,7 @@ export function PatientGoalCard({ goal }: PatientGoalCardProps) {
   const isApproachingDeadline = daysLeft <= 14 && daysLeft > 0
   const isOverdue = daysLeft < 0
   const dimensionConfig = healthDimensionsConfig.find(c => c.id === goal.dimensionId)
+  const interventionDetails = getInterventionDetailsForGoal(goal.linkedInterventions, goal.description)
 
   return (
     <Card className="shadow-sm border-gray-200 bg-white hover:shadow-md transition-shadow">
@@ -125,17 +131,52 @@ export function PatientGoalCard({ goal }: PatientGoalCardProps) {
 
             {goal.linkedInterventions.length > 0 && (
               <div className="pt-4 border-t border-gray-200">
-                <p className="text-xs font-medium text-gray-700 mb-2 flex items-center gap-2">
-                  <Activity className="h-3.5 w-3.5" />
-                  Your Treatment Plan for This Goal:
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {goal.linkedInterventions.map((intervention, idx) => (
-                    <Badge key={idx} variant="secondary" className="text-xs font-normal">
-                      {intervention}
-                    </Badge>
-                  ))}
-                </div>
+                <button
+                  onClick={() => setIsExpanded(!isExpanded)}
+                  className="w-full text-left group"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs font-medium text-gray-700 flex items-center gap-2">
+                      <Activity className="h-3.5 w-3.5" />
+                      Your Treatment Plan for This Goal ({goal.linkedInterventions.length})
+                    </p>
+                    <div className="flex items-center gap-2 text-xs text-blue-600 font-medium group-hover:text-blue-700">
+                      {isExpanded ? "Hide Details" : "Show Details"}
+                      {isExpanded ? (
+                        <ChevronUp className="h-4 w-4" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4" />
+                      )}
+                    </div>
+                  </div>
+                </button>
+
+                {!isExpanded && (
+                  <div className="flex flex-wrap gap-2">
+                    {goal.linkedInterventions.map((intervention, idx) => (
+                      <Badge key={idx} variant="secondary" className="text-xs font-normal">
+                        {intervention}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+
+                {isExpanded && interventionDetails.length > 0 && (
+                  <div className="mt-4 space-y-4">
+                    {interventionDetails.map((intervention, idx) => (
+                      <PatientInterventionCard
+                        key={idx}
+                        name={intervention.name}
+                        type={intervention.type}
+                        dimensionIds={intervention.dimensionIds}
+                        linkedGoals={intervention.linkedGoals}
+                        startDate={intervention.startDate}
+                        status={intervention.status}
+                        details={intervention.details}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>

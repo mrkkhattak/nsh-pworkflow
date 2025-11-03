@@ -12,7 +12,9 @@ import {
   healthDimensionsConfig,
   type DimensionGoal
 } from "@/lib/nsh-assessment-mock"
-import { Target, Calendar, TrendingDown, CheckCircle, AlertCircle, Activity, ArrowLeft, Filter } from "lucide-react"
+import { Target, Calendar, TrendingDown, CheckCircle, AlertCircle, Activity, ArrowLeft, Filter, ChevronDown, ChevronUp } from "lucide-react"
+import { PatientInterventionCard } from "@/components/patient-portal/patient-intervention-card"
+import { getInterventionDetailsForGoal } from "@/lib/intervention-data"
 
 interface AllGoalsAggregatedViewProps {
   patientId: number
@@ -22,6 +24,19 @@ export function AllGoalsAggregatedView({ patientId }: AllGoalsAggregatedViewProp
   const [filterDimension, setFilterDimension] = useState<string>("all")
   const [filterStatus, setFilterStatus] = useState<string>("all")
   const [sortBy, setSortBy] = useState<string>("deadline")
+  const [expandedGoals, setExpandedGoals] = useState<Set<string>>(new Set())
+
+  const toggleGoalExpansion = (goalId: string) => {
+    setExpandedGoals(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(goalId)) {
+        newSet.delete(goalId)
+      } else {
+        newSet.add(goalId)
+      }
+      return newSet
+    })
+  }
 
   let filteredGoals = [...mockDimensionGoals]
 
@@ -84,6 +99,8 @@ export function AllGoalsAggregatedView({ patientId }: AllGoalsAggregatedViewProp
     const isApproachingDeadline = daysLeft <= 14 && daysLeft > 0
     const isOverdue = daysLeft < 0
     const dimensionConfig = healthDimensionsConfig.find(c => c.id === goal.dimensionId)
+    const isExpanded = expandedGoals.has(goal.id)
+    const interventionDetails = getInterventionDetailsForGoal(goal.linkedInterventions, goal.description)
 
     return (
       <Card className="shadow-sm border-gray-200 bg-white hover:shadow-md transition-shadow">
@@ -158,17 +175,52 @@ export function AllGoalsAggregatedView({ patientId }: AllGoalsAggregatedViewProp
 
               {goal.linkedInterventions.length > 0 && (
                 <div className="pt-4 border-t border-gray-200">
-                  <p className="text-xs font-medium text-gray-700 mb-2 flex items-center gap-2">
-                    <Activity className="h-3 w-3" />
-                    Your Treatment Plan for This Goal:
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {goal.linkedInterventions.map((intervention, idx) => (
-                      <Badge key={idx} variant="secondary" className="text-xs">
-                        {intervention}
-                      </Badge>
-                    ))}
-                  </div>
+                  <button
+                    onClick={() => toggleGoalExpansion(goal.id)}
+                    className="w-full text-left group"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-xs font-medium text-gray-700 flex items-center gap-2">
+                        <Activity className="h-3 w-3" />
+                        Your Treatment Plan for This Goal ({goal.linkedInterventions.length})
+                      </p>
+                      <div className="flex items-center gap-2 text-xs text-blue-600 font-medium group-hover:text-blue-700">
+                        {isExpanded ? "Hide Details" : "Show Details"}
+                        {isExpanded ? (
+                          <ChevronUp className="h-4 w-4" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4" />
+                        )}
+                      </div>
+                    </div>
+                  </button>
+
+                  {!isExpanded && (
+                    <div className="flex flex-wrap gap-2">
+                      {goal.linkedInterventions.map((intervention, idx) => (
+                        <Badge key={idx} variant="secondary" className="text-xs">
+                          {intervention}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+
+                  {isExpanded && interventionDetails.length > 0 && (
+                    <div className="mt-4 space-y-4">
+                      {interventionDetails.map((intervention, idx) => (
+                        <PatientInterventionCard
+                          key={idx}
+                          name={intervention.name}
+                          type={intervention.type}
+                          dimensionIds={intervention.dimensionIds}
+                          linkedGoals={intervention.linkedGoals}
+                          startDate={intervention.startDate}
+                          status={intervention.status}
+                          details={intervention.details}
+                        />
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
