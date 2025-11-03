@@ -410,7 +410,7 @@ export function PatientDetailView() {
         }}
         className="space-y-6"
       >
-        <TabsList className="grid w-full grid-cols-5 bg-gray-100 p-1 rounded-lg">
+        <TabsList className="grid w-full grid-cols-6 bg-gray-100 p-1 rounded-lg">
           <TabsTrigger value="overview" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
             Overview
           </TabsTrigger>
@@ -419,6 +419,9 @@ export function PatientDetailView() {
           </TabsTrigger>
           <TabsTrigger value="opportunities" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
             Areas of Opportunity
+          </TabsTrigger>
+          <TabsTrigger value="goals" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+            Goals
           </TabsTrigger>
           <TabsTrigger value="medications" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
             Medications
@@ -758,6 +761,104 @@ export function PatientDetailView() {
                   </CardContent>
                 </Card>
               ))}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="goals" className="space-y-6">
+          <Card className="shadow-sm border-gray-200 bg-white">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg font-semibold">Patient Goals</CardTitle>
+                  <p className="text-sm text-gray-600">View and manage all health goals for this patient</p>
+                </div>
+                <Link href={`/patients/${mockPatientDetail.id}/goals`}>
+                  <Button className="bg-blue-600 hover:bg-blue-700">
+                    <Target className="h-4 w-4 mr-2" />
+                    View All Goals
+                  </Button>
+                </Link>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Card className="shadow-sm border-gray-200 bg-white">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-600">Active Goals</p>
+                        <p className="text-2xl font-bold text-gray-900">8</p>
+                      </div>
+                      <Target className="h-8 w-8 text-blue-600" />
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="shadow-sm border-gray-200 bg-white">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-600">At Risk</p>
+                        <p className="text-2xl font-bold text-gray-900">2</p>
+                      </div>
+                      <AlertTriangle className="h-8 w-8 text-red-600" />
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="shadow-sm border-gray-200 bg-white">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-600">Achieved</p>
+                        <p className="text-2xl font-bold text-gray-900">3</p>
+                      </div>
+                      <CheckCircle className="h-8 w-8 text-green-600" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div className="space-y-3">
+                <h3 className="text-sm font-semibold text-gray-900">Recent Goals</h3>
+                <div className="space-y-3">
+                  {healthDimensionsConfig.slice(0, 4).map((dimension) => {
+                    const goals = getGoalsByDimension(dimension.id)
+                    if (goals.length === 0) return null
+                    const goal = goals[0]
+
+                    return (
+                      <Card key={dimension.id} className="border-l-4" style={{ borderLeftColor: dimension.color }}>
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <Badge className="bg-blue-100 text-blue-800 text-xs">
+                                  {dimension.name}
+                                </Badge>
+                                <Badge className={`${goal.status === "achieved" ? "bg-green-100 text-green-800" : goal.status === "at-risk" ? "bg-red-100 text-red-800" : "bg-blue-100 text-blue-800"} text-xs`}>
+                                  {goal.status}
+                                </Badge>
+                              </div>
+                              <h4 className="font-medium text-gray-900 text-sm mb-1">{goal.description}</h4>
+                              <div className="flex items-center gap-4 text-xs text-gray-600">
+                                <span>Baseline: {goal.baseline}</span>
+                                <TrendingDown className="h-3 w-3" />
+                                <span>Current: {goal.current}</span>
+                                <TrendingDown className="h-3 w-3" />
+                                <span>Target: {goal.target}</span>
+                              </div>
+                              <div className="mt-2">
+                                <Progress value={goal.progress} className="h-1.5" />
+                                <p className="text-xs text-gray-500 mt-1">{goal.progress}% progress</p>
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )
+                  })}
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
