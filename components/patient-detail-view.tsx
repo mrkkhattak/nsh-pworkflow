@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { QuickScheduleDialog } from "@/components/quick-schedule-dialog"
 import { PatientAssessmentTracking } from "@/components/patient-assessment-tracking"
 import { MessagingTeamHub } from "@/components/messaging-team-hub"
-import { DimensionProgressCard } from "@/components/dimension-progress-card"
+import { DimensionDetailProgressCard } from "@/components/dimension-detail-progress-card"
 import { MedicationAdherenceTrends } from "@/components/medication-adherence-trends"
 import { PatientOutcomeMeasures } from "@/components/patient-outcome-measures"
 import { getPatientById, getAssessmentById, healthDimensionsConfig, getGoalsByDimension, getActiveInterventionsByDimension, getRiskLevel } from "@/lib/nsh-assessment-mock"
@@ -874,42 +874,60 @@ export function PatientDetailView() {
         </TabsContent>
 
         <TabsContent value="progress" className="space-y-6">
-          <Card className="shadow-sm border-gray-200 bg-white">
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold">Health Dimensions Overview</CardTitle>
-              <p className="text-sm text-gray-600">Track progress, goals, and interventions across all health dimensions (Lower score = Better health)</p>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {healthDimensionsConfig.map((dimension) => {
-                const mockScore = Math.floor(Math.random() * 60) + 15
-                const mockBaseline = mockScore + Math.floor(Math.random() * 15) + 5
-                const mockTarget = Math.max(mockScore - Math.floor(Math.random() * 20) - 10, 10)
-                const riskLevel = getRiskLevel(mockScore)
-                const goals = getGoalsByDimension(dimension.id)
-                const interventions = getActiveInterventionsByDimension(dimension.id)
+          {latestAssessment ? (
+            <>
+              <Card className="shadow-sm border-gray-200 bg-white">
+                <CardHeader>
+                  <CardTitle className="text-lg font-semibold">Health Dimensions Overview</CardTitle>
+                  <p className="text-sm text-gray-600">Track progress, goals, and interventions across all health dimensions (Lower score = Better health)</p>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {latestAssessment.dimensions.map((dimension) => {
+                    const config = healthDimensionsConfig.find((d) => d.id === dimension.id)
+                    if (!config) return null
 
-                return (
-                  <DimensionProgressCard
-                    key={dimension.id}
-                    dimensionId={dimension.id}
-                    dimensionName={dimension.name}
-                    score={mockScore}
-                    baseline={mockBaseline}
-                    target={mockTarget}
-                    riskLevel={riskLevel}
-                    color={dimension.color}
-                    goals={goals}
-                    interventions={interventions}
-                    onNavigate={(dimId) => {
-                      console.log("Navigate to dimension:", dimId)
-                    }}
-                  />
-                )
-              })}
-            </CardContent>
-          </Card>
+                    const mockBaseline = dimension.score + Math.floor(Math.random() * 15) + 5
+                    const mockTarget = Math.max(dimension.score - Math.floor(Math.random() * 20) - 10, 10)
+                    const goals = getGoalsByDimension(dimension.id)
+                    const interventions = getActiveInterventionsByDimension(dimension.id)
 
-          <PatientAssessmentTracking />
+                    return (
+                      <DimensionDetailProgressCard
+                        key={dimension.id}
+                        dimension={dimension}
+                        patientId={mockPatientDetail.id}
+                        assessmentDate={latestAssessment.date}
+                        score={dimension.score}
+                        baseline={mockBaseline}
+                        target={mockTarget}
+                        riskLevel={dimension.riskLevel}
+                        color={config.color}
+                        goals={goals}
+                        interventions={interventions}
+                        actionItems={latestAssessment.actionItems}
+                        questionnaireResponses={latestAssessment.questionnaireResponses}
+                        onNavigate={(dimId) => {
+                          console.log("Navigate to dimension:", dimId)
+                        }}
+                      />
+                    )
+                  })}
+                </CardContent>
+              </Card>
+
+              <PatientAssessmentTracking />
+            </>
+          ) : (
+            <Card className="shadow-sm border-gray-200 bg-white">
+              <CardContent className="py-12">
+                <div className="text-center">
+                  <FileText className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                  <p className="text-sm text-gray-500 mb-2">No assessment data available for this patient.</p>
+                  <p className="text-xs text-gray-400">Complete an assessment to view detailed progress tracking.</p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
       </Tabs>
 
