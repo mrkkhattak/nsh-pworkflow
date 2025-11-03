@@ -33,6 +33,8 @@ import {
   ExternalLink,
   Clock,
   Video,
+  Target,
+  CheckCircle,
 } from "lucide-react"
 
 // Mock patient data
