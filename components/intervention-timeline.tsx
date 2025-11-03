@@ -115,6 +115,7 @@ export function InterventionTimeline({
   const [items, setItems] = useState<Intervention[]>(mockActiveInterventions)
   const [newType, setNewType] = useState<"Medication" | "Lifestyle" | "Therapy" | "Other">("Medication")
   const [newDate, setNewDate] = useState<string>(new Date().toISOString().slice(0, 10))
+  const [newEndDate, setNewEndDate] = useState<string>("")
   const [notes, setNotes] = useState("")
   const [selectedGoalId, setSelectedGoalId] = useState<string | undefined>(undefined)
   const [filterStatus, setFilterStatus] = useState<"all" | "active" | "stopped">("all")
@@ -188,6 +189,7 @@ export function InterventionTimeline({
         id,
         type: newType,
         date: newDate,
+        endDate: newEndDate.trim() || undefined,
         details,
         notes,
         createdBy: "Dr. Anderson",
@@ -196,6 +198,7 @@ export function InterventionTimeline({
       },
     ])
     setNotes("")
+    setNewEndDate("")
     setSelectedGoalId(undefined)
     setCustomInterventionName("")
   }
@@ -284,7 +287,30 @@ export function InterventionTimeline({
                 <SelectItem value="Other">Other</SelectItem>
               </SelectContent>
             </Select>
-            <Input type="date" value={newDate} onChange={(e) => setNewDate(e.target.value)} className="w-44" />
+            <div className="flex gap-2 items-center">
+              <Input type="date" value={newDate} onChange={(e) => setNewDate(e.target.value)} className="w-44" />
+              <span className="text-sm text-gray-500">to</span>
+              <div className="relative">
+                <Input
+                  type="date"
+                  value={newEndDate}
+                  onChange={(e) => setNewEndDate(e.target.value)}
+                  className="w-44"
+                  placeholder="End date (optional)"
+                  min={newDate}
+                />
+                {newEndDate && (
+                  <button
+                    type="button"
+                    onClick={() => setNewEndDate("")}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-400 hover:text-gray-600 bg-white px-1"
+                    title="Clear end date"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+            </div>
             <div className="flex-1">{renderFields()}</div>
           </div>
           {Array.isArray(goalsOptions) && goalsOptions.length > 0 ? (
