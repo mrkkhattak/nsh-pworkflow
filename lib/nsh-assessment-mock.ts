@@ -1424,3 +1424,13 @@ export function getMCIDChangeDescription(mcid?: MCIDData): string {
 export function isMCIDSignificant(mcid?: MCIDData): boolean {
   return mcid?.isClinicallySiginificant || false
 }
+
+export function getGoalsByPatientId(patientId: number): DimensionGoal[] {
+  return mockDimensionGoals
+}
+
+export function getInterventionsByPatientId(patientId: number): string[] {
+  const goals = getGoalsByPatientId(patientId)
+  const allInterventions = goals.flatMap((goal) => goal.linkedInterventions)
+  return Array.from(new Set(allInterventions))
+}
