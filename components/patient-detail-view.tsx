@@ -400,7 +400,7 @@ export function PatientDetailView() {
         }}
         className="space-y-6"
       >
-        <TabsList className="grid w-full grid-cols-7 bg-gray-100 p-1 rounded-lg">
+        <TabsList className="grid w-full grid-cols-5 bg-gray-100 p-1 rounded-lg">
           <TabsTrigger value="overview" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
             Overview
           </TabsTrigger>
@@ -412,12 +412,6 @@ export function PatientDetailView() {
           </TabsTrigger>
           <TabsTrigger value="medications" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
             Medications
-          </TabsTrigger>
-          <TabsTrigger value="communications" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
-            Communications
-          </TabsTrigger>
-          <TabsTrigger value="appointments" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
-            Appointments
           </TabsTrigger>
           <TabsTrigger value="progress" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
             Progress
@@ -754,123 +748,6 @@ export function PatientDetailView() {
                   </CardContent>
                 </Card>
               ))}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="communications" className="space-y-6">
-          <MessagingTeamHub />
-        </TabsContent>
-
-        <TabsContent value="appointments" className="space-y-6">
-          <Card className="shadow-sm border-gray-200 bg-white">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg font-semibold">Upcoming Appointments</CardTitle>
-                <Button size="sm" className="bg-blue-600 hover:bg-blue-700" onClick={() => setShowQuickSchedule(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Schedule Appointment
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {mockPatientDetail.upcomingAppointments.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>No upcoming appointments scheduled</p>
-                  <Button className="mt-4" size="sm" onClick={() => setShowQuickSchedule(true)}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Schedule First Appointment
-                  </Button>
-                </div>
-              ) : (
-                mockPatientDetail.upcomingAppointments.map((appointment, index) => (
-                  <Card key={index} className="border-l-4 border-l-blue-500">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-6">
-                          <div className="flex items-center gap-2">
-                            {appointment.location === "Telehealth" ? (
-                              <Video className="h-5 w-5 text-blue-600" />
-                            ) : (
-                              <MapPin className="h-5 w-5 text-gray-600" />
-                            )}
-                            <div>
-                              <h4 className="font-medium text-gray-900">{appointment.type}</h4>
-                              <p className="text-sm text-gray-600">with {appointment.provider}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Calendar className="h-4 w-4 text-gray-500" />
-                            <div>
-                              <p className="text-sm text-gray-600">Date & Time</p>
-                              <p className="text-sm font-medium text-gray-900">
-                                {new Date(appointment.date).toLocaleDateString()} at {appointment.time}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Clock className="h-4 w-4 text-gray-500" />
-                            <div>
-                              <p className="text-sm text-gray-600">Location</p>
-                              <p className="text-sm font-medium text-gray-900">{appointment.location}</p>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="text-green-700">
-                            {appointment.status}
-                          </Badge>
-                          <Button variant="outline" size="sm">
-                            <Edit className="h-4 w-4 mr-2" />
-                            Reschedule
-                          </Button>
-                          <Button variant="ghost" size="sm" onClick={() => setShowQuickSchedule(true)}>
-                            <Plus className="h-4 w-4 mr-2" />
-                            Schedule Follow-up
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
-              )}
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-sm border-gray-200 bg-white">
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold">Recent Appointment History</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <Card className="border-l-4 border-l-green-500">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div>
-                          <h4 className="font-medium text-gray-900">Follow-up Appointment</h4>
-                          <p className="text-sm text-gray-600">January 15, 2025 at 10:00 AM</p>
-                          <p className="text-xs text-gray-500">Duration: 60 minutes • Office Visit</p>
-                        </div>
-                        <Badge variant="default" className="text-xs">
-                          Completed
-                        </Badge>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm">
-                          <FileText className="h-4 w-4 mr-2" />
-                          View Notes
-                        </Button>
-                        <Button variant="ghost" size="sm" onClick={() => setShowQuickSchedule(true)}>
-                          <Calendar className="h-4 w-4 mr-2" />
-                          Schedule Similar
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
             </CardContent>
           </Card>
         </TabsContent>
