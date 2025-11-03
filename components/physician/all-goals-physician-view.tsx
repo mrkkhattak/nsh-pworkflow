@@ -13,6 +13,9 @@ import {
   type DimensionGoal
 } from "@/lib/nsh-assessment-mock"
 import { Target, Calendar, TrendingDown, CheckCircle, AlertCircle, Activity, ArrowLeft, Filter, Edit, Plus, Pill } from "lucide-react"
+import { EditGoalDialog } from "@/components/edit-goal-dialog"
+import { AddInterventionDialog } from "@/components/add-intervention-dialog"
+import { useToast } from "@/hooks/use-toast"
 
 interface AllGoalsPhysicianViewProps {
   patientId: number
@@ -20,9 +23,12 @@ interface AllGoalsPhysicianViewProps {
 }
 
 export function AllGoalsPhysicianView({ patientId, patientName }: AllGoalsPhysicianViewProps) {
+  const { toast } = useToast()
   const [filterDimension, setFilterDimension] = useState<string>("all")
   const [filterStatus, setFilterStatus] = useState<string>("all")
   const [sortBy, setSortBy] = useState<string>("deadline")
+  const [editingGoal, setEditingGoal] = useState<DimensionGoal | null>(null)
+  const [addingInterventionForGoal, setAddingInterventionForGoal] = useState<DimensionGoal | null>(null)
 
   let filteredGoals = [...mockDimensionGoals]
 
@@ -85,6 +91,20 @@ export function AllGoalsPhysicianView({ patientId, patientName }: AllGoalsPhysic
     return diffDays
   }
 
+  const handleSaveGoal = (goalId: string, updates: any) => {
+    toast({
+      title: "Goal Updated",
+      description: "The goal has been successfully updated.",
+    })
+  }
+
+  const handleSaveIntervention = (intervention: any) => {
+    toast({
+      title: "Intervention Added",
+      description: "The intervention has been successfully added to the goal.",
+    })
+  }
+
   const GoalCard = ({ goal }: { goal: DimensionGoal }) => {
     const daysLeft = getDaysUntilDeadline(goal.deadline)
     const isApproachingDeadline = daysLeft <= 14 && daysLeft > 0
@@ -115,11 +135,11 @@ export function AllGoalsPhysicianView({ patientId, patientName }: AllGoalsPhysic
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" onClick={() => setEditingGoal(goal)}>
                     <Edit className="h-4 w-4 mr-1" />
                     Edit
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" onClick={() => setAddingInterventionForGoal(goal)}>
                     <Pill className="h-4 w-4 mr-1" />
                     Add Intervention
                   </Button>
@@ -352,6 +372,26 @@ export function AllGoalsPhysicianView({ patientId, patientName }: AllGoalsPhysic
           </ul>
         </CardContent>
       </Card>
+
+      {editingGoal && (
+        <EditGoalDialog
+          open={!!editingGoal}
+          onOpenChange={(open) => !open && setEditingGoal(null)}
+          goal={editingGoal}
+          onSave={handleSaveGoal}
+        />
+      )}
+
+      {addingInterventionForGoal && (
+        <AddInterventionDialog
+          open={!!addingInterventionForGoal}
+          onOpenChange={(open) => !open && setAddingInterventionForGoal(null)}
+          dimensionId={addingInterventionForGoal.dimensionId}
+          dimensionName={addingInterventionForGoal.dimensionName}
+          goals={mockDimensionGoals}
+          onSave={handleSaveIntervention}
+        />
+      )}
     </div>
   )
 }
