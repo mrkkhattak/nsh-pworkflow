@@ -20,6 +20,7 @@ import {
   LogOut,
   User,
   UserCog,
+  TrendingUp,
 } from "lucide-react"
 
 const navigationItems = [
@@ -29,6 +30,7 @@ const navigationItems = [
   { id: "referrals", label: "Referrals", icon: ArrowRightLeft, badge: "2", href: "/referrals" },
   { id: "messaging", label: "Messaging", icon: MessageCircle, badge: "7", href: "/messaging" },
   { id: "team", label: "Healthcare Team", icon: UserCog, href: "/team" },
+  { id: "outcomes", label: "Outcomes", icon: TrendingUp, href: "/outcomes" },
   { id: "analytics", label: "Analytics", icon: BarChart3, href: "/analytics" },
 ]
 
