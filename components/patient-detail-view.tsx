@@ -581,8 +581,7 @@ export function PatientDetailView() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
                         <div>
-                          <h4 className="font-medium text-gray-900">{assessment.type}</h4>
-                          <p className="text-sm text-gray-600">{new Date(assessment.date).toLocaleDateString()}</p>
+                          <h4 className="font-medium text-gray-900">{new Date(assessment.date).toLocaleDateString()}</h4>
                         </div>
                         <div className="text-center">
                           <p className="text-2xl font-bold text-gray-900">{assessment.score}</p>
