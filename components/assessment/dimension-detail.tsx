@@ -16,6 +16,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts"
 import { AddGoalDialog } from "@/components/add-goal-dialog"
 import { AddInterventionDialog } from "@/components/add-intervention-dialog"
+import { ScheduleAssessmentDialog } from "@/components/schedule-assessment-dialog"
 import { useToast } from "@/hooks/use-toast"
 
 type Props = {
@@ -37,6 +38,7 @@ export function DimensionDetail({ patient, assessment, dimension }: Props) {
 
   const [showAddGoalDialog, setShowAddGoalDialog] = useState(false)
   const [showAddInterventionDialog, setShowAddInterventionDialog] = useState(false)
+  const [showScheduleAssessmentDialog, setShowScheduleAssessmentDialog] = useState(false)
   const [newGoals, setNewGoals] = useState<DimensionGoal[]>([])
   const [newInterventions, setNewInterventions] = useState<string[]>([])
 
@@ -143,7 +145,7 @@ export function DimensionDetail({ patient, assessment, dimension }: Props) {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center gap-4">
+      <div className="flex items-center justify-between">
         <Button
           variant="outline"
           onClick={() => router.back()}
@@ -151,6 +153,13 @@ export function DimensionDetail({ patient, assessment, dimension }: Props) {
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Assessment
+        </Button>
+        <Button
+          onClick={() => setShowScheduleAssessmentDialog(true)}
+          className="bg-blue-600 hover:bg-blue-700"
+        >
+          <Calendar className="h-4 w-4 mr-2" />
+          Schedule Reassessment
         </Button>
       </div>
 
@@ -744,6 +753,20 @@ export function DimensionDetail({ patient, assessment, dimension }: Props) {
         dimensionName={dimension.name}
         goals={allGoals}
         onSave={handleAddIntervention}
+      />
+
+      <ScheduleAssessmentDialog
+        open={showScheduleAssessmentDialog}
+        onOpenChange={setShowScheduleAssessmentDialog}
+        patientId={patient.id}
+        patientName={patient.name}
+        defaultDimension={dimension.id}
+        onScheduled={(data) => {
+          toast({
+            title: "Assessment Scheduled",
+            description: `Reassessment for ${dimension.name} has been scheduled.`,
+          })
+        }}
       />
     </div>
   )

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -15,6 +15,7 @@ type ScheduleAssessmentDialogProps = {
   onOpenChange: (open: boolean) => void
   patientId: number
   patientName: string
+  defaultDimension?: string
   onScheduled?: (data: ScheduledAssessment) => void
 }
 
@@ -32,16 +33,24 @@ export function ScheduleAssessmentDialog({
   onOpenChange,
   patientId,
   patientName,
+  defaultDimension,
   onScheduled
 }: ScheduleAssessmentDialogProps) {
-  const [assessmentType, setAssessmentType] = useState<"full" | "dimensions">("full")
-  const [selectedDimensions, setSelectedDimensions] = useState<string[]>([])
+  const [assessmentType, setAssessmentType] = useState<"full" | "dimensions">(defaultDimension ? "dimensions" : "full")
+  const [selectedDimensions, setSelectedDimensions] = useState<string[]>(defaultDimension ? [defaultDimension] : [])
   const [scheduledDate, setScheduledDate] = useState("")
   const [scheduledTime, setScheduledTime] = useState("")
   const [notes, setNotes] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const minDate = new Date().toISOString().split("T")[0]
+
+  useEffect(() => {
+    if (open && defaultDimension) {
+      setAssessmentType("dimensions")
+      setSelectedDimensions([defaultDimension])
+    }
+  }, [open, defaultDimension])
 
   const toggleDimension = (dimensionId: string) => {
     setSelectedDimensions(prev =>
