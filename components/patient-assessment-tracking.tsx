@@ -10,6 +10,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Lege
 import { InterventionTimeline } from "@/components/intervention-timeline"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { GoalTemplatesSystem } from "@/components/goal-templates-system"
+import { ScheduleAssessmentDialog } from "@/components/schedule-assessment-dialog"
 import Link from "next/link"
 import {
   Calendar,
@@ -135,6 +136,7 @@ export function PatientAssessmentTracking() {
   const [isGoalDialogOpen, setIsGoalDialogOpen] = useState(false)
   const [createGoalOpen, setCreateGoalOpen] = useState(false)
   const [goalsOptions, setGoalsOptions] = useState<{ id: string; label: string }[]>([])
+  const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false)
 
   const currentPatientData = mockPromDataByPatient[1]
 
@@ -241,7 +243,10 @@ export function PatientAssessmentTracking() {
             Create Goal
           </Button>
 
-          <Button className="shadow-sm bg-blue-600 hover:bg-blue-700 border-0">
+          <Button
+            className="shadow-sm bg-blue-600 hover:bg-blue-700 border-0"
+            onClick={() => setIsScheduleDialogOpen(true)}
+          >
             <Calendar className="h-4 w-4 mr-2" />
             Schedule Assessment
           </Button>
@@ -562,6 +567,16 @@ export function PatientAssessmentTracking() {
         </DialogContent>
       </Dialog>
 
+      {/* Schedule Assessment Dialog */}
+      <ScheduleAssessmentDialog
+        open={isScheduleDialogOpen}
+        onOpenChange={setIsScheduleDialogOpen}
+        patientId={currentPatientData.patient.id}
+        patientName={currentPatientData.patient.name}
+        onScheduled={(assessment) => {
+          console.log("Assessment scheduled:", assessment)
+        }}
+      />
     </div>
   )
 }

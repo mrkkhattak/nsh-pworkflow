@@ -9,6 +9,7 @@ import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { QuickScheduleDialog } from "@/components/quick-schedule-dialog"
+import { ScheduleAssessmentDialog } from "@/components/schedule-assessment-dialog"
 import { PatientAssessmentTracking } from "@/components/patient-assessment-tracking"
 import { MessagingTeamHub } from "@/components/messaging-team-hub"
 import { DimensionDetailProgressCard } from "@/components/dimension-detail-progress-card"
@@ -209,6 +210,7 @@ const mockPatientDetail = {
 export function PatientDetailView() {
   const [activeTab, setActiveTab] = useState("overview")
   const [showQuickSchedule, setShowQuickSchedule] = useState(false)
+  const [showScheduleAssessment, setShowScheduleAssessment] = useState(false)
   const [responsesOpenFor, setResponsesOpenFor] = useState<string | null>(null)
 
   const latestAssessment = getAssessmentById(mockPatientDetail.id)
@@ -322,6 +324,10 @@ export function PatientDetailView() {
               <Button variant="outline" size="sm" onClick={() => setShowQuickSchedule(true)}>
                 <Calendar className="h-4 w-4 mr-2" />
                 Quick Schedule
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setShowScheduleAssessment(true)}>
+                <FileText className="h-4 w-4 mr-2" />
+                Schedule Assessment
               </Button>
               <Button variant="outline" size="sm">
                 <Edit className="h-4 w-4 mr-2" />
@@ -936,8 +942,18 @@ export function PatientDetailView() {
         onOpenChange={setShowQuickSchedule}
         patient={patientForScheduling}
         onScheduled={() => {
-          // Handle successful scheduling
           console.log("Appointment scheduled successfully")
+        }}
+      />
+
+      {/* ScheduleAssessmentDialog component */}
+      <ScheduleAssessmentDialog
+        open={showScheduleAssessment}
+        onOpenChange={setShowScheduleAssessment}
+        patientId={mockPatientDetail.id}
+        patientName={mockPatientDetail.name}
+        onScheduled={(assessment) => {
+          console.log("Assessment scheduled:", assessment)
         }}
       />
 
