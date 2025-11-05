@@ -438,140 +438,253 @@ export function AnalyticsCohortManagement() {
         </TabsList>
 
         <TabsContent value="cohorts">
-          {/* Cohort Heatmap */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Cohort Performance Heatmap</CardTitle>
-                  <CardDescription>Patient performance across different health dimensions</CardDescription>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm">
-                    <Filter className="h-4 w-4 mr-2" />
-                    Quick Filters
+          <div className="space-y-6">
+            {/* High Performing Section */}
+            <Card className="border-2 border-green-200 bg-green-50/50">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-green-100 rounded-lg">
+                      <CheckCircle className="h-6 w-6 text-green-600" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg">High Performing Patients</CardTitle>
+                      <CardDescription>
+                        {cohortData.overview.highPerforming} patients ({Math.round((cohortData.overview.highPerforming / cohortData.overview.totalPatients) * 100)}% of total)
+                      </CardDescription>
+                    </div>
+                  </div>
+                  <Button variant="outline" size="sm" className="bg-white">
+                    <Eye className="h-4 w-4 mr-2" />
+                    View All
                   </Button>
-                  <Select value={selectedCohort} onValueChange={setSelectedCohort}>
-                    <SelectTrigger className="w-48">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Patients</SelectItem>
-                      <SelectItem value="top5">Top 5% Performers</SelectItem>
-                      <SelectItem value="new-high">New High Risk</SelectItem>
-                      <SelectItem value="no-improvement">No Improvement 30+ Days</SelectItem>
-                    </SelectContent>
-                  </Select>
                 </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {cohortData.dimensions.map((dimension) => {
-                  const Icon = dimension.icon
-                  return (
-                    <Card key={dimension.id} className="border-2 hover:shadow-md transition-shadow cursor-pointer">
-                      <CardHeader className="pb-3">
-                        <div className="flex items-center justify-between">
-                          <Icon className="h-5 w-5 text-muted-foreground" />
-                          {getTrendIcon(dimension.trend)}
-                        </div>
-                        <CardTitle className="text-sm font-medium">{dimension.name}</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-4">
-                          {/* Performance Distribution */}
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between text-xs">
-                              <span>High Performing</span>
-                              <span className="font-medium">{dimension.highPerforming.count} patients</span>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {cohortData.dimensions.map((dimension) => {
+                    const Icon = dimension.icon
+                    return (
+                      <Card key={dimension.id} className="border-2 border-green-200 bg-white hover:shadow-md transition-shadow cursor-pointer">
+                        <CardHeader className="pb-3">
+                          <div className="flex items-center justify-between">
+                            <Icon className="h-5 w-5 text-green-600" />
+                            {getTrendIcon(dimension.trend)}
+                          </div>
+                          <CardTitle className="text-sm font-medium">{dimension.name}</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-3">
+                            <div>
+                              <div className="text-3xl font-bold text-green-600">{dimension.highPerforming.count}</div>
+                              <div className="text-xs text-muted-foreground">Patients</div>
                             </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div className="w-full bg-gray-200 rounded-full h-3">
                               <div
-                                className="bg-green-500 h-2 rounded-full"
+                                className="bg-green-500 h-3 rounded-full transition-all"
                                 style={{ width: `${dimension.highPerforming.percentage}%` }}
                               />
                             </div>
-                            <div className="text-xs text-muted-foreground">{dimension.highPerforming.percentage}%</div>
-                          </div>
-
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between text-xs">
-                              <span>Moderate Performing</span>
-                              <span className="font-medium">{dimension.moderatePerforming.count} patients</span>
+                            <div className="flex justify-between text-xs">
+                              <span className="text-muted-foreground">Percentage</span>
+                              <span className="font-medium text-green-600">{dimension.highPerforming.percentage}%</span>
                             </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div className="pt-2 border-t space-y-1">
+                              <div className="flex justify-between text-xs">
+                                <span className="text-muted-foreground">Avg Score:</span>
+                                <span className="font-medium">{dimension.avgScore}</span>
+                              </div>
+                              <div className="flex justify-between text-xs">
+                                <span className="text-muted-foreground">Target:</span>
+                                <span className="font-medium">{dimension.targetScore}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Moderate Performing Section */}
+            <Card className="border-2 border-yellow-200 bg-yellow-50/50">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-yellow-100 rounded-lg">
+                      <Activity className="h-6 w-6 text-yellow-600" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg">Moderate Performing Patients</CardTitle>
+                      <CardDescription>
+                        {cohortData.overview.moderatePerforming} patients ({Math.round((cohortData.overview.moderatePerforming / cohortData.overview.totalPatients) * 100)}% of total)
+                      </CardDescription>
+                    </div>
+                  </div>
+                  <Button variant="outline" size="sm" className="bg-white">
+                    <Eye className="h-4 w-4 mr-2" />
+                    View All
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {cohortData.dimensions.map((dimension) => {
+                    const Icon = dimension.icon
+                    return (
+                      <Card key={dimension.id} className="border-2 border-yellow-200 bg-white hover:shadow-md transition-shadow cursor-pointer">
+                        <CardHeader className="pb-3">
+                          <div className="flex items-center justify-between">
+                            <Icon className="h-5 w-5 text-yellow-600" />
+                            {getTrendIcon(dimension.trend)}
+                          </div>
+                          <CardTitle className="text-sm font-medium">{dimension.name}</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-3">
+                            <div>
+                              <div className="text-3xl font-bold text-yellow-600">{dimension.moderatePerforming.count}</div>
+                              <div className="text-xs text-muted-foreground">Patients</div>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-3">
                               <div
-                                className="bg-yellow-500 h-2 rounded-full"
+                                className="bg-yellow-500 h-3 rounded-full transition-all"
                                 style={{ width: `${dimension.moderatePerforming.percentage}%` }}
                               />
                             </div>
-                            <div className="text-xs text-muted-foreground">
-                              {dimension.moderatePerforming.percentage}%
+                            <div className="flex justify-between text-xs">
+                              <span className="text-muted-foreground">Percentage</span>
+                              <span className="font-medium text-yellow-600">{dimension.moderatePerforming.percentage}%</span>
+                            </div>
+                            <div className="pt-2 border-t space-y-1">
+                              <div className="flex justify-between text-xs">
+                                <span className="text-muted-foreground">Avg Score:</span>
+                                <span className="font-medium">{dimension.avgScore}</span>
+                              </div>
+                              <div className="flex justify-between text-xs">
+                                <span className="text-muted-foreground">Target:</span>
+                                <span className="font-medium">{dimension.targetScore}</span>
+                              </div>
                             </div>
                           </div>
+                        </CardContent>
+                      </Card>
+                    )
+                  })}
+                </div>
+              </CardContent>
+            </Card>
 
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between text-xs">
-                              <span>Low Performing</span>
-                              <span className="font-medium">{dimension.lowPerforming.count} patients</span>
+            {/* Low Performing Section */}
+            <Card className="border-2 border-red-200 bg-red-50/50">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-red-100 rounded-lg">
+                      <AlertTriangle className="h-6 w-6 text-red-600" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg">Low Performing Patients</CardTitle>
+                      <CardDescription>
+                        {cohortData.overview.lowPerforming} patients ({Math.round((cohortData.overview.lowPerforming / cohortData.overview.totalPatients) * 100)}% of total) - Requires attention
+                      </CardDescription>
+                    </div>
+                  </div>
+                  <Button variant="outline" size="sm" className="bg-white">
+                    <Eye className="h-4 w-4 mr-2" />
+                    View All
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {cohortData.dimensions.map((dimension) => {
+                    const Icon = dimension.icon
+                    return (
+                      <Card key={dimension.id} className="border-2 border-red-200 bg-white hover:shadow-md transition-shadow cursor-pointer">
+                        <CardHeader className="pb-3">
+                          <div className="flex items-center justify-between">
+                            <Icon className="h-5 w-5 text-red-600" />
+                            {getTrendIcon(dimension.trend)}
+                          </div>
+                          <CardTitle className="text-sm font-medium">{dimension.name}</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-3">
+                            <div>
+                              <div className="text-3xl font-bold text-red-600">{dimension.lowPerforming.count}</div>
+                              <div className="text-xs text-muted-foreground">Patients</div>
                             </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div className="w-full bg-gray-200 rounded-full h-3">
                               <div
-                                className="bg-red-500 h-2 rounded-full"
+                                className="bg-red-500 h-3 rounded-full transition-all"
                                 style={{ width: `${dimension.lowPerforming.percentage}%` }}
                               />
                             </div>
-                            <div className="text-xs text-muted-foreground">{dimension.lowPerforming.percentage}%</div>
-                          </div>
-
-                          {/* Key Metrics */}
-                          <div className="pt-2 border-t space-y-1">
                             <div className="flex justify-between text-xs">
-                              <span className="text-muted-foreground">Avg Score:</span>
-                              <span className="font-medium">{dimension.avgScore}</span>
+                              <span className="text-muted-foreground">Percentage</span>
+                              <span className="font-medium text-red-600">{dimension.lowPerforming.percentage}%</span>
                             </div>
-                            <div className="flex justify-between text-xs">
-                              <span className="text-muted-foreground">Target:</span>
-                              <span className="font-medium">{dimension.targetScore}</span>
-                            </div>
-                            <div className="flex justify-between text-xs">
-                              <span className="text-muted-foreground">Completion:</span>
-                              <span className="font-medium">{dimension.completionRate}%</span>
+                            <div className="pt-2 border-t space-y-1">
+                              <div className="flex justify-between text-xs">
+                                <span className="text-muted-foreground">Avg Score:</span>
+                                <span className="font-medium">{dimension.avgScore}</span>
+                              </div>
+                              <div className="flex justify-between text-xs">
+                                <span className="text-muted-foreground">Target:</span>
+                                <span className="font-medium">{dimension.targetScore}</span>
+                              </div>
                             </div>
                           </div>
+                        </CardContent>
+                      </Card>
+                    )
+                  })}
+                </div>
+              </CardContent>
+            </Card>
 
-                          <Button variant="outline" size="sm" className="w-full bg-transparent">
-                            <Eye className="h-3 w-3 mr-2" />
-                            View Patients
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )
-                })}
-              </div>
-
-              {/* Drill-down Actions */}
-              <div className="mt-6 p-4 bg-muted rounded-lg">
-                <h4 className="font-medium mb-3">Quick Actions</h4>
+            {/* Quick Actions */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Quick Actions</CardTitle>
+                <CardDescription>Filter and view specific patient cohorts</CardDescription>
+              </CardHeader>
+              <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <Button variant="outline" className="justify-start bg-transparent">
-                    <Target className="h-4 w-4 mr-2" />
-                    Top 5% High Performers
+                  <Button variant="outline" className="justify-start bg-transparent h-auto py-4">
+                    <div className="flex flex-col items-start w-full">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Target className="h-4 w-4 text-green-600" />
+                        <span className="font-semibold">Top 5% High Performers</span>
+                      </div>
+                      <span className="text-xs text-muted-foreground">View best performing patients</span>
+                    </div>
                   </Button>
-                  <Button variant="outline" className="justify-start bg-transparent">
-                    <AlertTriangle className="h-4 w-4 mr-2" />
-                    New High Risk This Week
+                  <Button variant="outline" className="justify-start bg-transparent h-auto py-4">
+                    <div className="flex flex-col items-start w-full">
+                      <div className="flex items-center gap-2 mb-1">
+                        <AlertTriangle className="h-4 w-4 text-red-600" />
+                        <span className="font-semibold">New High Risk This Week</span>
+                      </div>
+                      <span className="text-xs text-muted-foreground">{cohortData.overview.newHighRisk} patients need attention</span>
+                    </div>
                   </Button>
-                  <Button variant="outline" className="justify-start bg-transparent">
-                    <TrendingDown className="h-4 w-4 mr-2" />
-                    No Improvement 30+ Days
+                  <Button variant="outline" className="justify-start bg-transparent h-auto py-4">
+                    <div className="flex flex-col items-start w-full">
+                      <div className="flex items-center gap-2 mb-1">
+                        <TrendingDown className="h-4 w-4 text-orange-600" />
+                        <span className="font-semibold">No Improvement 30+ Days</span>
+                      </div>
+                      <span className="text-xs text-muted-foreground">{cohortData.overview.noImprovementOver30Days} patients require intervention</span>
+                    </div>
                   </Button>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="trends">
