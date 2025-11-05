@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Calendar, CheckCircle2 } from "lucide-react"
 import { healthDimensionsConfig } from "@/lib/nsh-assessment-mock"
+import { createClient } from "@supabase/supabase-js"
 
 type ScheduleAssessmentDialogProps = {
   open: boolean
@@ -70,6 +71,28 @@ export function ScheduleAssessmentDialog({
     setIsSubmitting(true)
 
     try {
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      )
+
+      const { data, error } = await supabase
+        .from("scheduled_assessments")
+        .insert({
+          patient_id: patientId,
+          scheduled_date: scheduledDate,
+          scheduled_time: scheduledTime,
+          notes: notes || null,
+          assessment_scope: assessmentType,
+          selected_dimensions: assessmentType === "full" ? [] : selectedDimensions,
+          status: "pending",
+          created_at: new Date().toISOString(),
+        })
+        .select()
+        .maybeSingle()
+
+      if (error) throw error
+
       const scheduledAssessment: ScheduledAssessment = {
         patientId,
         assessmentType,
@@ -81,8 +104,8 @@ export function ScheduleAssessmentDialog({
 
       onScheduled?.(scheduledAssessment)
 
-      setAssessmentType("full")
-      setSelectedDimensions([])
+      setAssessmentType(defaultDimension ? "dimensions" : "full")
+      setSelectedDimensions(defaultDimension ? [defaultDimension] : [])
       setScheduledDate("")
       setScheduledTime("")
       setNotes("")

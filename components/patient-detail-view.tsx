@@ -15,6 +15,7 @@ import { MessagingTeamHub } from "@/components/messaging-team-hub"
 import { DimensionDetailProgressCard } from "@/components/dimension-detail-progress-card"
 import { MedicationAdherenceTrends } from "@/components/medication-adherence-trends"
 import { PatientOutcomeMeasures } from "@/components/patient-outcome-measures"
+import { ScheduledAssessmentsList } from "@/components/scheduled-assessments-list"
 import { getPatientById, getAssessmentById, healthDimensionsConfig, getGoalsByDimension, getActiveInterventionsByDimension, getRiskLevel } from "@/lib/nsh-assessment-mock"
 import {
   Phone,
@@ -212,6 +213,7 @@ export function PatientDetailView() {
   const [showQuickSchedule, setShowQuickSchedule] = useState(false)
   const [showScheduleAssessment, setShowScheduleAssessment] = useState(false)
   const [responsesOpenFor, setResponsesOpenFor] = useState<string | null>(null)
+  const [assessmentRefreshKey, setAssessmentRefreshKey] = useState(0)
 
   const latestAssessment = getAssessmentById(mockPatientDetail.id)
 
@@ -570,6 +572,8 @@ export function PatientDetailView() {
         </TabsContent>
 
         <TabsContent value="assessments" className="space-y-6">
+          <ScheduledAssessmentsList patientId={mockPatientDetail.id} refreshKey={assessmentRefreshKey} />
+
           <Card className="shadow-sm border-gray-200 bg-white">
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -953,7 +957,7 @@ export function PatientDetailView() {
         patientId={mockPatientDetail.id}
         patientName={mockPatientDetail.name}
         onScheduled={(assessment) => {
-          console.log("Assessment scheduled:", assessment)
+          setAssessmentRefreshKey(prev => prev + 1)
         }}
       />
 
