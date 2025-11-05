@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { healthDimensionsConfig } from "@/lib/nsh-assessment-mock"
 import {
   AlertTriangle,
   Calendar,
@@ -22,6 +24,7 @@ import {
   MoreHorizontal,
   Plus,
   UserCog,
+  Activity,
 } from "lucide-react"
 
 // Mock task data
@@ -41,6 +44,7 @@ const mockTasks = [
     blockers: [],
     slaStatus: "on-time",
     estimatedTime: "30 min",
+    dimension: "mental",
   },
   {
     id: 2,
@@ -57,6 +61,7 @@ const mockTasks = [
     blockers: [],
     slaStatus: "at-risk",
     estimatedTime: "15 min",
+    dimension: "mental",
   },
   {
     id: 3,
@@ -73,6 +78,7 @@ const mockTasks = [
     blockers: ["Patient not responding to calls"],
     slaStatus: "overdue",
     estimatedTime: "20 min",
+    dimension: "medical",
   },
   {
     id: 4,
@@ -89,6 +95,7 @@ const mockTasks = [
     blockers: [],
     slaStatus: "completed",
     estimatedTime: "45 min",
+    dimension: "cost",
   },
   {
     id: 5,
@@ -105,6 +112,7 @@ const mockTasks = [
     blockers: [],
     slaStatus: "on-time",
     estimatedTime: "25 min",
+    dimension: "burden",
   },
   {
     id: 6,
@@ -121,6 +129,7 @@ const mockTasks = [
     blockers: [],
     slaStatus: "completed",
     estimatedTime: "10 min",
+    dimension: "engagement",
     subtasks: [
       { id: "s1", title: "Verify phone", done: true },
       { id: "s2", title: "Verify email", done: false },
@@ -141,6 +150,7 @@ const mockTasks = [
     blockers: [],
     slaStatus: "on-time",
     estimatedTime: "60 min",
+    dimension: "burden",
   },
   {
     id: 8,
@@ -157,6 +167,7 @@ const mockTasks = [
     blockers: [],
     slaStatus: "on-time",
     estimatedTime: "120 min",
+    dimension: "mental",
   },
   {
     id: 9,
@@ -173,6 +184,7 @@ const mockTasks = [
     blockers: [],
     slaStatus: "on-time",
     estimatedTime: "45 min",
+    dimension: "mental",
   },
   {
     id: 10,
@@ -189,6 +201,7 @@ const mockTasks = [
     blockers: [],
     slaStatus: "on-time",
     estimatedTime: "90 min",
+    dimension: "sdoh",
   },
   {
     id: 11,
@@ -205,6 +218,7 @@ const mockTasks = [
     blockers: [],
     slaStatus: "on-time",
     estimatedTime: "180 min",
+    dimension: "utilization",
   },
   {
     id: 12,
@@ -221,6 +235,75 @@ const mockTasks = [
     blockers: [],
     slaStatus: "on-time",
     estimatedTime: "120 min",
+    dimension: "satisfaction",
+  },
+  {
+    id: 13,
+    title: "Physical Therapy Follow-up",
+    type: "follow-up",
+    patient: "Emily Rodriguez",
+    patientId: 3,
+    assignee: "Physical Therapist",
+    dueDate: "2025-01-21",
+    priority: "medium",
+    category: "patient-level",
+    status: "todo",
+    description: "Check progress on mobility exercises and adjust therapy plan",
+    blockers: [],
+    slaStatus: "on-time",
+    estimatedTime: "40 min",
+    dimension: "physical",
+  },
+  {
+    id: 14,
+    title: "Nutrition Counseling Session",
+    type: "follow-up",
+    patient: "Michael Chen",
+    patientId: 2,
+    assignee: "Dietitian",
+    dueDate: "2025-01-22",
+    priority: "medium",
+    category: "patient-level",
+    status: "in-progress",
+    description: "Review dietary changes and meal planning for diabetes management",
+    blockers: [],
+    slaStatus: "on-time",
+    estimatedTime: "45 min",
+    dimension: "diet",
+  },
+  {
+    id: 15,
+    title: "Sleep Study Results Review",
+    type: "follow-up",
+    patient: "Sarah Johnson",
+    patientId: 1,
+    assignee: "Dr. Anderson",
+    dueDate: "2025-01-19",
+    priority: "high",
+    category: "patient-level",
+    status: "todo",
+    description: "Discuss sleep study findings and potential CPAP therapy",
+    blockers: [],
+    slaStatus: "on-time",
+    estimatedTime: "30 min",
+    dimension: "sleep",
+  },
+  {
+    id: 16,
+    title: "Pain Management Consultation",
+    type: "referral",
+    patient: "Robert Williams",
+    patientId: 4,
+    assignee: "Pain Specialist",
+    dueDate: "2025-01-23",
+    priority: "high",
+    category: "system-level",
+    status: "in-progress",
+    description: "Refer to pain management specialist for chronic back pain",
+    blockers: [],
+    slaStatus: "on-time",
+    estimatedTime: "35 min",
+    dimension: "pain",
   },
 ]
 
@@ -273,9 +356,13 @@ const taskCategories = [
 export function TaskKanbanBoard() {
   const [tasks, setTasks] = useState(mockTasks)
   const [selectedCategory, setSelectedCategory] = useState("all")
+  const [selectedDimension, setSelectedDimension] = useState("all")
+  const [viewMode, setViewMode] = useState<"category" | "dimension">("category")
   const [draggedTask, setDraggedTask] = useState<number | null>(null)
 
-  const filteredTasks = selectedCategory === "all" ? tasks : tasks.filter((task) => task.category === selectedCategory)
+  const filteredTasks = viewMode === "category"
+    ? (selectedCategory === "all" ? tasks : tasks.filter((task) => task.category === selectedCategory))
+    : (selectedDimension === "all" ? tasks : tasks.filter((task) => task.dimension === selectedDimension))
 
   const getTasksByStatus = (status: string) => {
     return filteredTasks.filter((task) => task.status === status)
@@ -351,38 +438,47 @@ export function TaskKanbanBoard() {
         <div>
           <h2 className="text-2xl font-bold text-foreground">Task Status Board</h2>
           <p className="text-muted-foreground">
-            Manage care tasks across physician, provider, patient, system, and community levels
+            Manage care tasks across physician, provider, patient, system, community levels, and health dimensions
           </p>
         </div>
-        <div className="flex items-center gap-4">
-          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-            <SelectTrigger className="w-56">
-              <SelectValue placeholder="Filter by category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              {taskCategories.map((category) => (
-                <SelectItem key={category.id} value={category.id}>
-                  {category.title}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Task
-          </Button>
-        </div>
+        <Button>
+          <Plus className="h-4 w-4 mr-2" />
+          Add Task
+        </Button>
       </div>
 
-      {/* Category Overview */}
-      <div className="space-y-4">
+      <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "category" | "dimension")} className="space-y-6">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-foreground">Task Categories Overview</h3>
+          <TabsList className="bg-gray-100">
+            <TabsTrigger value="category">By Category</TabsTrigger>
+            <TabsTrigger value="dimension">By Health Dimension</TabsTrigger>
+          </TabsList>
           <Badge variant="outline" className="text-sm">
             {tasks.length} Total Tasks
           </Badge>
         </div>
+
+        <TabsContent value="category" className="space-y-6">
+          {/* Filter */}
+          <div className="flex items-center gap-4">
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger className="w-56">
+                <SelectValue placeholder="Filter by category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                {taskCategories.map((category) => (
+                  <SelectItem key={category.id} value={category.id}>
+                    {category.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Category Overview */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-foreground">Task Categories Overview</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           {taskCategories.map((category) => {
             const categoryTasks = tasks.filter((task) => task.category === category.id)
@@ -659,6 +755,139 @@ export function TaskKanbanBoard() {
           </div>
         </CardContent>
       </Card>
+        </TabsContent>
+
+        <TabsContent value="dimension" className="space-y-6">
+          {/* Filter */}
+          <div className="flex items-center gap-4">
+            <Select value={selectedDimension} onValueChange={setSelectedDimension}>
+              <SelectTrigger className="w-56">
+                <SelectValue placeholder="Filter by dimension" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Health Dimensions</SelectItem>
+                {healthDimensionsConfig.map((dimension) => (
+                  <SelectItem key={dimension.id} value={dimension.id}>
+                    {dimension.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Health Dimensions Overview */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-foreground">Health Dimensions Overview</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {healthDimensionsConfig.map((dimension) => {
+                const dimensionTasks = tasks.filter((task) => task.dimension === dimension.id)
+                const completedTasks = dimensionTasks.filter((t) => t.status === "done")
+                const overdueTasks = dimensionTasks.filter((t) => t.slaStatus === "overdue")
+                return (
+                  <Card
+                    key={dimension.id}
+                    className={`cursor-pointer transition-all hover:shadow-md ${selectedDimension === dimension.id ? "ring-2 ring-primary shadow-lg" : ""}`}
+                    onClick={() => setSelectedDimension(dimension.id)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="p-2 rounded-lg" style={{ backgroundColor: `${dimension.color}20`, color: dimension.color }}>
+                            <Activity className="h-5 w-5" />
+                          </div>
+                          {overdueTasks.length > 0 && (
+                            <Badge variant="destructive" className="text-xs">
+                              {overdueTasks.length} overdue
+                            </Badge>
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-foreground">{dimension.name}</p>
+                        </div>
+                        <div className="flex items-center justify-between pt-2 border-t">
+                          <div>
+                            <p className="text-2xl font-bold text-foreground">{dimensionTasks.length}</p>
+                            <p className="text-xs text-muted-foreground">tasks</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm font-semibold text-foreground">{completedTasks.length}/{dimensionTasks.length}</p>
+                            <p className="text-xs text-muted-foreground">completed</p>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Kanban Board */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Task Board - {selectedDimension === "all" ? "All Health Dimensions" : healthDimensionsConfig.find(d => d.id === selectedDimension)?.name}</CardTitle>
+              <CardDescription>Drag and drop tasks to update their status</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+                {taskColumns.map((column) => (
+                  <div
+                    key={column.id}
+                    className={`rounded-lg border-2 ${column.color} p-4 min-h-[500px]`}
+                    onDragOver={handleDragOver}
+                    onDrop={(e) => handleDrop(e, column.id)}
+                  >
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="font-semibold text-sm text-foreground">{column.title}</h3>
+                      <Badge variant="outline" className="text-xs">
+                        {getTasksByStatus(column.id).length}
+                      </Badge>
+                    </div>
+                    <div className="space-y-3">
+                      {getTasksByStatus(column.id).map((task) => {
+                        const TypeIcon = getTypeIcon(task.type)
+                        const taskDimension = healthDimensionsConfig.find(d => d.id === task.dimension)
+                        return (
+                          <Card
+                            key={task.id}
+                            className={`border-l-4 cursor-move hover:shadow-md transition-shadow ${getPriorityColor(task.priority)}`}
+                            draggable
+                            onDragStart={() => handleDragStart(task.id)}
+                          >
+                            <CardContent className="p-3">
+                              <div className="space-y-2">
+                                <div className="flex items-start justify-between gap-2">
+                                  <h4 className="text-sm font-semibold text-foreground line-clamp-2">{task.title}</h4>
+                                  <TypeIcon className="h-4 w-4 text-muted-foreground shrink-0" />
+                                </div>
+                                {taskDimension && (
+                                  <Badge variant="outline" className="text-xs" style={{ borderColor: taskDimension.color, color: taskDimension.color }}>
+                                    {taskDimension.name}
+                                  </Badge>
+                                )}
+                                <p className="text-xs text-muted-foreground line-clamp-2">{task.description}</p>
+                                <div className="flex items-center justify-between pt-2 text-xs text-muted-foreground">
+                                  <div className="flex items-center gap-1">
+                                    <User className="h-3 w-3" />
+                                    <span>{task.patient !== "N/A" ? task.patient : task.assignee}</span>
+                                  </div>
+                                  <Badge variant={getSLABadgeVariant(task.slaStatus)} className="text-xs">
+                                    {task.slaStatus}
+                                  </Badge>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        )
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }
