@@ -701,7 +701,7 @@ export function AnalyticsCohortManagement() {
                 )}
               </div>
 
-              {/* Moderate Performing Dimensions Section */}}
+              {/* Moderate Performing Dimensions Section */}
               <div className="mb-6">
                 <button
                   onClick={() => toggleSection("moderate")}
