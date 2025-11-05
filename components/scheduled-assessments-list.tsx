@@ -30,7 +30,7 @@ const mockScheduledAssessments: Record<number, ScheduledAssessment[]> = {
     {
       id: "mock-1",
       patient_id: 1,
-      scheduled_date: "2025-11-10",
+      scheduled_date: "2025-12-10",
       scheduled_time: "09:00:00",
       notes: "Follow-up on medication adherence and mental health progress",
       status: "pending",
@@ -232,18 +232,6 @@ export function ScheduledAssessmentsList({ patientId, refreshKey }: Props) {
                         </div>
                       )}
                     </div>
-
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="ml-4"
-                      onClick={() => {
-                        // TODO: Implement start assessment functionality
-                        console.log("Start assessment:", assessment.id)
-                      }}
-                    >
-                      Start
-                    </Button>
                   </div>
                 </CardContent>
               </Card>
