@@ -25,7 +25,6 @@ export type ScheduledAssessment = {
   assessmentType: "full" | "dimensions"
   selectedDimensions: string[]
   scheduledDate: string
-  scheduledTime: string
   notes: string
 }
 
@@ -40,7 +39,6 @@ export function ScheduleAssessmentDialog({
   const [assessmentType, setAssessmentType] = useState<"full" | "dimensions">(defaultDimension ? "dimensions" : "full")
   const [selectedDimensions, setSelectedDimensions] = useState<string[]>(defaultDimension ? [defaultDimension] : [])
   const [scheduledDate, setScheduledDate] = useState("")
-  const [scheduledTime, setScheduledTime] = useState("")
   const [notes, setNotes] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -81,7 +79,7 @@ export function ScheduleAssessmentDialog({
         .insert({
           patient_id: patientId,
           scheduled_date: scheduledDate,
-          scheduled_time: scheduledTime,
+          scheduled_time: "09:00:00",
           notes: notes || null,
           assessment_scope: assessmentType,
           selected_dimensions: assessmentType === "full" ? [] : selectedDimensions,
@@ -98,7 +96,6 @@ export function ScheduleAssessmentDialog({
         assessmentType,
         selectedDimensions: assessmentType === "full" ? [] : selectedDimensions,
         scheduledDate,
-        scheduledTime,
         notes,
       }
 
@@ -107,7 +104,6 @@ export function ScheduleAssessmentDialog({
       setAssessmentType(defaultDimension ? "dimensions" : "full")
       setSelectedDimensions(defaultDimension ? [defaultDimension] : [])
       setScheduledDate("")
-      setScheduledTime("")
       setNotes("")
 
       onOpenChange(false)
@@ -215,29 +211,16 @@ export function ScheduleAssessmentDialog({
               </div>
             )}
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="scheduledDate">Date</Label>
-                <Input
-                  id="scheduledDate"
-                  type="date"
-                  value={scheduledDate}
-                  onChange={(e) => setScheduledDate(e.target.value)}
-                  min={minDate}
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="scheduledTime">Time</Label>
-                <Input
-                  id="scheduledTime"
-                  type="time"
-                  value={scheduledTime}
-                  onChange={(e) => setScheduledTime(e.target.value)}
-                  required
-                />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="scheduledDate">Date</Label>
+              <Input
+                id="scheduledDate"
+                type="date"
+                value={scheduledDate}
+                onChange={(e) => setScheduledDate(e.target.value)}
+                min={minDate}
+                required
+              />
             </div>
 
             <div className="space-y-2">
