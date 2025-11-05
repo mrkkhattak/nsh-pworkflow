@@ -320,7 +320,7 @@ export function CohortPatientListDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[1600px] w-[95vw] max-h-[90vh] p-0 overflow-hidden">
+      <DialogContent className="max-w-[1600px] w-[80vw] max-h-[90vh] p-0 overflow-hidden">
         <DialogHeader className="px-6 pt-6 pb-4 border-b">
           <div className="flex items-center justify-between">
             <div>
