@@ -127,10 +127,14 @@ export interface Patient {
   id: number
   name: string
   age: number
+  gender: "Male" | "Female" | "Non-binary" | "Other"
   condition: string
   enrollmentDate: string
   riskLevel: string
   lastAssessment: string
+  employmentStatus: "Employed Full-Time" | "Employed Part-Time" | "Unemployed" | "Retired" | "Disabled" | "Student"
+  city: string
+  state: string
 }
 
 export const healthDimensionsConfig = [

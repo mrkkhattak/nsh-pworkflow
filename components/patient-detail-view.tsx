@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -18,6 +19,7 @@ import { PatientOutcomeMeasures } from "@/components/patient-outcome-measures"
 import { ScheduledAssessmentsList } from "@/components/scheduled-assessments-list"
 import { PatientTasksView } from "@/components/patient-tasks-view"
 import { BiometricsTracking } from "@/components/biometrics-tracking"
+import { PatientCohortComparison } from "@/components/patient-cohort-comparison"
 import { getPatientById, getAssessmentById, healthDimensionsConfig, getGoalsByDimension, getActiveInterventionsByDimension, getRiskLevel } from "@/lib/nsh-assessment-mock"
 import {
   Phone,
@@ -211,13 +213,28 @@ const mockPatientDetail = {
 }
 
 export function PatientDetailView() {
+  const searchParams = useSearchParams()
+  const fromCohort = searchParams?.get("from") === "cohort"
+  const dimensionId = searchParams?.get("dimension")
+  const performanceTier = searchParams?.get("tier")
+
   const [activeTab, setActiveTab] = useState("overview")
   const [showQuickSchedule, setShowQuickSchedule] = useState(false)
   const [showScheduleAssessment, setShowScheduleAssessment] = useState(false)
   const [responsesOpenFor, setResponsesOpenFor] = useState<string | null>(null)
   const [assessmentRefreshKey, setAssessmentRefreshKey] = useState(0)
+  const [cohortContext, setCohortContext] = useState<any>(null)
 
   const latestAssessment = getAssessmentById(mockPatientDetail.id)
+
+  useEffect(() => {
+    if (fromCohort && typeof window !== "undefined") {
+      const savedContext = sessionStorage.getItem("cohort-context")
+      if (savedContext) {
+        setCohortContext(JSON.parse(savedContext))
+      }
+    }
+  }, [fromCohort])
 
   // Persist view state and scroll per ERR-PDV-004
   useState(() => {
@@ -268,11 +285,29 @@ export function PatientDetailView() {
   return (
     <div className="space-y-6 p-6 bg-gray-50/30 min-h-screen">
       <div className="flex items-center gap-4 mb-6">
-        <Link href="/patients">
-          <Button variant="outline" className="bg-white hover:bg-gray-50">
-            ← Back to Patients
-          </Button>
-        </Link>
+        {fromCohort && cohortContext ? (
+          <Link href="/analytics">
+            <Button variant="outline" className="bg-white hover:bg-gray-50">
+              ← Back to Cohort Analysis
+            </Button>
+          </Link>
+        ) : (
+          <Link href="/patients">
+            <Button variant="outline" className="bg-white hover:bg-gray-50">
+              ← Back to Patients
+            </Button>
+          </Link>
+        )}
+        {fromCohort && cohortContext && (
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="text-sm">
+              From: {cohortContext.dimensionName}
+            </Badge>
+            <Badge variant="outline" className="text-sm capitalize">
+              {cohortContext.performanceTier} Performing
+            </Badge>
+          </div>
+        )}
       </div>
 
       {/* Patient Header */}
@@ -413,6 +448,18 @@ export function PatientDetailView() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Cohort Comparison Section */}
+      {fromCohort && cohortContext && dimensionId && (
+        <PatientCohortComparison
+          patientId={mockPatientDetail.id}
+          patientName={mockPatientDetail.name}
+          dimensionId={dimensionId}
+          dimensionName={cohortContext.dimensionName}
+          dimensionColor={cohortContext.dimensionColor}
+          performanceTier={performanceTier || "moderate"}
+        />
+      )}
 
       {/* Main Content Tabs */}
       <Tabs

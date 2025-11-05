@@ -8,6 +8,7 @@ import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import { CohortPatientListDialog } from "@/components/cohort-patient-list-dialog"
 import {
   LineChart,
   Line,
@@ -300,6 +301,13 @@ export function AnalyticsCohortManagement() {
     moderate: true,
     low: true,
   })
+  const [patientListDialog, setPatientListDialog] = useState<{
+    open: boolean
+    dimensionId: string
+    dimensionName: string
+    dimensionColor: string
+    performanceTier: "high" | "moderate" | "low"
+  } | null>(null)
 
   const groupedDimensions = groupDimensionsByPerformance(cohortData.dimensions)
 
@@ -434,6 +442,16 @@ export function AnalyticsCohortManagement() {
   const handleExport = (format: "pdf" | "csv") => {
     console.log(`Exporting report as ${format}`)
     // Implementation would generate and download the report
+  }
+
+  const handleViewPatients = (dimensionId: string, dimensionName: string, dimensionColor: string, performanceTier: "high" | "moderate" | "low") => {
+    setPatientListDialog({
+      open: true,
+      dimensionId,
+      dimensionName,
+      dimensionColor,
+      performanceTier,
+    })
   }
 
   return (
@@ -662,7 +680,15 @@ export function AnalyticsCohortManagement() {
                                   <span className="font-medium">{dimension.targetAchievementRate}%</span>
                                 </div>
                               </div>
-                              <Button variant="outline" size="sm" className="w-full bg-transparent text-xs">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="w-full bg-transparent text-xs"
+                                onClick={() => {
+                                  const config = healthDimensionsConfig.find(d => d.id === dimension.id)
+                                  handleViewPatients(dimension.id, dimension.name, config?.color || "#000", "high")
+                                }}
+                              >
                                 <Eye className="h-3 w-3 mr-1" />
                                 View Patients
                               </Button>
@@ -675,7 +701,7 @@ export function AnalyticsCohortManagement() {
                 )}
               </div>
 
-              {/* Moderate Performing Dimensions Section */}
+              {/* Moderate Performing Dimensions Section */}}
               <div className="mb-6">
                 <button
                   onClick={() => toggleSection("moderate")}
@@ -742,7 +768,15 @@ export function AnalyticsCohortManagement() {
                                   <span className="font-medium">{dimension.targetAchievementRate}%</span>
                                 </div>
                               </div>
-                              <Button variant="outline" size="sm" className="w-full bg-transparent text-xs">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="w-full bg-transparent text-xs"
+                                onClick={() => {
+                                  const config = healthDimensionsConfig.find(d => d.id === dimension.id)
+                                  handleViewPatients(dimension.id, dimension.name, config?.color || "#000", "moderate")
+                                }}
+                              >
                                 <Eye className="h-3 w-3 mr-1" />
                                 View Patients
                               </Button>
@@ -822,7 +856,15 @@ export function AnalyticsCohortManagement() {
                                   <span className="font-medium">{dimension.targetAchievementRate}%</span>
                                 </div>
                               </div>
-                              <Button variant="outline" size="sm" className="w-full bg-transparent text-xs">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="w-full bg-transparent text-xs"
+                                onClick={() => {
+                                  const config = healthDimensionsConfig.find(d => d.id === dimension.id)
+                                  handleViewPatients(dimension.id, dimension.name, config?.color || "#000", "low")
+                                }}
+                              >
                                 <Eye className="h-3 w-3 mr-1" />
                                 View Patients
                               </Button>
@@ -1378,6 +1420,22 @@ export function AnalyticsCohortManagement() {
         </TabsContent>
       </Tabs>
       {/* end Provider vs Team */}
+
+      {/* Patient List Dialog */}
+      {patientListDialog && (
+        <CohortPatientListDialog
+          open={patientListDialog.open}
+          onOpenChange={(open) => {
+            if (!open) {
+              setPatientListDialog(null)
+            }
+          }}
+          dimensionId={patientListDialog.dimensionId}
+          dimensionName={patientListDialog.dimensionName}
+          dimensionColor={patientListDialog.dimensionColor}
+          performanceTier={patientListDialog.performanceTier}
+        />
+      )}
     </div>
   )
 }
