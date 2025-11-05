@@ -49,7 +49,7 @@ export function EditInterventionDialog({
   onSave,
 }: EditInterventionDialogProps) {
   const [name, setName] = useState(intervention.name)
-  const [type, setType] = useState<"Medication" | "Lifestyle" | "Therapy" | "Other">(intervention.type)
+  const [type, setType] = useState<"Medication" | "Lifestyle" | "Therapy" | "Social" | "Other">(intervention.type)
   const [startDate, setStartDate] = useState(intervention.startDate)
   const [endDate, setEndDate] = useState(intervention.endDate || "")
   const [status, setStatus] = useState<"active" | "completed">(intervention.status)
