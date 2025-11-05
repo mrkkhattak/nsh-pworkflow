@@ -151,44 +151,6 @@ export function ScheduleAssessmentDialog({
                 rows={3}
               />
             </div>
-
-            <div className="space-y-3 p-4 bg-gray-50 rounded-lg">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="reminderEnabled" className="text-sm font-medium">
-                  Send Reminder
-                </Label>
-                <input
-                  id="reminderEnabled"
-                  type="checkbox"
-                  checked={reminderEnabled}
-                  onChange={(e) => setReminderEnabled(e.target.checked)}
-                  className="h-4 w-4 rounded border-gray-300"
-                />
-              </div>
-
-              {reminderEnabled && (
-                <div className="space-y-2">
-                  <Label htmlFor="reminderDays" className="text-sm">
-                    Remind patient how many days before?
-                  </Label>
-                  <Select
-                    value={reminderDays.toString()}
-                    onValueChange={(value) => setReminderDays(parseInt(value))}
-                  >
-                    <SelectTrigger id="reminderDays">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">1 day before</SelectItem>
-                      <SelectItem value="2">2 days before</SelectItem>
-                      <SelectItem value="3">3 days before</SelectItem>
-                      <SelectItem value="5">5 days before</SelectItem>
-                      <SelectItem value="7">7 days before</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-            </div>
           </div>
 
           <DialogFooter>
