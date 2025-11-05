@@ -438,6 +438,54 @@ export function PatientDetailView() {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
+          {/* Vital Signs */}
+          <Card className="shadow-sm border-gray-200 bg-white">
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                <Heart className="h-5 w-5" />
+                Vital Signs
+                <Badge variant="outline" className="ml-2 text-xs">
+                  Last updated: {new Date(mockPatientDetail.vitalSigns.lastUpdated).toLocaleDateString()}
+                </Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-6 gap-6">
+                <div className="text-center">
+                  <p className="text-sm text-gray-600">Blood Pressure</p>
+                  <p className="text-2xl font-bold text-gray-900">{mockPatientDetail.vitalSigns.bloodPressure}</p>
+                  <p className="text-xs text-green-600">Normal</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-sm text-gray-600">Heart Rate</p>
+                  <p className="text-2xl font-bold text-gray-900">{mockPatientDetail.vitalSigns.heartRate}</p>
+                  <p className="text-xs text-green-600">Normal</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-sm text-gray-600">Weight</p>
+                  <p className="text-2xl font-bold text-gray-900">{mockPatientDetail.vitalSigns.weight}</p>
+                  <p className="text-xs text-gray-600">Stable</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-sm text-gray-600">Height</p>
+                  <p className="text-2xl font-bold text-gray-900">{mockPatientDetail.vitalSigns.height}</p>
+                  <p className="text-xs text-gray-600">-</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-sm text-gray-600">BMI</p>
+                  <p className="text-2xl font-bold text-gray-900">{mockPatientDetail.vitalSigns.bmi}</p>
+                  <p className="text-xs text-green-600">Normal</p>
+                </div>
+                <div className="text-center">
+                  <Button variant="outline" size="sm" className="mt-2 bg-transparent">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Reading
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Medical History */}
             <Card className="shadow-sm border-gray-200 bg-white">
@@ -513,54 +561,6 @@ export function PatientDetailView() {
               </CardContent>
             </Card>
           </div>
-
-          {/* Vital Signs */}
-          <Card className="shadow-sm border-gray-200 bg-white">
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                <Heart className="h-5 w-5" />
-                Vital Signs
-                <Badge variant="outline" className="ml-2 text-xs">
-                  Last updated: {new Date(mockPatientDetail.vitalSigns.lastUpdated).toLocaleDateString()}
-                </Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-6 gap-6">
-                <div className="text-center">
-                  <p className="text-sm text-gray-600">Blood Pressure</p>
-                  <p className="text-2xl font-bold text-gray-900">{mockPatientDetail.vitalSigns.bloodPressure}</p>
-                  <p className="text-xs text-green-600">Normal</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-sm text-gray-600">Heart Rate</p>
-                  <p className="text-2xl font-bold text-gray-900">{mockPatientDetail.vitalSigns.heartRate}</p>
-                  <p className="text-xs text-green-600">Normal</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-sm text-gray-600">Weight</p>
-                  <p className="text-2xl font-bold text-gray-900">{mockPatientDetail.vitalSigns.weight}</p>
-                  <p className="text-xs text-gray-600">Stable</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-sm text-gray-600">Height</p>
-                  <p className="text-2xl font-bold text-gray-900">{mockPatientDetail.vitalSigns.height}</p>
-                  <p className="text-xs text-gray-600">-</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-sm text-gray-600">BMI</p>
-                  <p className="text-2xl font-bold text-gray-900">{mockPatientDetail.vitalSigns.bmi}</p>
-                  <p className="text-xs text-green-600">Normal</p>
-                </div>
-                <div className="text-center">
-                  <Button variant="outline" size="sm" className="mt-2 bg-transparent">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Reading
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </TabsContent>
 
         <TabsContent value="assessments" className="space-y-6">
