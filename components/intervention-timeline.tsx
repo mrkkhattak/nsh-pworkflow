@@ -20,7 +20,7 @@ type InterventionStatus = "active" | "stopped" | "completed"
 
 type Intervention = {
   id: string
-  type: "Medication" | "Lifestyle" | "Therapy" | "Other"
+  type: "Medication" | "Lifestyle" | "Therapy" | "Social" | "Other"
   date: string
   endDate?: string
   details: Record<string, string>
@@ -113,7 +113,7 @@ export function InterventionTimeline({
   goalsOptions?: { id: string; label: string }[]
 }) {
   const [items, setItems] = useState<Intervention[]>(mockActiveInterventions)
-  const [newType, setNewType] = useState<"Medication" | "Lifestyle" | "Therapy" | "Other">("Medication")
+  const [newType, setNewType] = useState<"Medication" | "Lifestyle" | "Therapy" | "Social" | "Other">("Medication")
   const [newDate, setNewDate] = useState<string>(new Date().toISOString().slice(0, 10))
   const [newEndDate, setNewEndDate] = useState<string>("")
   const [notes, setNotes] = useState("")

@@ -16,7 +16,7 @@ interface AddInterventionDialogProps {
   dimensionName: string
   goals: DimensionGoal[]
   onSave: (intervention: {
-    type: "Medication" | "Lifestyle" | "Therapy" | "Other"
+    type: "Medication" | "Lifestyle" | "Therapy" | "Social" | "Other"
     date: string
     endDate?: string
     details: Record<string, string>
@@ -33,7 +33,7 @@ export function AddInterventionDialog({
   goals,
   onSave,
 }: AddInterventionDialogProps) {
-  const [interventionType, setInterventionType] = useState<"Medication" | "Lifestyle" | "Therapy" | "Other">("Medication")
+  const [interventionType, setInterventionType] = useState<"Medication" | "Lifestyle" | "Therapy" | "Social" | "Other">("Medication")
   const [startDate, setStartDate] = useState<string>(new Date().toISOString().slice(0, 10))
   const [endDate, setEndDate] = useState<string>("")
   const [notes, setNotes] = useState("")
@@ -49,6 +49,10 @@ export function AddInterventionDialog({
   const [therapyType, setTherapyType] = useState("")
   const [therapyFrequency, setTherapyFrequency] = useState("")
   const [provider, setProvider] = useState("")
+
+  const [socialActivity, setSocialActivity] = useState("")
+  const [socialFrequency, setSocialFrequency] = useState("")
+  const [socialContact, setSocialContact] = useState("")
 
   const [customName, setCustomName] = useState("")
 
@@ -66,6 +70,9 @@ export function AddInterventionDialog({
     setTherapyType("")
     setTherapyFrequency("")
     setProvider("")
+    setSocialActivity("")
+    setSocialFrequency("")
+    setSocialContact("")
     setCustomName("")
   }
 
@@ -89,6 +96,12 @@ export function AddInterventionDialog({
         details.type = therapyType.trim()
         details.frequency = therapyFrequency.trim()
         details.provider = provider.trim()
+        break
+      case "Social":
+        if (!socialActivity.trim() || !socialFrequency.trim()) return
+        details.activity = socialActivity.trim()
+        details.frequency = socialFrequency.trim()
+        if (socialContact.trim()) details.contact = socialContact.trim()
         break
       case "Other":
         if (!customName.trim()) return
@@ -117,6 +130,8 @@ export function AddInterventionDialog({
         return lifestyleCategory.trim() && specificChange.trim()
       case "Therapy":
         return therapyType.trim() && therapyFrequency.trim() && provider.trim()
+      case "Social":
+        return socialActivity.trim() && socialFrequency.trim()
       case "Other":
         return customName.trim()
       default:
@@ -217,6 +232,38 @@ export function AddInterventionDialog({
             </div>
           </div>
         )
+      case "Social":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="socialActivity">Activity/Engagement</Label>
+              <Input
+                id="socialActivity"
+                placeholder="e.g., Weekly social group, Community event, Family gathering"
+                value={socialActivity}
+                onChange={(e) => setSocialActivity(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="socialFrequency">Frequency</Label>
+              <Input
+                id="socialFrequency"
+                placeholder="e.g., Weekly, Twice per month"
+                value={socialFrequency}
+                onChange={(e) => setSocialFrequency(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="socialContact">Contact/Organization (Optional)</Label>
+              <Input
+                id="socialContact"
+                placeholder="e.g., Community center, Family member, Support group"
+                value={socialContact}
+                onChange={(e) => setSocialContact(e.target.value)}
+              />
+            </div>
+          </div>
+        )
       case "Other":
         return (
           <div className="space-y-2">
@@ -253,6 +300,7 @@ export function AddInterventionDialog({
                 <SelectItem value="Medication">Medication</SelectItem>
                 <SelectItem value="Lifestyle">Lifestyle</SelectItem>
                 <SelectItem value="Therapy">Therapy</SelectItem>
+                <SelectItem value="Social">Social</SelectItem>
                 <SelectItem value="Other">Other</SelectItem>
               </SelectContent>
             </Select>

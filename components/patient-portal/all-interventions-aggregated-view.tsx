@@ -18,7 +18,7 @@ interface AllInterventionsAggregatedViewProps {
 
 interface InterventionWithDetails {
   name: string
-  type: "Medication" | "Lifestyle" | "Therapy" | "Other"
+  type: "Medication" | "Lifestyle" | "Therapy" | "Social" | "Other"
   dimensionIds: string[]
   linkedGoals: string[]
   startDate: string

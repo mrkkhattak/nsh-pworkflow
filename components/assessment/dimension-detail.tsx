@@ -114,7 +114,7 @@ export function DimensionDetail({ patient, assessment, dimension }: Props) {
   }
 
   const handleAddIntervention = (interventionData: {
-    type: "Medication" | "Lifestyle" | "Therapy" | "Other"
+    type: "Medication" | "Lifestyle" | "Therapy" | "Social" | "Other"
     date: string
     endDate?: string
     details: Record<string, string>
@@ -131,6 +131,9 @@ export function DimensionDetail({ patient, assessment, dimension }: Props) {
         break
       case "Therapy":
         interventionName = `${interventionData.details.type} - ${interventionData.details.frequency}`
+        break
+      case "Social":
+        interventionName = `${interventionData.details.activity} - ${interventionData.details.frequency}`
         break
       case "Other":
         interventionName = interventionData.details.name

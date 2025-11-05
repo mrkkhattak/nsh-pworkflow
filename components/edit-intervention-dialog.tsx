@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 interface InterventionData {
   id: string
   name: string
-  type: "Medication" | "Lifestyle" | "Therapy" | "Other"
+  type: "Medication" | "Lifestyle" | "Therapy" | "Social" | "Other"
   startDate: string
   endDate?: string
   status: "active" | "completed"
@@ -29,7 +29,7 @@ interface EditInterventionDialogProps {
   intervention: InterventionData
   onSave: (interventionId: string, updates: {
     name: string
-    type: "Medication" | "Lifestyle" | "Therapy" | "Other"
+    type: "Medication" | "Lifestyle" | "Therapy" | "Social" | "Other"
     startDate: string
     endDate?: string
     status: "active" | "completed"
@@ -127,6 +127,7 @@ export function EditInterventionDialog({
                 <SelectItem value="Medication">Medication</SelectItem>
                 <SelectItem value="Lifestyle">Lifestyle</SelectItem>
                 <SelectItem value="Therapy">Therapy</SelectItem>
+                <SelectItem value="Social">Social</SelectItem>
                 <SelectItem value="Other">Other</SelectItem>
               </SelectContent>
             </Select>

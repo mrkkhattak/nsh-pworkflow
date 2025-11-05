@@ -7,7 +7,7 @@ import { Activity, Pill, Heart, Users, Calendar, Info } from "lucide-react"
 
 interface PatientInterventionCardProps {
   name: string
-  type: "Medication" | "Lifestyle" | "Therapy" | "Other"
+  type: "Medication" | "Lifestyle" | "Therapy" | "Social" | "Other"
   dimensionIds: string[]
   linkedGoals: string[]
   startDate: string
