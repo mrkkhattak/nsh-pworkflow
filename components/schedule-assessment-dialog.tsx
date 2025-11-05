@@ -5,9 +5,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { Calendar } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { Calendar, CheckCircle2 } from "lucide-react"
+import { healthDimensionsConfig } from "@/lib/nsh-assessment-mock"
 
 type ScheduleAssessmentDialogProps = {
   open: boolean
@@ -19,22 +20,12 @@ type ScheduleAssessmentDialogProps = {
 
 export type ScheduledAssessment = {
   patientId: number
-  assessmentType: string
+  assessmentType: "full" | "dimensions"
+  selectedDimensions: string[]
   scheduledDate: string
   scheduledTime: string
   notes: string
-  reminderEnabled: boolean
-  reminderDays: number
 }
-
-const assessmentTypes = [
-  { value: "nsh-full", label: "NSH Full Assessment" },
-  { value: "mental-health", label: "Mental Health Assessment" },
-  { value: "functional-health", label: "Functional Health Assessment" },
-  { value: "pain-assessment", label: "Pain Assessment" },
-  { value: "medication-review", label: "Medication Review" },
-  { value: "follow-up", label: "Follow-up Assessment" },
-]
 
 export function ScheduleAssessmentDialog({
   open,
@@ -43,39 +34,49 @@ export function ScheduleAssessmentDialog({
   patientName,
   onScheduled
 }: ScheduleAssessmentDialogProps) {
-  const [assessmentType, setAssessmentType] = useState("")
+  const [assessmentType, setAssessmentType] = useState<"full" | "dimensions">("full")
+  const [selectedDimensions, setSelectedDimensions] = useState<string[]>([])
   const [scheduledDate, setScheduledDate] = useState("")
   const [scheduledTime, setScheduledTime] = useState("")
   const [notes, setNotes] = useState("")
-  const [reminderEnabled, setReminderEnabled] = useState(true)
-  const [reminderDays, setReminderDays] = useState(3)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const minDate = new Date().toISOString().split("T")[0]
 
+  const toggleDimension = (dimensionId: string) => {
+    setSelectedDimensions(prev =>
+      prev.includes(dimensionId)
+        ? prev.filter(id => id !== dimensionId)
+        : [...prev, dimensionId]
+    )
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (assessmentType === "dimensions" && selectedDimensions.length === 0) {
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
       const scheduledAssessment: ScheduledAssessment = {
         patientId,
         assessmentType,
+        selectedDimensions: assessmentType === "full" ? [] : selectedDimensions,
         scheduledDate,
         scheduledTime,
         notes,
-        reminderEnabled,
-        reminderDays,
       }
 
       onScheduled?.(scheduledAssessment)
 
-      setAssessmentType("")
+      setAssessmentType("full")
+      setSelectedDimensions([])
       setScheduledDate("")
       setScheduledTime("")
       setNotes("")
-      setReminderEnabled(true)
-      setReminderDays(3)
 
       onOpenChange(false)
     } catch (error) {
@@ -87,7 +88,7 @@ export function ScheduleAssessmentDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Calendar className="h-5 w-5" />
@@ -98,23 +99,89 @@ export function ScheduleAssessmentDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit}>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="assessmentType">Assessment Type</Label>
-              <Select value={assessmentType} onValueChange={setAssessmentType} required>
-                <SelectTrigger id="assessmentType">
-                  <SelectValue placeholder="Select assessment type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {assessmentTypes.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>
-                      {type.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+          <div className="space-y-4 py-4 overflow-y-auto flex-1">
+            <div className="space-y-3">
+              <Label>Assessment Scope</Label>
+              <div className="flex gap-3">
+                <Button
+                  type="button"
+                  variant={assessmentType === "full" ? "default" : "outline"}
+                  className="flex-1"
+                  onClick={() => {
+                    setAssessmentType("full")
+                    setSelectedDimensions([])
+                  }}
+                >
+                  {assessmentType === "full" && <CheckCircle2 className="h-4 w-4 mr-2" />}
+                  Full Assessment
+                </Button>
+                <Button
+                  type="button"
+                  variant={assessmentType === "dimensions" ? "default" : "outline"}
+                  className="flex-1"
+                  onClick={() => setAssessmentType("dimensions")}
+                >
+                  {assessmentType === "dimensions" && <CheckCircle2 className="h-4 w-4 mr-2" />}
+                  Specific Dimensions
+                </Button>
+              </div>
             </div>
+
+            {assessmentType === "dimensions" && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label>Select Health Dimensions ({selectedDimensions.length} selected)</Label>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setSelectedDimensions(healthDimensionsConfig.map(d => d.id))}
+                      className="text-xs"
+                    >
+                      Select All
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setSelectedDimensions([])}
+                      className="text-xs"
+                    >
+                      Clear
+                    </Button>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2 p-3 bg-gray-50 rounded-lg max-h-[200px] overflow-y-auto">
+                  {healthDimensionsConfig.map((dimension) => {
+                    const isSelected = selectedDimensions.includes(dimension.id)
+                    return (
+                      <Badge
+                        key={dimension.id}
+                        variant={isSelected ? "default" : "outline"}
+                        className="cursor-pointer hover:opacity-80 transition-opacity px-3 py-1.5"
+                        style={
+                          isSelected
+                            ? {
+                                backgroundColor: dimension.color,
+                                borderColor: dimension.color,
+                              }
+                            : {}
+                        }
+                        onClick={() => toggleDimension(dimension.id)}
+                      >
+                        {isSelected && <CheckCircle2 className="h-3 w-3 mr-1" />}
+                        {dimension.name}
+                      </Badge>
+                    )
+                  })}
+                </div>
+                {assessmentType === "dimensions" && selectedDimensions.length === 0 && (
+                  <p className="text-sm text-red-600">Please select at least one dimension</p>
+                )}
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -162,7 +229,10 @@ export function ScheduleAssessmentDialog({
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button
+              type="submit"
+              disabled={isSubmitting || (assessmentType === "dimensions" && selectedDimensions.length === 0)}
+            >
               {isSubmitting ? "Scheduling..." : "Schedule Assessment"}
             </Button>
           </DialogFooter>
