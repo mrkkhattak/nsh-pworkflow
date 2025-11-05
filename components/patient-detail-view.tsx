@@ -574,7 +574,7 @@ export function PatientDetailView() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg font-semibold">Recent Assessments</CardTitle>
-                <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+                <Button size="sm" className="bg-blue-600 hover:bg-blue-700" onClick={() => setShowScheduleAssessment(true)}>
                   <Plus className="h-4 w-4 mr-2" />
                   New Assessment
                 </Button>
