@@ -45,7 +45,12 @@ export function AddGoalDialog({
   }, [currentScore])
 
   useEffect(() => {
-    const months = parseInt(timeframe)
+    let months: number
+    if (timeframe === "1 year") {
+      months = 12
+    } else {
+      months = parseInt(timeframe)
+    }
     if (!isNaN(months)) {
       const deadlineDate = new Date()
       deadlineDate.setMonth(deadlineDate.getMonth() + months)
@@ -189,7 +194,7 @@ export function AddGoalDialog({
                   <SelectItem value="4 months">4 months</SelectItem>
                   <SelectItem value="6 months">6 months</SelectItem>
                   <SelectItem value="9 months">9 months</SelectItem>
-                  <SelectItem value="12 months">12 months</SelectItem>
+                  <SelectItem value="1 year">1 year</SelectItem>
                 </SelectContent>
               </Select>
             </div>
