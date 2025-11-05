@@ -320,7 +320,7 @@ export function CohortPatientListDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-7xl max-h-[90vh] p-0">
+      <DialogContent className="max-w-[95vw] w-full max-h-[90vh] p-0 overflow-hidden">
         <DialogHeader className="px-6 pt-6 pb-4 border-b">
           <div className="flex items-center justify-between">
             <div>
@@ -366,8 +366,8 @@ export function CohortPatientListDialog({
         </DialogHeader>
 
         <div className="px-6 py-4 border-b bg-gray-50">
-          <div className="flex items-center gap-4 mb-3">
-            <div className="relative flex-1">
+          <div className="flex flex-wrap items-center gap-3 mb-3">
+            <div className="relative flex-1 min-w-[200px]">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
               <Input
                 placeholder="Search by name or location..."
@@ -377,7 +377,7 @@ export function CohortPatientListDialog({
               />
             </div>
             <Select value={riskLevelFilter} onValueChange={setRiskLevelFilter}>
-              <SelectTrigger className="w-48">
+              <SelectTrigger className="w-[160px] min-w-[140px]">
                 <SelectValue placeholder="Risk Level" />
               </SelectTrigger>
               <SelectContent>
@@ -389,7 +389,7 @@ export function CohortPatientListDialog({
               </SelectContent>
             </Select>
             <Select value={genderFilter} onValueChange={setGenderFilter}>
-              <SelectTrigger className="w-40">
+              <SelectTrigger className="w-[140px] min-w-[120px]">
                 <SelectValue placeholder="Gender" />
               </SelectTrigger>
               <SelectContent>
@@ -401,7 +401,7 @@ export function CohortPatientListDialog({
               </SelectContent>
             </Select>
             <Select value={employmentFilter} onValueChange={setEmploymentFilter}>
-              <SelectTrigger className="w-48">
+              <SelectTrigger className="w-[160px] min-w-[140px]">
                 <SelectValue placeholder="Employment" />
               </SelectTrigger>
               <SelectContent>
@@ -414,7 +414,7 @@ export function CohortPatientListDialog({
                 <SelectItem value="Student">Student</SelectItem>
               </SelectContent>
             </Select>
-            <Button variant="outline" size="sm" onClick={handleExportCSV}>
+            <Button variant="outline" size="sm" onClick={handleExportCSV} className="whitespace-nowrap">
               <Download className="h-4 w-4 mr-2" />
               Export CSV
             </Button>
