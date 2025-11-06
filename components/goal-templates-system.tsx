@@ -329,7 +329,7 @@ export function GoalTemplatesSystem({
   const [newIntervention, setNewIntervention] = useState<string>("")
   const [current, setCurrent] = useState<number | "">("")
   const [reassessmentDate, setReassessmentDate] = useState<string>("")
-  const [newInterventionType, setNewInterventionType] = useState<"Medication" | "Lifestyle" | "Therapy">("Medication")
+  const [newInterventionType, setNewInterventionType] = useState<"Medication" | "Lifestyle" | "Therapy" | "Social" | "Other">("Medication")
   const [newInterventionDate, setNewInterventionDate] = useState<string>(new Date().toISOString().slice(0, 10))
   const [newInterventionNotes, setNewInterventionNotes] = useState<string>("")
   const [isLoading, setIsLoading] = useState(false)
@@ -582,6 +582,8 @@ export function GoalTemplatesSystem({
                 <SelectItem value="Medication">Medication</SelectItem>
                 <SelectItem value="Lifestyle">Lifestyle</SelectItem>
                 <SelectItem value="Therapy">Therapy</SelectItem>
+                <SelectItem value="Social">Social</SelectItem>
+                <SelectItem value="Other">Other</SelectItem>
               </SelectContent>
             </Select>
 
@@ -612,6 +614,17 @@ export function GoalTemplatesSystem({
                   <Input placeholder="Type (CBT/DBT/other)" />
                   <Input placeholder="Frequency" />
                   <Input placeholder="Provider" />
+                </>
+              )}
+              {newInterventionType === "Social" && (
+                <>
+                  <Input placeholder="Activity/Engagement" />
+                  <Input placeholder="Frequency" />
+                </>
+              )}
+              {newInterventionType === "Other" && (
+                <>
+                  <Input placeholder="Intervention name" />
                 </>
               )}
             </div>
@@ -995,6 +1008,8 @@ export function GoalTemplatesSystem({
                     <SelectItem value="Medication">Medication</SelectItem>
                     <SelectItem value="Lifestyle">Lifestyle</SelectItem>
                     <SelectItem value="Therapy">Therapy</SelectItem>
+                    <SelectItem value="Social">Social</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
                   </SelectContent>
                 </Select>
 
@@ -1025,6 +1040,17 @@ export function GoalTemplatesSystem({
                       <Input placeholder="Type (CBT/DBT/other)" />
                       <Input placeholder="Frequency" />
                       <Input placeholder="Provider" />
+                    </>
+                  )}
+                  {newInterventionType === "Social" && (
+                    <>
+                      <Input placeholder="Activity/Engagement" />
+                      <Input placeholder="Frequency" />
+                    </>
+                  )}
+                  {newInterventionType === "Other" && (
+                    <>
+                      <Input placeholder="Intervention name" />
                     </>
                   )}
                 </div>
