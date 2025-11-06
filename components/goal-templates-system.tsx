@@ -332,6 +332,7 @@ export function GoalTemplatesSystem({
   const [newInterventionType, setNewInterventionType] = useState<"Medication" | "Lifestyle" | "Therapy">("Medication")
   const [newInterventionDate, setNewInterventionDate] = useState<string>(new Date().toISOString().slice(0, 10))
   const [newInterventionNotes, setNewInterventionNotes] = useState<string>("")
+  const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
     const latest = latestByDimension[selectedDimension]
@@ -543,10 +544,11 @@ export function GoalTemplatesSystem({
                 <SelectValue placeholder="Select timeframe" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="2weeks">2 Weeks</SelectItem>
-                <SelectItem value="1month">1 Month</SelectItem>
-                <SelectItem value="6weeks">6 Weeks</SelectItem>
-                <SelectItem value="3months">3 Months</SelectItem>
+                {timeframeOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
