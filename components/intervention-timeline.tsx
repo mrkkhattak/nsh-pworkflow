@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { AlertTriangle, Pill, Dumbbell, Brain, StopCircle, Calendar, Info, Filter, Plus as PlusIcon } from "lucide-react"
+import { AlertTriangle, Pill, Dumbbell, Brain, Users, StopCircle, Calendar, Info, Filter, Plus as PlusIcon } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 
@@ -125,10 +125,10 @@ export function InterventionTimeline({
   const [stopReason, setStopReason] = useState("")
   const [customInterventionName, setCustomInterventionName] = useState("")
 
-  const typeIcon = (t: Intervention["type"]) => (t === "Medication" ? Pill : t === "Lifestyle" ? Dumbbell : t === "Therapy" ? Brain : PlusIcon)
+  const typeIcon = (t: Intervention["type"]) => (t === "Medication" ? Pill : t === "Lifestyle" ? Dumbbell : t === "Therapy" ? Brain : t === "Social" ? Users : PlusIcon)
 
   const colorClass = (t: Intervention["type"]) =>
-    t === "Medication" ? "text-blue-600" : t === "Lifestyle" ? "text-green-600" : t === "Therapy" ? "text-purple-600" : "text-orange-600"
+    t === "Medication" ? "text-blue-600" : t === "Lifestyle" ? "text-green-600" : t === "Therapy" ? "text-purple-600" : t === "Social" ? "text-pink-600" : "text-orange-600"
 
   const renderFields = () => {
     switch (newType) {
@@ -153,6 +153,13 @@ export function InterventionTimeline({
             <Input placeholder="Type (CBT/DBT/other)" />
             <Input placeholder="Frequency" />
             <Input placeholder="Provider" />
+          </div>
+        )
+      case "Social":
+        return (
+          <div className="grid grid-cols-2 gap-2">
+            <Input placeholder="Activity/Engagement" />
+            <Input placeholder="Frequency" />
           </div>
         )
       case "Other":
@@ -284,6 +291,7 @@ export function InterventionTimeline({
                 <SelectItem value="Medication">Medication</SelectItem>
                 <SelectItem value="Lifestyle">Lifestyle</SelectItem>
                 <SelectItem value="Therapy">Therapy</SelectItem>
+                <SelectItem value="Social">Social</SelectItem>
                 <SelectItem value="Other">Other</SelectItem>
               </SelectContent>
             </Select>
@@ -405,9 +413,11 @@ export function InterventionTimeline({
                       ? "Lifestyle"
                       : label.startsWith("Therapy")
                         ? "Therapy"
-                        : label.startsWith("Other")
-                          ? "Other"
-                          : ("Other" as const)
+                        : label.startsWith("Social")
+                          ? "Social"
+                          : label.startsWith("Other")
+                            ? "Other"
+                            : ("Other" as const)
                   const Icon = typeIcon(t)
                   const isStopped = entry.item?.status === "stopped"
                   return (
