@@ -4,13 +4,15 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { TrendingDown, TrendingUp, Activity, Heart, AlertCircle, Users } from 'lucide-react';
+import { TrendingDown, TrendingUp, Activity, Heart, AlertCircle, Users, Cigarette, CigaretteOff, UserCheck, ThumbsUp } from 'lucide-react';
 import {
   getCurrentQuarterStats,
   getPreviousQuarterStats,
   getQuarterOverQuarterChange,
   getQuarterlyTrends,
   cohortStatistics,
+  getSmokingStatusDistribution,
+  getSmokingStatusLabel,
 } from '@/lib/outcome-measures-mock';
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Legend, Bar, BarChart } from 'recharts';
 
@@ -68,6 +70,7 @@ export function OutcomeMeasuresView() {
   const [comparisonMode, setComparisonMode] = useState(false);
   const [dimensionFilter, setDimensionFilter] = useState('all');
   const [riskFilter, setRiskFilter] = useState('all');
+  const [smokingFilter, setSmokingFilter] = useState('all');
 
   const currentStats = getCurrentQuarterStats();
   const previousStats = getPreviousQuarterStats();
@@ -80,8 +83,11 @@ export function OutcomeMeasuresView() {
   const hospitalizationsChange = getQuarterOverQuarterChange(currentStats.avgHospitalizations, previousStats.avgHospitalizations);
   const edVisitsChange = getQuarterOverQuarterChange(currentStats.avgEdVisits, previousStats.avgEdVisits);
   const functionalCapacityChange = getQuarterOverQuarterChange(currentStats.avgFunctionalCapacity, previousStats.avgFunctionalCapacity);
+  const engagementScoreChange = getQuarterOverQuarterChange(currentStats.avgEngagementScore, previousStats.avgEngagementScore);
+  const satisfactionScoreChange = getQuarterOverQuarterChange(currentStats.avgSatisfactionScore, previousStats.avgSatisfactionScore);
 
   const trendData = getQuarterlyTrends(2024, 'Q1', 2025, 'Q3');
+  const smokingDistribution = getSmokingStatusDistribution('Q3', 2025);
 
   return (
     <div className="space-y-6">
@@ -153,6 +159,21 @@ export function OutcomeMeasuresView() {
           </Select>
         </div>
 
+        <div className="flex items-center gap-2">
+          <label className="text-sm font-medium">Smoking Status:</label>
+          <Select value={smokingFilter} onValueChange={setSmokingFilter}>
+            <SelectTrigger className="w-40">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="never">Never Smoked</SelectItem>
+              <SelectItem value="former">Former Smoker</SelectItem>
+              <SelectItem value="current">Current Smoker</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
         <Button
           variant={comparisonMode ? 'default' : 'outline'}
           onClick={() => setComparisonMode(!comparisonMode)}
@@ -162,7 +183,7 @@ export function OutcomeMeasuresView() {
         </Button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <MetricCard
           title="30-Day Readmissions"
           value={currentStats.avgReadmissions}
@@ -199,7 +220,60 @@ export function OutcomeMeasuresView() {
           benchmark={currentStats.benchmark.functionalCapacity}
           lowerIsBetter={false}
         />
+        <MetricCard
+          title="Patient Engagement"
+          value={currentStats.avgEngagementScore}
+          unit="score"
+          icon={<UserCheck className="h-4 w-4" />}
+          change={engagementScoreChange}
+          benchmark={currentStats.benchmark.engagementScore}
+          lowerIsBetter={true}
+        />
+        <MetricCard
+          title="Patient Satisfaction"
+          value={currentStats.avgSatisfactionScore}
+          unit="score"
+          icon={<ThumbsUp className="h-4 w-4" />}
+          change={satisfactionScoreChange}
+          benchmark={currentStats.benchmark.satisfactionScore}
+          lowerIsBetter={true}
+        />
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Smoking Status Distribution</CardTitle>
+          <CardDescription>Current quarter patient smoking status breakdown</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-3 gap-4">
+            <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <CigaretteOff className="h-8 w-8 text-green-600" />
+              <div>
+                <div className="text-2xl font-bold text-green-900">{smokingDistribution.neverPercent}%</div>
+                <div className="text-sm text-green-700">Never Smoked</div>
+                <div className="text-xs text-green-600">{smokingDistribution.never} patients</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <CigaretteOff className="h-8 w-8 text-blue-600" />
+              <div>
+                <div className="text-2xl font-bold text-blue-900">{smokingDistribution.formerPercent}%</div>
+                <div className="text-sm text-blue-700">Former Smoker</div>
+                <div className="text-xs text-blue-600">{smokingDistribution.former} patients</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <Cigarette className="h-8 w-8 text-red-600" />
+              <div>
+                <div className="text-2xl font-bold text-red-900">{smokingDistribution.currentPercent}%</div>
+                <div className="text-sm text-red-700">Current Smoker</div>
+                <div className="text-xs text-red-600">{smokingDistribution.current} patients</div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
@@ -273,6 +347,42 @@ export function OutcomeMeasuresView() {
             </ResponsiveContainer>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Patient Engagement Trend</CardTitle>
+            <CardDescription>Average patient engagement score over time (lower is better)</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={trendData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="quarter" />
+                <YAxis domain={[0, 100]} />
+                <Tooltip />
+                <Line type="monotone" dataKey="engagementScore" stroke="#f43f5e" strokeWidth={2} dot={{ r: 4 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Patient Satisfaction Trend</CardTitle>
+            <CardDescription>Average patient satisfaction score over time (lower is better)</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={trendData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="quarter" />
+                <YAxis domain={[0, 100]} />
+                <Tooltip />
+                <Line type="monotone" dataKey="satisfactionScore" stroke="#14b8a6" strokeWidth={2} dot={{ r: 4 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
       </div>
 
       <Card>
@@ -303,6 +413,16 @@ export function OutcomeMeasuresView() {
                   metric: 'Functional Capacity',
                   'Your Cohort': currentStats.avgFunctionalCapacity,
                   'Benchmark': currentStats.benchmark.functionalCapacity,
+                },
+                {
+                  metric: 'Patient Engagement',
+                  'Your Cohort': currentStats.avgEngagementScore,
+                  'Benchmark': currentStats.benchmark.engagementScore,
+                },
+                {
+                  metric: 'Patient Satisfaction',
+                  'Your Cohort': currentStats.avgSatisfactionScore,
+                  'Benchmark': currentStats.benchmark.satisfactionScore,
                 },
               ]}
             >

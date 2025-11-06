@@ -9,6 +9,9 @@ export interface QuarterlyOutcome {
   hospitalizations: number;
   edVisits: number;
   functionalCapacity: number;
+  engagementScore: number;
+  satisfactionScore: number;
+  smokingStatus: 'never' | 'former' | 'current';
   riskLevel: 'low' | 'medium' | 'high';
   primaryDimension: string;
 }
@@ -20,12 +23,16 @@ export interface CohortStatistics {
   avgHospitalizations: number;
   avgEdVisits: number;
   avgFunctionalCapacity: number;
+  avgEngagementScore: number;
+  avgSatisfactionScore: number;
   totalPatients: number;
   benchmark: {
     readmissions: number;
     hospitalizations: number;
     edVisits: number;
     functionalCapacity: number;
+    engagementScore: number;
+    satisfactionScore: number;
   };
 }
 
@@ -36,6 +43,8 @@ export interface QuarterlyTrend {
   hospitalizations: number;
   edVisits: number;
   functionalCapacity: number;
+  engagementScore: number;
+  satisfactionScore: number;
 }
 
 const quarters = ['Q1', 'Q2', 'Q3', 'Q4'];
@@ -79,28 +88,45 @@ function generateQuarterlyData(): QuarterlyOutcome[] {
     let hospitalizationsTrend: 'improving' | 'stable' | 'declining';
     let edVisitsTrend: 'improving' | 'stable' | 'declining';
     let functionalCapacityTrend: 'improving' | 'stable' | 'declining';
+    let engagementTrend: 'improving' | 'stable' | 'declining';
+    let satisfactionTrend: 'improving' | 'stable' | 'declining';
 
     if (patient.riskLevel === 'high') {
       readmissionsTrend = Math.random() > 0.3 ? 'improving' : 'stable';
       hospitalizationsTrend = Math.random() > 0.3 ? 'improving' : 'stable';
       edVisitsTrend = Math.random() > 0.4 ? 'improving' : 'declining';
       functionalCapacityTrend = Math.random() > 0.3 ? 'improving' : 'stable';
+      engagementTrend = Math.random() > 0.3 ? 'improving' : 'stable';
+      satisfactionTrend = Math.random() > 0.3 ? 'improving' : 'stable';
     } else if (patient.riskLevel === 'medium') {
       readmissionsTrend = Math.random() > 0.5 ? 'improving' : 'stable';
       hospitalizationsTrend = Math.random() > 0.5 ? 'improving' : 'stable';
       edVisitsTrend = Math.random() > 0.5 ? 'improving' : 'stable';
       functionalCapacityTrend = Math.random() > 0.4 ? 'improving' : 'stable';
+      engagementTrend = Math.random() > 0.5 ? 'improving' : 'stable';
+      satisfactionTrend = Math.random() > 0.5 ? 'improving' : 'stable';
     } else {
       readmissionsTrend = 'stable';
       hospitalizationsTrend = 'stable';
       edVisitsTrend = 'stable';
       functionalCapacityTrend = Math.random() > 0.6 ? 'improving' : 'stable';
+      engagementTrend = 'stable';
+      satisfactionTrend = 'stable';
     }
 
     const baseReadmissions = patient.riskLevel === 'high' ? 2.5 : patient.riskLevel === 'medium' ? 1.2 : 0.3;
     const baseHospitalizations = patient.riskLevel === 'high' ? 1.8 : patient.riskLevel === 'medium' ? 0.8 : 0.2;
     const baseEdVisits = patient.riskLevel === 'high' ? 3.5 : patient.riskLevel === 'medium' ? 1.5 : 0.5;
     const baseFunctionalCapacity = patient.riskLevel === 'high' ? 55 : patient.riskLevel === 'medium' ? 68 : 82;
+    const baseEngagementScore = patient.riskLevel === 'high' ? 35 : patient.riskLevel === 'medium' ? 22 : 15;
+    const baseSatisfactionScore = patient.riskLevel === 'high' ? 28 : patient.riskLevel === 'medium' ? 18 : 12;
+
+    const smokingStatus: 'never' | 'former' | 'current' =
+      patient.riskLevel === 'high'
+        ? (Math.random() > 0.5 ? 'current' : 'former')
+        : patient.riskLevel === 'medium'
+        ? (Math.random() > 0.7 ? 'current' : Math.random() > 0.5 ? 'former' : 'never')
+        : (Math.random() > 0.8 ? 'former' : 'never');
 
     let quarterIndex = 0;
     years.forEach(year => {
@@ -118,6 +144,9 @@ function generateQuarterlyData(): QuarterlyOutcome[] {
           hospitalizations: generateOutcomeValue(baseHospitalizations, hospitalizationsTrend, quarterIndex),
           edVisits: generateOutcomeValue(baseEdVisits, edVisitsTrend, quarterIndex),
           functionalCapacity: generateOutcomeValue(baseFunctionalCapacity, functionalCapacityTrend, quarterIndex, 0.1),
+          engagementScore: generateOutcomeValue(baseEngagementScore, engagementTrend, quarterIndex, 0.15),
+          satisfactionScore: generateOutcomeValue(baseSatisfactionScore, satisfactionTrend, quarterIndex, 0.15),
+          smokingStatus,
           riskLevel: patient.riskLevel,
           primaryDimension: patient.primaryDimension,
         });
@@ -147,6 +176,8 @@ function generateCohortStatistics(): CohortStatistics[] {
         const avgHospitalizations = quarterData.reduce((sum, d) => sum + d.hospitalizations, 0) / quarterData.length;
         const avgEdVisits = quarterData.reduce((sum, d) => sum + d.edVisits, 0) / quarterData.length;
         const avgFunctionalCapacity = quarterData.reduce((sum, d) => sum + d.functionalCapacity, 0) / quarterData.length;
+        const avgEngagementScore = quarterData.reduce((sum, d) => sum + d.engagementScore, 0) / quarterData.length;
+        const avgSatisfactionScore = quarterData.reduce((sum, d) => sum + d.satisfactionScore, 0) / quarterData.length;
 
         stats.push({
           quarter,
@@ -155,12 +186,16 @@ function generateCohortStatistics(): CohortStatistics[] {
           avgHospitalizations: Math.round(avgHospitalizations * 10) / 10,
           avgEdVisits: Math.round(avgEdVisits * 10) / 10,
           avgFunctionalCapacity: Math.round(avgFunctionalCapacity * 10) / 10,
+          avgEngagementScore: Math.round(avgEngagementScore * 10) / 10,
+          avgSatisfactionScore: Math.round(avgSatisfactionScore * 10) / 10,
           totalPatients: quarterData.length,
           benchmark: {
             readmissions: 1.8,
             hospitalizations: 1.2,
             edVisits: 2.5,
             functionalCapacity: 70,
+            engagementScore: 25,
+            satisfactionScore: 20,
           },
         });
       }
@@ -189,6 +224,8 @@ export function getQuarterlyTrends(startYear: number, startQuarter: string, endY
     hospitalizations: stat.avgHospitalizations,
     edVisits: stat.avgEdVisits,
     functionalCapacity: stat.avgFunctionalCapacity,
+    engagementScore: stat.avgEngagementScore,
+    satisfactionScore: stat.avgSatisfactionScore,
   }));
 }
 
@@ -232,6 +269,8 @@ export interface PatientOutcomeStats {
   hospitalizationsChange?: { value: number; percentage: number; direction: 'up' | 'down' | 'stable' };
   edVisitsChange?: { value: number; percentage: number; direction: 'up' | 'down' | 'stable' };
   functionalCapacityChange?: { value: number; percentage: number; direction: 'up' | 'down' | 'stable' };
+  engagementScoreChange?: { value: number; percentage: number; direction: 'up' | 'down' | 'stable' };
+  satisfactionScoreChange?: { value: number; percentage: number; direction: 'up' | 'down' | 'stable' };
 }
 
 export function getPatientOutcomeStats(patientId: string): PatientOutcomeStats | null {
@@ -255,6 +294,8 @@ export function getPatientOutcomeStats(patientId: string): PatientOutcomeStats |
     result.hospitalizationsChange = getQuarterOverQuarterChange(latest.hospitalizations, previous.hospitalizations);
     result.edVisitsChange = getQuarterOverQuarterChange(latest.edVisits, previous.edVisits);
     result.functionalCapacityChange = getQuarterOverQuarterChange(latest.functionalCapacity, previous.functionalCapacity);
+    result.engagementScoreChange = getQuarterOverQuarterChange(latest.engagementScore, previous.engagementScore);
+    result.satisfactionScoreChange = getQuarterOverQuarterChange(latest.satisfactionScore, previous.satisfactionScore);
   }
 
   return result;
@@ -282,5 +323,59 @@ export function getPatientOutcomeTrends(patientId: string, startYear: number, st
     hospitalizations: outcome.hospitalizations,
     edVisits: outcome.edVisits,
     functionalCapacity: outcome.functionalCapacity,
+    engagementScore: outcome.engagementScore,
+    satisfactionScore: outcome.satisfactionScore,
   }));
+}
+
+export function filterOutcomesBySmokingStatus(smokingStatus: string): QuarterlyOutcome[] {
+  if (smokingStatus === 'all') return quarterlyOutcomeData;
+  return quarterlyOutcomeData.filter(d => d.smokingStatus === smokingStatus);
+}
+
+export interface SmokingStatusDistribution {
+  never: number;
+  former: number;
+  current: number;
+  neverPercent: number;
+  formerPercent: number;
+  currentPercent: number;
+}
+
+export function getSmokingStatusDistribution(quarter: string, year: number): SmokingStatusDistribution {
+  const quarterData = quarterlyOutcomeData.filter(d => d.quarter === quarter && d.year === year);
+  const total = quarterData.length;
+
+  if (total === 0) {
+    return {
+      never: 0,
+      former: 0,
+      current: 0,
+      neverPercent: 0,
+      formerPercent: 0,
+      currentPercent: 0,
+    };
+  }
+
+  const neverCount = quarterData.filter(d => d.smokingStatus === 'never').length;
+  const formerCount = quarterData.filter(d => d.smokingStatus === 'former').length;
+  const currentCount = quarterData.filter(d => d.smokingStatus === 'current').length;
+
+  return {
+    never: neverCount,
+    former: formerCount,
+    current: currentCount,
+    neverPercent: Math.round((neverCount / total) * 100),
+    formerPercent: Math.round((formerCount / total) * 100),
+    currentPercent: Math.round((currentCount / total) * 100),
+  };
+}
+
+export function getSmokingStatusLabel(status: 'never' | 'former' | 'current'): string {
+  const labels = {
+    never: 'Never Smoked',
+    former: 'Former Smoker',
+    current: 'Current Smoker',
+  };
+  return labels[status];
 }

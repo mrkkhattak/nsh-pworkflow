@@ -4,11 +4,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { TrendingDown, TrendingUp, Activity, Heart, AlertCircle, Users } from 'lucide-react';
+import { TrendingDown, TrendingUp, Activity, Heart, AlertCircle, Users, UserCheck, ThumbsUp } from 'lucide-react';
 import {
   getPatientOutcomeStats,
   getPatientOutcomeTrends,
   getCurrentQuarterStats,
+  getSmokingStatusLabel,
   PatientOutcomeStats,
 } from '@/lib/outcome-measures-mock';
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Bar, BarChart, Legend } from 'recharts';
@@ -114,9 +115,12 @@ export function PatientOutcomeMeasures({ patientId }: PatientOutcomeMeasuresProp
           Risk Level: {latest.riskLevel}
         </Badge>
         <Badge variant="outline">Primary Dimension: {latest.primaryDimension}</Badge>
+        <Badge variant={latest.smokingStatus === 'current' ? 'destructive' : latest.smokingStatus === 'former' ? 'secondary' : 'outline'}>
+          Smoking: {getSmokingStatusLabel(latest.smokingStatus)}
+        </Badge>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <MetricCard
           title="30-Day Readmissions"
           value={latest.readmissions}
@@ -152,6 +156,24 @@ export function PatientOutcomeMeasures({ patientId }: PatientOutcomeMeasuresProp
           change={patientStats.functionalCapacityChange}
           benchmark={cohortStats.benchmark.functionalCapacity}
           lowerIsBetter={false}
+        />
+        <MetricCard
+          title="Patient Engagement"
+          value={latest.engagementScore}
+          unit="score"
+          icon={<UserCheck className="h-4 w-4" />}
+          change={patientStats.engagementScoreChange}
+          benchmark={cohortStats.benchmark.engagementScore}
+          lowerIsBetter={true}
+        />
+        <MetricCard
+          title="Patient Satisfaction"
+          value={latest.satisfactionScore}
+          unit="score"
+          icon={<ThumbsUp className="h-4 w-4" />}
+          change={patientStats.satisfactionScoreChange}
+          benchmark={cohortStats.benchmark.satisfactionScore}
+          lowerIsBetter={true}
         />
       </div>
 
@@ -227,6 +249,42 @@ export function PatientOutcomeMeasures({ patientId }: PatientOutcomeMeasuresProp
             </ResponsiveContainer>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Patient Engagement Trend</CardTitle>
+            <CardDescription>Patient engagement score over time (lower is better)</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={trendData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="quarter" />
+                <YAxis domain={[0, 100]} />
+                <Tooltip />
+                <Line type="monotone" dataKey="engagementScore" stroke="#f43f5e" strokeWidth={2} dot={{ r: 4 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Patient Satisfaction Trend</CardTitle>
+            <CardDescription>Patient satisfaction score over time (lower is better)</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={trendData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="quarter" />
+                <YAxis domain={[0, 100]} />
+                <Tooltip />
+                <Line type="monotone" dataKey="satisfactionScore" stroke="#14b8a6" strokeWidth={2} dot={{ r: 4 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
       </div>
 
       <Card>
@@ -257,6 +315,16 @@ export function PatientOutcomeMeasures({ patientId }: PatientOutcomeMeasuresProp
                   metric: 'Functional Capacity',
                   'This Patient': latest.functionalCapacity,
                   'Cohort Benchmark': cohortStats.benchmark.functionalCapacity,
+                },
+                {
+                  metric: 'Engagement',
+                  'This Patient': latest.engagementScore,
+                  'Cohort Benchmark': cohortStats.benchmark.engagementScore,
+                },
+                {
+                  metric: 'Satisfaction',
+                  'This Patient': latest.satisfactionScore,
+                  'Cohort Benchmark': cohortStats.benchmark.satisfactionScore,
                 },
               ]}
             >
