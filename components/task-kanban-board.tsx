@@ -382,7 +382,6 @@ export function TaskKanbanBoard() {
   const [tasks, setTasks] = useState(mockTasks)
   const [selectedCategory, setSelectedCategory] = useState("provider-level")
   const [selectedDimension, setSelectedDimension] = useState("all")
-  const [selectedDimensionCategory, setSelectedDimensionCategory] = useState("all")
   const [viewMode, setViewMode] = useState<"category" | "dimension">("category")
   const [draggedTask, setDraggedTask] = useState<number | null>(null)
   const [isAddTaskOpen, setIsAddTaskOpen] = useState(false)
@@ -391,14 +390,14 @@ export function TaskKanbanBoard() {
     ? (selectedCategory === "all" ? tasks : tasks.filter((task) => task.category === selectedCategory))
     : tasks
         .filter((task) => selectedDimension === "all" || task.dimension === selectedDimension)
-        .filter((task) => selectedDimensionCategory === "all" || task.category === selectedDimensionCategory)
+        .filter((task) => task.category === "provider-level")
 
   const getActiveColumns = () => {
     if (viewMode === "category" && selectedCategory !== "all" && categoryStatusColumns[selectedCategory]) {
       return categoryStatusColumns[selectedCategory]
     }
-    if (viewMode === "dimension" && selectedDimensionCategory !== "all" && categoryStatusColumns[selectedDimensionCategory]) {
-      return categoryStatusColumns[selectedDimensionCategory]
+    if (viewMode === "dimension" && categoryStatusColumns["provider-level"]) {
+      return categoryStatusColumns["provider-level"]
     }
     return taskColumns
   }
@@ -797,19 +796,6 @@ export function TaskKanbanBoard() {
                 ))}
               </SelectContent>
             </Select>
-
-            <Select value={selectedDimensionCategory} onValueChange={setSelectedDimensionCategory}>
-              <SelectTrigger className="w-56">
-                <SelectValue placeholder="Filter by level" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Levels</SelectItem>
-                <SelectItem value="provider-level">Provider Level</SelectItem>
-                <SelectItem value="patient-level">Patient Level</SelectItem>
-                <SelectItem value="system-level">System Level</SelectItem>
-                <SelectItem value="community-level">Community Level</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
 
           {/* Health Dimensions Overview */}
@@ -819,7 +805,7 @@ export function TaskKanbanBoard() {
               {healthDimensionsConfig.map((dimension) => {
                 const dimensionTasks = tasks
                   .filter((task) => task.dimension === dimension.id)
-                  .filter((task) => selectedDimensionCategory === "all" || task.category === selectedDimensionCategory)
+                  .filter((task) => task.category === "provider-level")
                 const completedTasks = dimensionTasks.filter((t) => t.status === "completed")
                 const overdueTasks = dimensionTasks.filter((t) => t.slaStatus === "overdue")
                 return (
@@ -866,15 +852,10 @@ export function TaskKanbanBoard() {
             <CardHeader>
               <CardTitle>
                 Task Board - {selectedDimension === "all" ? "All Health Dimensions" : healthDimensionsConfig.find(d => d.id === selectedDimension)?.name}
-                {selectedDimensionCategory !== "all" && (
-                  <span className="text-muted-foreground text-base font-normal"> • {selectedDimensionCategory.replace("-", " ").split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")}</span>
-                )}
+                <span className="text-muted-foreground text-base font-normal"> • Provider Level</span>
               </CardTitle>
               <CardDescription>
-                {selectedDimensionCategory !== "all"
-                  ? `Showing ${selectedDimensionCategory.replace("-", " ")} tasks. Status columns follow the ${selectedDimensionCategory.replace("-", " ")} schema.`
-                  : "Drag and drop tasks to update their status"
-                }
+                Showing provider level tasks. Status columns follow the provider level schema.
               </CardDescription>
             </CardHeader>
             <CardContent>
