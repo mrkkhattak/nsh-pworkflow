@@ -910,7 +910,6 @@ export function TaskKanbanBoard() {
       <AddTaskDialog
         open={isAddTaskOpen}
         onOpenChange={setIsAddTaskOpen}
-        selectedCategory={selectedCategory}
         onTaskAdded={() => {
           // Refresh tasks - in production, refetch from database
           // For now, just close the dialog
