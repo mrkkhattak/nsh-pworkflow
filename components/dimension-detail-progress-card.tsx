@@ -81,7 +81,7 @@ export function DimensionDetailProgressCard({
   const progressPercent = baseline && target ? ((baseline - score) / (baseline - target)) * 100 : 0
 
   const dimensionActionItems = actionItems.filter((item) => {
-    if (item.type === "physician" || item.type === "patient" || item.type === "community") {
+    if (item.type === "provider" || item.type === "patient" || item.type === "community") {
       return item.dimensionId === dimension.id
     }
     if (item.type === "system") {
@@ -90,7 +90,7 @@ export function DimensionDetailProgressCard({
     return false
   })
 
-  const physicianActions = dimensionActionItems.filter((item) => item.type === "physician")
+  const providerActions = dimensionActionItems.filter((item) => item.type === "provider")
   const patientActions = dimensionActionItems.filter((item) => item.type === "patient")
   const communityActions = dimensionActionItems.filter((item) => item.type === "community")
   const systemActions = dimensionActionItems.filter((item) => item.type === "system")
@@ -357,23 +357,23 @@ export function DimensionDetailProgressCard({
             </TabsContent>
 
             <TabsContent value="actions" className="space-y-4 mt-4">
-              {physicianActions.length > 0 && (
+              {providerActions.length > 0 && (
                 <div>
                   <h4 className="font-semibold text-gray-900 text-sm mb-2 flex items-center gap-2">
                     <Stethoscope className="h-3 w-3" />
-                    Physician-Level Actions
+                    Provider-Level Actions
                   </h4>
                   <div className="space-y-2">
-                    {physicianActions.map((item) => {
-                      const physItem = item as Extract<ActionItem, { type: "physician" }>
+                    {providerActions.map((item) => {
+                      const providerItem = item as Extract<ActionItem, { type: "provider" }>
                       return (
                         <div key={item.id} className="p-2 bg-blue-50 border border-blue-200 rounded-lg">
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
                               <span className="font-medium text-xs text-gray-900">
-                                {physItem.providerName} - {physItem.designation}
+                                {providerItem.providerName} - {providerItem.designation}
                               </span>
-                              <p className="text-xs text-gray-700 mt-1">{physItem.action}</p>
+                              <p className="text-xs text-gray-700 mt-1">{providerItem.action}</p>
                             </div>
                             <Badge
                               variant={

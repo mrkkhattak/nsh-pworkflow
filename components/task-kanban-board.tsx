@@ -144,7 +144,7 @@ const mockTasks = [
     assignee: "Dr. Anderson",
     dueDate: "2025-01-16",
     priority: "high",
-    category: "physician-level",
+    category: "provider-level",
     status: "todo",
     description: "Weekly review of all high-risk patients in panel for care coordination",
     blockers: [],
@@ -161,7 +161,7 @@ const mockTasks = [
     assignee: "Dr. Anderson",
     dueDate: "2025-01-20",
     priority: "medium",
-    category: "physician-level",
+    category: "provider-level",
     status: "in-progress",
     description: "Complete required continuing medical education on depression management",
     blockers: [],
@@ -178,7 +178,7 @@ const mockTasks = [
     assignee: "Dr. Anderson",
     dueDate: "2025-01-17",
     priority: "high",
-    category: "physician-level",
+    category: "provider-level",
     status: "todo",
     description: "Consult with psychiatrist regarding treatment-resistant depression case",
     blockers: [],
@@ -317,13 +317,6 @@ const taskColumns = [
 
 const taskCategories = [
   {
-    id: "physician-level",
-    title: "Physician Level",
-    icon: UserCog,
-    color: "bg-indigo-100 text-indigo-800",
-    description: "Direct physician responsibilities and clinical decisions",
-  },
-  {
     id: "provider-level",
     title: "Provider Level",
     icon: Stethoscope,
@@ -438,7 +431,7 @@ export function TaskKanbanBoard() {
         <div>
           <h2 className="text-2xl font-bold text-foreground">Task Status Board</h2>
           <p className="text-muted-foreground">
-            Manage care tasks across physician, provider, patient, system, community levels, and health dimensions
+            Manage care tasks across provider, patient, system, and community levels, and health dimensions
           </p>
         </div>
         <Button>
@@ -479,7 +472,7 @@ export function TaskKanbanBoard() {
           {/* Category Overview */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-foreground">Task Categories Overview</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {taskCategories.map((category) => {
             const categoryTasks = tasks.filter((task) => task.category === category.id)
             const completedTasks = categoryTasks.filter((t) => t.status === "done")
@@ -727,7 +720,7 @@ export function TaskKanbanBoard() {
           {/* Category Breakdown */}
           <div>
             <h4 className="text-sm font-semibold text-foreground mb-3">By Category</h4>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {taskCategories.map((category) => {
                 const categoryTasks = tasks.filter((task) => task.category === category.id)
                 const completionRate =
