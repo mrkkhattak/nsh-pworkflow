@@ -348,13 +348,12 @@ const taskCategories = [
 
 export function TaskKanbanBoard() {
   const [tasks, setTasks] = useState(mockTasks)
-  const [selectedCategory, setSelectedCategory] = useState("all")
   const [selectedDimension, setSelectedDimension] = useState("all")
   const [viewMode, setViewMode] = useState<"category" | "dimension">("category")
   const [draggedTask, setDraggedTask] = useState<number | null>(null)
 
   const filteredTasks = viewMode === "category"
-    ? (selectedCategory === "all" ? tasks : tasks.filter((task) => task.category === selectedCategory))
+    ? tasks
     : (selectedDimension === "all" ? tasks : tasks.filter((task) => task.dimension === selectedDimension))
 
   const getTasksByStatus = (status: string) => {
@@ -452,23 +451,6 @@ export function TaskKanbanBoard() {
         </div>
 
         <TabsContent value="category" className="space-y-6">
-          {/* Filter */}
-          <div className="flex items-center gap-4">
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="w-56">
-                <SelectValue placeholder="Filter by category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                {taskCategories.map((category) => (
-                  <SelectItem key={category.id} value={category.id}>
-                    {category.title}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
           {/* Category Overview */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-foreground">Task Categories Overview</h3>
@@ -481,8 +463,7 @@ export function TaskKanbanBoard() {
             return (
               <Card
                 key={category.id}
-                className={`cursor-pointer transition-all hover:shadow-md ${selectedCategory === category.id ? "ring-2 ring-primary shadow-lg" : ""}`}
-                onClick={() => setSelectedCategory(category.id)}
+                className="transition-all hover:shadow-md"
               >
                 <CardContent className="p-4">
                   <div className="space-y-3">
