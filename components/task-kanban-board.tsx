@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { healthDimensionsConfig } from "@/lib/nsh-assessment-mock"
+import { AddTaskDialog } from "@/components/add-task-dialog"
 import {
   AlertTriangle,
   Calendar,
@@ -383,6 +384,7 @@ export function TaskKanbanBoard() {
   const [selectedDimension, setSelectedDimension] = useState("all")
   const [viewMode, setViewMode] = useState<"category" | "dimension">("category")
   const [draggedTask, setDraggedTask] = useState<number | null>(null)
+  const [isAddTaskOpen, setIsAddTaskOpen] = useState(false)
 
   const filteredTasks = viewMode === "category"
     ? (selectedCategory === "all" ? tasks : tasks.filter((task) => task.category === selectedCategory))
@@ -472,7 +474,7 @@ export function TaskKanbanBoard() {
             Manage care tasks across provider, patient, system, and community levels, and health dimensions
           </p>
         </div>
-        <Button>
+        <Button onClick={() => setIsAddTaskOpen(true)}>
           <Plus className="h-4 w-4 mr-2" />
           Add Task
         </Button>
@@ -904,6 +906,16 @@ export function TaskKanbanBoard() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <AddTaskDialog
+        open={isAddTaskOpen}
+        onOpenChange={setIsAddTaskOpen}
+        selectedCategory={selectedCategory}
+        onTaskAdded={() => {
+          // Refresh tasks - in production, refetch from database
+          // For now, just close the dialog
+        }}
+      />
     </div>
   )
 }
