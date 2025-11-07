@@ -11,22 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { healthDimensionsConfig } from "@/lib/nsh-assessment-mock"
 import { AddTaskDialog } from "@/components/add-task-dialog"
-import {
-  AlertTriangle,
-  Calendar,
-  User,
-  FileText,
-  Phone,
-  MessageSquare,
-  Stethoscope,
-  Building,
-  Users,
-  CheckCircle,
-  MoreHorizontal,
-  Plus,
-  UserCog,
-  Activity,
-} from "lucide-react"
+import { TriangleAlert as AlertTriangle, Calendar, User, FileText, Phone, MessageSquare, Stethoscope, Building, Users, CircleCheck as CheckCircle, MoveHorizontal as MoreHorizontal, Plus, UserCog, Activity } from "lucide-react"
 
 // Mock task data
 const mockTasks = [
