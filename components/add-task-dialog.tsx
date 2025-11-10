@@ -17,6 +17,7 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey)
 interface AddTaskDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  selectedCategory: string
   onTaskAdded?: () => void
 }
 
@@ -27,10 +28,9 @@ const categoryStatusMap: Record<string, string[]> = {
   "community-level": ["enrolled", "in-progress", "completed", "withdrawn", "declined", "pending"],
 }
 
-export function AddTaskDialog({ open, onOpenChange, onTaskAdded }: AddTaskDialogProps) {
+export function AddTaskDialog({ open, onOpenChange, selectedCategory, onTaskAdded }: AddTaskDialogProps) {
   const { toast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [selectedCategory, setSelectedCategory] = useState("provider-level")
   const [formData, setFormData] = useState<any>({
     title: "",
     description: "",
@@ -61,7 +61,6 @@ export function AddTaskDialog({ open, onOpenChange, onTaskAdded }: AddTaskDialog
       })
 
       onOpenChange(false)
-      setSelectedCategory("provider-level")
       setFormData({
         title: "",
         description: "",
@@ -99,33 +98,11 @@ export function AddTaskDialog({ open, onOpenChange, onTaskAdded }: AddTaskDialog
         <DialogHeader>
           <DialogTitle>Add New Task</DialogTitle>
           <DialogDescription>
-            Create a new task by selecting the category level and filling in the required information
+            Create a new task for {selectedCategory.replace("-", " ")} category
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Category Selection */}
-          <div className="space-y-2 pb-4 border-b">
-            <Label htmlFor="category">Task Category Level *</Label>
-            <Select
-              value={selectedCategory}
-              onValueChange={(value) => {
-                setSelectedCategory(value)
-                setFormData((prev: any) => ({ ...prev, status: "pending" }))
-              }}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="provider-level">Provider Level</SelectItem>
-                <SelectItem value="patient-level">Patient Level</SelectItem>
-                <SelectItem value="system-level">System Level</SelectItem>
-                <SelectItem value="community-level">Community Level</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
           {/* Common Fields */}
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">

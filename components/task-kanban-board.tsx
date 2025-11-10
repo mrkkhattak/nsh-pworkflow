@@ -382,23 +382,17 @@ export function TaskKanbanBoard() {
   const [tasks, setTasks] = useState(mockTasks)
   const [selectedCategory, setSelectedCategory] = useState("provider-level")
   const [selectedDimension, setSelectedDimension] = useState("all")
-  const [selectedDimensionCategory, setSelectedDimensionCategory] = useState("all")
   const [viewMode, setViewMode] = useState<"category" | "dimension">("category")
   const [draggedTask, setDraggedTask] = useState<number | null>(null)
   const [isAddTaskOpen, setIsAddTaskOpen] = useState(false)
 
   const filteredTasks = viewMode === "category"
     ? (selectedCategory === "all" ? tasks : tasks.filter((task) => task.category === selectedCategory))
-    : tasks
-        .filter((task) => selectedDimension === "all" || task.dimension === selectedDimension)
-        .filter((task) => selectedDimensionCategory === "all" || task.category === selectedDimensionCategory)
+    : (selectedDimension === "all" ? tasks : tasks.filter((task) => task.dimension === selectedDimension))
 
   const getActiveColumns = () => {
     if (viewMode === "category" && selectedCategory !== "all" && categoryStatusColumns[selectedCategory]) {
       return categoryStatusColumns[selectedCategory]
-    }
-    if (viewMode === "dimension" && selectedDimensionCategory !== "all" && categoryStatusColumns[selectedDimensionCategory]) {
-      return categoryStatusColumns[selectedDimensionCategory]
     }
     return taskColumns
   }
@@ -797,19 +791,6 @@ export function TaskKanbanBoard() {
                 ))}
               </SelectContent>
             </Select>
-
-            <Select value={selectedDimensionCategory} onValueChange={setSelectedDimensionCategory}>
-              <SelectTrigger className="w-56">
-                <SelectValue placeholder="Filter by level" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Levels</SelectItem>
-                <SelectItem value="provider-level">Provider Level</SelectItem>
-                <SelectItem value="patient-level">Patient Level</SelectItem>
-                <SelectItem value="system-level">System Level</SelectItem>
-                <SelectItem value="community-level">Community Level</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
 
           {/* Health Dimensions Overview */}
@@ -817,9 +798,7 @@ export function TaskKanbanBoard() {
             <h3 className="text-lg font-semibold text-foreground">Health Dimensions Overview</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {healthDimensionsConfig.map((dimension) => {
-                const dimensionTasks = tasks
-                  .filter((task) => task.dimension === dimension.id)
-                  .filter((task) => selectedDimensionCategory === "all" || task.category === selectedDimensionCategory)
+                const dimensionTasks = tasks.filter((task) => task.dimension === dimension.id)
                 const completedTasks = dimensionTasks.filter((t) => t.status === "completed")
                 const overdueTasks = dimensionTasks.filter((t) => t.slaStatus === "overdue")
                 return (
@@ -864,18 +843,8 @@ export function TaskKanbanBoard() {
           {/* Kanban Board */}
           <Card>
             <CardHeader>
-              <CardTitle>
-                Task Board - {selectedDimension === "all" ? "All Health Dimensions" : healthDimensionsConfig.find(d => d.id === selectedDimension)?.name}
-                {selectedDimensionCategory !== "all" && (
-                  <span className="text-muted-foreground text-base font-normal"> • {selectedDimensionCategory.replace("-", " ").split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")}</span>
-                )}
-              </CardTitle>
-              <CardDescription>
-                {selectedDimensionCategory !== "all"
-                  ? `Showing ${selectedDimensionCategory.replace("-", " ")} tasks. Status columns follow the ${selectedDimensionCategory.replace("-", " ")} schema.`
-                  : "Drag and drop tasks to update their status"
-                }
-              </CardDescription>
+              <CardTitle>Task Board - {selectedDimension === "all" ? "All Health Dimensions" : healthDimensionsConfig.find(d => d.id === selectedDimension)?.name}</CardTitle>
+              <CardDescription>Drag and drop tasks to update their status</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
@@ -941,6 +910,7 @@ export function TaskKanbanBoard() {
       <AddTaskDialog
         open={isAddTaskOpen}
         onOpenChange={setIsAddTaskOpen}
+        selectedCategory={selectedCategory}
         onTaskAdded={() => {
           // Refresh tasks - in production, refetch from database
           // For now, just close the dialog
