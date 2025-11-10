@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { getPatientById } from "@/lib/nsh-assessment-mock"
-import { Home, Target, Activity, Calendar, MessageSquare, Menu, X, HeartPulse } from "lucide-react"
+import { Home, Target, Activity, Calendar, MessageSquare, Menu, X } from "lucide-react"
 
 interface PatientPortalLayoutProps {
   children: React.ReactNode
@@ -23,7 +23,6 @@ export function PatientPortalLayout({ children, patientId }: PatientPortalLayout
     { name: "Overview", href: `/patient-portal/${patientId}`, icon: Home },
     { name: "My Goals", href: `/patient-portal/${patientId}/goals`, icon: Target },
     { name: "My Interventions", href: `/patient-portal/${patientId}/interventions`, icon: Activity },
-    { name: "Biometrics", href: `/patient-portal/${patientId}/biometrics`, icon: HeartPulse },
     { name: "Appointments", href: `/patient-portal/${patientId}/appointments`, icon: Calendar },
     { name: "Messages", href: `/patient-portal/${patientId}/messages`, icon: MessageSquare },
   ]
