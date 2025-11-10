@@ -11,7 +11,22 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { healthDimensionsConfig } from "@/lib/nsh-assessment-mock"
 import { AddTaskDialog } from "@/components/add-task-dialog"
-import { TriangleAlert as AlertTriangle, Calendar, User, FileText, Phone, MessageSquare, Stethoscope, Building, Users, CircleCheck as CheckCircle, MoveHorizontal as MoreHorizontal, Plus, UserCog, Activity } from "lucide-react"
+import {
+  AlertTriangle,
+  Calendar,
+  User,
+  FileText,
+  Phone,
+  MessageSquare,
+  Stethoscope,
+  Building,
+  Users,
+  CheckCircle,
+  MoreHorizontal,
+  Plus,
+  UserCog,
+  Activity,
+} from "lucide-react"
 
 // Mock task data
 const mockTasks = [
@@ -367,7 +382,7 @@ export function TaskKanbanBoard() {
   const [tasks, setTasks] = useState(mockTasks)
   const [selectedCategory, setSelectedCategory] = useState("provider-level")
   const [selectedDimension, setSelectedDimension] = useState("all")
-  const [selectedDimensionCategory, setSelectedDimensionCategory] = useState("provider-level")
+  const [selectedDimensionCategory, setSelectedDimensionCategory] = useState("all")
   const [viewMode, setViewMode] = useState<"category" | "dimension">("category")
   const [draggedTask, setDraggedTask] = useState<number | null>(null)
   const [isAddTaskOpen, setIsAddTaskOpen] = useState(false)
@@ -376,13 +391,13 @@ export function TaskKanbanBoard() {
     ? (selectedCategory === "all" ? tasks : tasks.filter((task) => task.category === selectedCategory))
     : tasks
         .filter((task) => selectedDimension === "all" || task.dimension === selectedDimension)
-        .filter((task) => task.category === selectedDimensionCategory)
+        .filter((task) => selectedDimensionCategory === "all" || task.category === selectedDimensionCategory)
 
   const getActiveColumns = () => {
     if (viewMode === "category" && selectedCategory !== "all" && categoryStatusColumns[selectedCategory]) {
       return categoryStatusColumns[selectedCategory]
     }
-    if (viewMode === "dimension" && categoryStatusColumns[selectedDimensionCategory]) {
+    if (viewMode === "dimension" && selectedDimensionCategory !== "all" && categoryStatusColumns[selectedDimensionCategory]) {
       return categoryStatusColumns[selectedDimensionCategory]
     }
     return taskColumns
@@ -804,7 +819,7 @@ export function TaskKanbanBoard() {
               {healthDimensionsConfig.map((dimension) => {
                 const dimensionTasks = tasks
                   .filter((task) => task.dimension === dimension.id)
-                  .filter((task) => task.category === selectedDimensionCategory)
+                  .filter((task) => selectedDimensionCategory === "all" || task.category === selectedDimensionCategory)
                 const completedTasks = dimensionTasks.filter((t) => t.status === "completed")
                 const overdueTasks = dimensionTasks.filter((t) => t.slaStatus === "overdue")
                 return (
@@ -849,27 +864,18 @@ export function TaskKanbanBoard() {
           {/* Kanban Board */}
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>
-                    Task Board - {selectedDimension === "all" ? "All Health Dimensions" : healthDimensionsConfig.find(d => d.id === selectedDimension)?.name}
-                  </CardTitle>
-                  <CardDescription>
-                    Showing {selectedDimensionCategory.replace("-", " ").split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")} tasks
-                  </CardDescription>
-                </div>
-                <Select value={selectedDimensionCategory} onValueChange={setSelectedDimensionCategory}>
-                  <SelectTrigger className="w-56">
-                    <SelectValue placeholder="Select level" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="provider-level">Provider Level</SelectItem>
-                    <SelectItem value="patient-level">Patient Level</SelectItem>
-                    <SelectItem value="system-level">System Level</SelectItem>
-                    <SelectItem value="community-level">Community Level</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              <CardTitle>
+                Task Board - {selectedDimension === "all" ? "All Health Dimensions" : healthDimensionsConfig.find(d => d.id === selectedDimension)?.name}
+                {selectedDimensionCategory !== "all" && (
+                  <span className="text-muted-foreground text-base font-normal"> • {selectedDimensionCategory.replace("-", " ").split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")}</span>
+                )}
+              </CardTitle>
+              <CardDescription>
+                {selectedDimensionCategory !== "all"
+                  ? `Showing ${selectedDimensionCategory.replace("-", " ")} tasks. Status columns follow the ${selectedDimensionCategory.replace("-", " ")} schema.`
+                  : "Drag and drop tasks to update their status"
+                }
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
