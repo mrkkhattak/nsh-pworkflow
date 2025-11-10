@@ -23,10 +23,15 @@ const biometricTypes = [
 interface Props {
   patientId: number
   onAdd?: (biometric: any) => void
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
-export function AddBiometricDialog({ patientId, onAdd }: Props) {
-  const [open, setOpen] = useState(false)
+export function AddBiometricDialog({ patientId, onAdd, open: controlledOpen, onOpenChange }: Props) {
+  const [internalOpen, setInternalOpen] = useState(false)
+
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen
+  const setOpen = onOpenChange || setInternalOpen
   const [type, setType] = useState("")
   const [value, setValue] = useState("")
   const [secondaryValue, setSecondaryValue] = useState("")
