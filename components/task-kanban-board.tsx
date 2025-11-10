@@ -782,6 +782,19 @@ export function TaskKanbanBoard() {
                 ))}
               </SelectContent>
             </Select>
+
+            <Select value={selectedDimensionCategory} onValueChange={setSelectedDimensionCategory}>
+              <SelectTrigger className="w-56">
+                <SelectValue placeholder="Filter by level" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Levels</SelectItem>
+                <SelectItem value="provider-level">Provider Level</SelectItem>
+                <SelectItem value="patient-level">Patient Level</SelectItem>
+                <SelectItem value="system-level">System Level</SelectItem>
+                <SelectItem value="community-level">Community Level</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Health Dimensions Overview */}

@@ -10,16 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast"
 import { createClient } from "@supabase/supabase-js"
 
-const getSupabaseClient = () => {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error("Missing Supabase environment variables")
-  }
-
-  return createClient(supabaseUrl, supabaseAnonKey)
-}
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 interface AddTaskDialogProps {
   open: boolean
@@ -53,7 +46,6 @@ export function AddTaskDialog({ open, onOpenChange, onTaskAdded }: AddTaskDialog
     setIsSubmitting(true)
 
     try {
-      const supabase = getSupabaseClient()
       const taskData = {
         category: selectedCategory,
         ...formData,
