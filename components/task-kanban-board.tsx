@@ -379,7 +379,7 @@ const taskCategories = [
 
 export function TaskKanbanBoard() {
   const [tasks, setTasks] = useState(mockTasks)
-  const [selectedCategory, setSelectedCategory] = useState("provider-level")
+  const [selectedCategory, setSelectedCategory] = useState("all")
   const [selectedDimension, setSelectedDimension] = useState("all")
   const [viewMode, setViewMode] = useState<"category" | "dimension">("category")
   const [draggedTask, setDraggedTask] = useState<number | null>(null)
@@ -492,7 +492,19 @@ export function TaskKanbanBoard() {
         <TabsContent value="category" className="space-y-6">
           {/* Category Overview */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-foreground">Task Categories Overview</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-foreground">Task Categories Overview</h3>
+              {selectedCategory !== "all" && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSelectedCategory("all")}
+                  className="text-xs"
+                >
+                  Clear Filter
+                </Button>
+              )}
+            </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {taskCategories.map((category) => {
             const categoryTasks = tasks.filter((task) => task.category === category.id)
