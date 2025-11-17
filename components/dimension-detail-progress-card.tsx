@@ -23,6 +23,8 @@ import {
   Building2,
   TrendingUp as TrendingUpIcon,
   ExternalLink,
+  Pill,
+  Heart,
 } from "lucide-react"
 import type {
   HealthDimension,
@@ -36,6 +38,7 @@ import {
   getRiskBgColor,
   getRiskBorderColor,
 } from "@/lib/nsh-assessment-mock"
+import { getInterventionDetailsByName, type InterventionDetails } from "@/lib/intervention-data"
 
 interface DimensionDetailProgressCardProps {
   dimension: HealthDimension
@@ -76,9 +79,52 @@ export function DimensionDetailProgressCard({
   onNavigate,
 }: DimensionDetailProgressCardProps) {
   const [isExpanded, setIsExpanded] = useState(false)
+  const [expandedInterventions, setExpandedInterventions] = useState<Set<string>>(new Set())
 
   const activeGoals = goals.filter((g) => g.status !== "achieved" && g.status !== "cancelled")
   const progressPercent = baseline && target ? ((baseline - score) / (baseline - target)) * 100 : 0
+
+  const interventionDetails: InterventionDetails[] = interventions
+    .map(name => getInterventionDetailsByName(name))
+    .filter((intervention): intervention is InterventionDetails => intervention !== null)
+
+  const toggleInterventionExpansion = (interventionName: string) => {
+    setExpandedInterventions(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(interventionName)) {
+        newSet.delete(interventionName)
+      } else {
+        newSet.add(interventionName)
+      }
+      return newSet
+    })
+  }
+
+  const getInterventionTypeIcon = (type: string) => {
+    switch (type) {
+      case "Medication":
+        return <Pill className="h-4 w-4 text-blue-600" />
+      case "Lifestyle":
+        return <Heart className="h-4 w-4 text-green-600" />
+      case "Therapy":
+        return <Users className="h-4 w-4 text-purple-600" />
+      default:
+        return <Activity className="h-4 w-4 text-orange-600" />
+    }
+  }
+
+  const getInterventionTypeColor = (type: string) => {
+    switch (type) {
+      case "Medication":
+        return "bg-blue-100 text-blue-800 border-blue-300"
+      case "Lifestyle":
+        return "bg-green-100 text-green-800 border-green-300"
+      case "Therapy":
+        return "bg-purple-100 text-purple-800 border-purple-300"
+      default:
+        return "bg-orange-100 text-orange-800 border-orange-300"
+    }
+  }
 
   const dimensionActionItems = actionItems.filter((item) => {
     if (item.type === "provider" || item.type === "patient" || item.type === "community") {
@@ -612,18 +658,106 @@ export function DimensionDetailProgressCard({
           )}
 
           {/* Interventions Section */}
-          {interventions.length > 0 && (
+          {interventionDetails.length > 0 && (
             <div className="space-y-3 pt-4 border-t">
-              <div className="flex items-center gap-2">
-                <Activity className="h-4 w-4 text-gray-700" />
-                <h4 className="text-sm font-semibold text-gray-900">Active Interventions</h4>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Activity className="h-4 w-4 text-gray-700" />
+                  <h4 className="text-sm font-semibold text-gray-900">Active Interventions ({interventionDetails.length})</h4>
+                </div>
               </div>
-              <div className="flex flex-wrap gap-2">
-                {interventions.map((intervention, idx) => (
-                  <Badge key={idx} variant="secondary" className="text-xs">
-                    {intervention}
-                  </Badge>
-                ))}
+              <div className="space-y-3">
+                {interventionDetails.map((intervention, idx) => {
+                  const isExpanded = expandedInterventions.has(intervention.name)
+                  const linkedGoals = goals
+                    .filter(g => g.linkedInterventions.includes(intervention.name))
+                    .map(g => g.description)
+
+                  return (
+                    <div key={idx} className="border border-gray-200 rounded-lg bg-white hover:shadow-sm transition-shadow">
+                      <button
+                        onClick={() => toggleInterventionExpansion(intervention.name)}
+                        className="w-full p-3 text-left"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-start gap-3 flex-1">
+                            <div className="mt-0.5">
+                              {getInterventionTypeIcon(intervention.type)}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                <Badge className={`${getInterventionTypeColor(intervention.type)} text-xs border`}>
+                                  {intervention.type}
+                                </Badge>
+                                {intervention.status === "active" && (
+                                  <Badge className="bg-green-100 text-green-800 border-green-300 text-xs border">
+                                    Active
+                                  </Badge>
+                                )}
+                              </div>
+                              <p className="text-sm font-medium text-gray-900">{intervention.name}</p>
+                              {!isExpanded && (
+                                <p className="text-xs text-gray-600 mt-1">{intervention.details.details}</p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="ml-2 flex items-center gap-1 text-xs text-blue-600 font-medium">
+                            {isExpanded ? (
+                              <>
+                                <span>Hide</span>
+                                <ChevronUp className="h-4 w-4" />
+                              </>
+                            ) : (
+                              <>
+                                <span>Details</span>
+                                <ChevronDown className="h-4 w-4" />
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </button>
+
+                      {isExpanded && (
+                        <div className="px-3 pb-3 space-y-3 border-t border-gray-100 pt-3">
+                          <div className="bg-gray-50 rounded-md p-3 space-y-2">
+                            <div>
+                              <p className="text-xs font-medium text-gray-700">Details:</p>
+                              <p className="text-sm text-gray-900 mt-0.5">{intervention.details.details}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs font-medium text-gray-700">Provider:</p>
+                              <p className="text-sm text-gray-900 mt-0.5">{intervention.details.provider}</p>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm text-gray-900">
+                              <Calendar className="h-3 w-3 text-gray-500" />
+                              <span className="text-xs font-medium text-gray-700">Started:</span>
+                              <span>{new Date(intervention.startDate).toLocaleDateString()}</span>
+                            </div>
+                          </div>
+
+                          <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+                            <p className="text-xs font-medium text-gray-700 mb-1.5">Instructions:</p>
+                            <p className="text-sm text-gray-700">{intervention.details.instructions}</p>
+                          </div>
+
+                          {linkedGoals.length > 0 && (
+                            <div>
+                              <p className="text-xs font-medium text-gray-700 mb-1.5">Supporting These Goals:</p>
+                              <div className="space-y-1.5">
+                                {linkedGoals.map((goal, goalIdx) => (
+                                  <div key={goalIdx} className="flex items-start gap-2 text-xs text-gray-700 bg-gray-50 rounded p-2">
+                                    <Target className="h-3 w-3 text-blue-600 flex-shrink-0 mt-0.5" />
+                                    <span>{goal}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
             </div>
           )}
