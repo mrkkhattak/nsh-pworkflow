@@ -12,6 +12,11 @@ import {
   healthDimensionsConfig,
   type DimensionGoal
 } from "@/lib/nsh-assessment-mock"
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabase = createClient(supabaseUrl, supabaseAnonKey)
 import { Target, Calendar, TrendingDown, CheckCircle, AlertCircle, Activity, ArrowLeft, Filter, Edit, Plus, Pill, ChevronDown, ChevronUp } from "lucide-react"
 import { EditGoalDialog } from "@/components/edit-goal-dialog"
 import { AddInterventionDialog } from "@/components/add-intervention-dialog"
@@ -46,8 +51,12 @@ export function AllGoalsPhysicianView({ patientId, patientName }: AllGoalsPhysic
   const [stoppingIntervention, setStoppingIntervention] = useState<Intervention | DimensionIntervention | null>(null)
   const [interventionStats, setInterventionStats] = useState<any>(null)
   const [loading, setLoading] = useState(false)
+  const [loadingGoalId, setLoadingGoalId] = useState<string | null>(null)
+  const [dbGoals, setDbGoals] = useState<DimensionGoal[]>([])
+  const [loadingGoals, setLoadingGoals] = useState(true)
 
-  let filteredGoals = [...mockDimensionGoals]
+  const goalsToUse = dbGoals.length > 0 ? dbGoals : mockDimensionGoals
+  let filteredGoals = [...goalsToUse]
 
   if (filterDimension !== "all") {
     filteredGoals = filteredGoals.filter(goal => goal.dimensionId === filterDimension)
@@ -130,8 +139,43 @@ export function AllGoalsPhysicianView({ patientId, patientName }: AllGoalsPhysic
   }
 
   useEffect(() => {
+    loadGoalsFromDatabase()
     loadInterventionStats()
   }, [])
+
+  const loadGoalsFromDatabase = async () => {
+    setLoadingGoals(true)
+    try {
+      const { data, error } = await supabase
+        .from('dimension_goals')
+        .select('*')
+        .eq('patient_id', patientId)
+        .order('created_date', { ascending: false })
+
+      if (data && data.length > 0) {
+        const formattedGoals: DimensionGoal[] = data.map(goal => ({
+          id: goal.id,
+          dimensionId: goal.dimension_id,
+          dimensionName: goal.dimension_name,
+          description: goal.description,
+          baseline: Number(goal.baseline),
+          target: Number(goal.target),
+          current: Number(goal.current),
+          timeframe: goal.timeframe,
+          deadline: new Date(goal.deadline).toISOString(),
+          progress: Number(goal.progress),
+          status: goal.status,
+          createdDate: new Date(goal.created_date).toISOString(),
+          linkedInterventions: [],
+        }))
+        setDbGoals(formattedGoals)
+      }
+    } catch (error) {
+      console.error('Error loading goals:', error)
+    } finally {
+      setLoadingGoals(false)
+    }
+  }
 
   const loadInterventionStats = async () => {
     const stats = await getInterventionStats(patientId)
@@ -143,15 +187,20 @@ export function AllGoalsPhysicianView({ patientId, patientName }: AllGoalsPhysic
       return
     }
 
-    const [regularInterventions, dimensionInterventions] = await Promise.all([
-      getInterventionsByGoalId(goalId),
-      getDimensionInterventionsByGoalId(goalId),
-    ])
+    setLoadingGoalId(goalId)
+    try {
+      const [regularInterventions, dimensionInterventions] = await Promise.all([
+        getInterventionsByGoalId(goalId),
+        getDimensionInterventionsByGoalId(goalId),
+      ])
 
-    setGoalInterventions(prev => ({
-      ...prev,
-      [goalId]: [...regularInterventions, ...dimensionInterventions],
-    }))
+      setGoalInterventions(prev => ({
+        ...prev,
+        [goalId]: [...regularInterventions, ...dimensionInterventions],
+      }))
+    } finally {
+      setLoadingGoalId(null)
+    }
   }
 
   const toggleGoalExpanded = async (goalId: string) => {
@@ -355,7 +404,12 @@ export function AllGoalsPhysicianView({ patientId, patientName }: AllGoalsPhysic
 
                 {isExpanded && (
                   <div className="mt-3 space-y-2">
-                    {interventions.length > 0 ? (
+                    {loadingGoalId === goal.id ? (
+                      <div className="text-center py-8 text-gray-500">
+                        <div className="animate-spin h-8 w-8 mx-auto mb-2 border-4 border-gray-300 border-t-blue-600 rounded-full" />
+                        <p className="text-sm">Loading interventions...</p>
+                      </div>
+                    ) : interventions.length > 0 ? (
                       interventions.map((intervention) => (
                         <InterventionListItem
                           key={intervention.id}
@@ -368,7 +422,7 @@ export function AllGoalsPhysicianView({ patientId, patientName }: AllGoalsPhysic
                       <div className="text-center py-8 text-gray-500">
                         <Pill className="h-8 w-8 mx-auto mb-2 text-gray-400" />
                         <p className="text-sm">No interventions yet</p>
-                        <p className="text-xs mt-1">Click "Add Intervention" to create one</p>
+                        <p className="text-xs mt-1">Click "Add Intervention" above to create one</p>
                       </div>
                     )}
                   </div>
@@ -576,7 +630,7 @@ export function AllGoalsPhysicianView({ patientId, patientName }: AllGoalsPhysic
           onOpenChange={(open) => !open && setAddingInterventionForGoal(null)}
           dimensionId={addingInterventionForGoal.dimensionId}
           dimensionName={addingInterventionForGoal.dimensionName}
-          goals={mockDimensionGoals}
+          goals={goalsToUse}
           patientId={patientId}
           onSave={handleSaveIntervention}
         />
