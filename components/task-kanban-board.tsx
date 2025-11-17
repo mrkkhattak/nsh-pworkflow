@@ -381,12 +381,26 @@ export function TaskKanbanBoard() {
   const [tasks, setTasks] = useState(mockTasks)
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [selectedDimension, setSelectedDimension] = useState("all")
+  const [selectedPatient, setSelectedPatient] = useState("all")
   const [viewMode, setViewMode] = useState<"category" | "dimension">("category")
   const [draggedTask, setDraggedTask] = useState<number | null>(null)
 
-  const filteredTasks = viewMode === "category"
-    ? (selectedCategory === "all" ? tasks : tasks.filter((task) => task.category === selectedCategory))
-    : (selectedDimension === "all" ? tasks : tasks.filter((task) => task.dimension === selectedDimension))
+  const uniquePatients = Array.from(new Set(mockTasks.filter(t => t.patientId > 0).map(t => t.patient)))
+    .sort()
+    .map((name, idx) => {
+      const task = mockTasks.find(t => t.patient === name)
+      return { id: task?.patientId || idx, name }
+    })
+
+  const filteredTasks = tasks.filter(task => {
+    const categoryMatch = viewMode === "category"
+      ? (selectedCategory === "all" || task.category === selectedCategory)
+      : (selectedDimension === "all" || task.dimension === selectedDimension)
+
+    const patientMatch = selectedPatient === "all" || task.patient === selectedPatient
+
+    return categoryMatch && patientMatch
+  })
 
   const getActiveColumns = () => {
     if (viewMode === "category" && selectedCategory !== "all" && categoryStatusColumns[selectedCategory]) {
@@ -472,10 +486,28 @@ export function TaskKanbanBoard() {
             Manage care tasks across provider, patient, system, and community levels, and health dimensions
           </p>
         </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Task
-        </Button>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <User className="h-4 w-4 text-muted-foreground" />
+            <Select value={selectedPatient} onValueChange={setSelectedPatient}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Filter by patient" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Patients</SelectItem>
+                {uniquePatients.map((patient) => (
+                  <SelectItem key={patient.id} value={patient.name}>
+                    {patient.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <Button>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Task
+          </Button>
+        </div>
       </div>
 
       <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "category" | "dimension")} className="space-y-6">
@@ -484,9 +516,16 @@ export function TaskKanbanBoard() {
             <TabsTrigger value="category">By Category</TabsTrigger>
             <TabsTrigger value="dimension">By Health Dimension</TabsTrigger>
           </TabsList>
-          <Badge variant="outline" className="text-sm">
-            {tasks.length} Total Tasks
-          </Badge>
+          <div className="flex items-center gap-3">
+            {selectedPatient !== "all" && (
+              <Badge variant="secondary" className="text-sm">
+                Showing: {selectedPatient}
+              </Badge>
+            )}
+            <Badge variant="outline" className="text-sm">
+              {filteredTasks.length} of {tasks.length} Tasks
+            </Badge>
+          </div>
         </div>
 
         <TabsContent value="category" className="space-y-6">
@@ -494,15 +533,29 @@ export function TaskKanbanBoard() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold text-foreground">Task Categories Overview</h3>
-              {selectedCategory !== "all" && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setSelectedCategory("all")}
-                  className="text-xs"
-                >
-                  Clear Filter
-                </Button>
+              {(selectedCategory !== "all" || selectedPatient !== "all") && (
+                <div className="flex gap-2">
+                  {selectedCategory !== "all" && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setSelectedCategory("all")}
+                      className="text-xs"
+                    >
+                      Clear Category
+                    </Button>
+                  )}
+                  {selectedPatient !== "all" && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setSelectedPatient("all")}
+                      className="text-xs"
+                    >
+                      Clear Patient
+                    </Button>
+                  )}
+                </div>
               )}
             </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -787,7 +840,7 @@ export function TaskKanbanBoard() {
 
         <TabsContent value="dimension" className="space-y-6">
           {/* Filter */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center justify-between">
             <Select value={selectedDimension} onValueChange={setSelectedDimension}>
               <SelectTrigger className="w-56">
                 <SelectValue placeholder="Filter by dimension" />
@@ -801,6 +854,30 @@ export function TaskKanbanBoard() {
                 ))}
               </SelectContent>
             </Select>
+            {(selectedDimension !== "all" || selectedPatient !== "all") && (
+              <div className="flex gap-2">
+                {selectedDimension !== "all" && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSelectedDimension("all")}
+                    className="text-xs"
+                  >
+                    Clear Dimension
+                  </Button>
+                )}
+                {selectedPatient !== "all" && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSelectedPatient("all")}
+                    className="text-xs"
+                  >
+                    Clear Patient
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Health Dimensions Overview */}
