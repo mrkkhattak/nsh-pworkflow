@@ -232,7 +232,7 @@ export function OutcomeMeasuresView() {
                   dataKey="date"
                   tickFormatter={(date) => {
                     const d = new Date(date);
-                    return `${d.getMonth() + 1}/${d.getDate()}`;
+                    return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear().toString().slice(-2)}`;
                   }}
                 />
                 <YAxis />
@@ -261,7 +261,7 @@ export function OutcomeMeasuresView() {
                   dataKey="date"
                   tickFormatter={(date) => {
                     const d = new Date(date);
-                    return `${d.getMonth() + 1}/${d.getDate()}`;
+                    return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear().toString().slice(-2)}`;
                   }}
                 />
                 <YAxis />
@@ -290,7 +290,7 @@ export function OutcomeMeasuresView() {
                   dataKey="date"
                   tickFormatter={(date) => {
                     const d = new Date(date);
-                    return `${d.getMonth() + 1}/${d.getDate()}`;
+                    return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear().toString().slice(-2)}`;
                   }}
                 />
                 <YAxis />
@@ -319,7 +319,7 @@ export function OutcomeMeasuresView() {
                   dataKey="date"
                   tickFormatter={(date) => {
                     const d = new Date(date);
-                    return `${d.getMonth() + 1}/${d.getDate()}`;
+                    return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear().toString().slice(-2)}`;
                   }}
                 />
                 <YAxis domain={[0, 100]} />
@@ -348,7 +348,7 @@ export function OutcomeMeasuresView() {
                   dataKey="date"
                   tickFormatter={(date) => {
                     const d = new Date(date);
-                    return `${d.getMonth() + 1}/${d.getDate()}`;
+                    return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear().toString().slice(-2)}`;
                   }}
                 />
                 <YAxis domain={[0, 100]} />
@@ -377,7 +377,7 @@ export function OutcomeMeasuresView() {
                   dataKey="date"
                   tickFormatter={(date) => {
                     const d = new Date(date);
-                    return `${d.getMonth() + 1}/${d.getDate()}`;
+                    return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear().toString().slice(-2)}`;
                   }}
                 />
                 <YAxis domain={[0, 100]} />
