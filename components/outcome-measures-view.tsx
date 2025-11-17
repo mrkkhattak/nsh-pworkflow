@@ -4,11 +4,54 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Cigarette, CigaretteOff } from 'lucide-react';
+import { Cigarette, CigaretteOff, TrendingDown, TrendingUp, Activity, Heart, AlertCircle, Users, UserCheck, ThumbsUp } from 'lucide-react';
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Bar, BarChart } from 'recharts';
-import { getOutcomeTrends, getSmokingStatusDistribution, getBenchmarkComparison } from '@/lib/outcome-service';
+import { getOutcomeTrends, getSmokingStatusDistribution, getBenchmarkComparison, getCurrentPeriodStats } from '@/lib/outcome-service';
+import { Badge } from '@/components/ui/badge';
 import type { AssessmentOutcome } from '@/lib/outcome-service';
 import { format } from 'date-fns';
+
+interface MetricCardProps {
+  title: string;
+  value: number;
+  unit: string;
+  icon: React.ReactNode;
+  benchmark: number;
+  lowerIsBetter?: boolean;
+}
+
+function MetricCard({ title, value, unit, icon, benchmark, lowerIsBetter = true }: MetricCardProps) {
+  const isAboveBenchmark = value > benchmark;
+  const performanceColor = lowerIsBetter
+    ? (isAboveBenchmark ? 'text-red-600' : 'text-green-600')
+    : (isAboveBenchmark ? 'text-green-600' : 'text-red-600');
+
+  const performanceText = lowerIsBetter
+    ? (isAboveBenchmark ? 'Above' : 'Below')
+    : (isAboveBenchmark ? 'Above' : 'Below');
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        <div className="h-4 w-4 text-muted-foreground">{icon}</div>
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">
+          {value.toFixed(1)} <span className="text-sm font-normal text-muted-foreground">{unit}</span>
+        </div>
+        <div className="flex items-center justify-between mt-3">
+          <div className={`text-xs ${performanceColor} font-medium`}>
+            {performanceText} benchmark
+          </div>
+          <div className="text-xs text-muted-foreground">
+            Target: {benchmark}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 export function OutcomeMeasuresView() {
   const [dateRange, setDateRange] = useState('12months');
@@ -18,6 +61,7 @@ export function OutcomeMeasuresView() {
   const [trendData, setTrendData] = useState<AssessmentOutcome[]>([]);
   const [smokingDistribution, setSmokingDistribution] = useState({ never: 0, former: 0, current: 0, neverPercent: 0, formerPercent: 0, currentPercent: 0 });
   const [benchmarkData, setBenchmarkData] = useState<any[]>([]);
+  const [currentStats, setCurrentStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -38,15 +82,17 @@ export function OutcomeMeasuresView() {
         startDate.setFullYear(startDate.getFullYear() - 1);
       }
 
-      const [trends, smoking, comparison] = await Promise.all([
+      const [trends, smoking, comparison, stats] = await Promise.all([
         getOutcomeTrends(startDate, endDate, dimensionFilter, riskFilter, smokingFilter),
         getSmokingStatusDistribution(),
         getBenchmarkComparison(),
+        getCurrentPeriodStats(),
       ]);
 
       setTrendData(trends);
       setSmokingDistribution(smoking);
       setBenchmarkData(comparison);
+      setCurrentStats(stats);
     } catch (error) {
       console.error('Error loading outcome data:', error);
     } finally {
@@ -138,6 +184,59 @@ export function OutcomeMeasuresView() {
           </Select>
         </div>
       </div>
+
+      {currentStats && (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <MetricCard
+            title="30-Day Readmissions"
+            value={currentStats.avgReadmissions}
+            unit="per patient"
+            icon={<AlertCircle className="h-4 w-4" />}
+            benchmark={currentStats.benchmark.readmissions}
+            lowerIsBetter={true}
+          />
+          <MetricCard
+            title="Hospitalizations"
+            value={currentStats.avgHospitalizations}
+            unit="per patient"
+            icon={<Activity className="h-4 w-4" />}
+            benchmark={currentStats.benchmark.hospitalizations}
+            lowerIsBetter={true}
+          />
+          <MetricCard
+            title="ED Visits"
+            value={currentStats.avgEdVisits}
+            unit="per patient"
+            icon={<Heart className="h-4 w-4" />}
+            benchmark={currentStats.benchmark.edVisits}
+            lowerIsBetter={true}
+          />
+          <MetricCard
+            title="Functional Capacity"
+            value={currentStats.avgFunctionalCapacity}
+            unit="score"
+            icon={<Users className="h-4 w-4" />}
+            benchmark={currentStats.benchmark.functionalCapacity}
+            lowerIsBetter={false}
+          />
+          <MetricCard
+            title="Patient Engagement"
+            value={currentStats.avgEngagementScore}
+            unit="score"
+            icon={<UserCheck className="h-4 w-4" />}
+            benchmark={currentStats.benchmark.engagementScore}
+            lowerIsBetter={true}
+          />
+          <MetricCard
+            title="Patient Satisfaction"
+            value={currentStats.avgSatisfactionScore}
+            unit="score"
+            icon={<ThumbsUp className="h-4 w-4" />}
+            benchmark={currentStats.benchmark.satisfactionScore}
+            lowerIsBetter={true}
+          />
+        </div>
+      )}
 
       <Card>
         <CardHeader>
