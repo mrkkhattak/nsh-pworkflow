@@ -183,63 +183,6 @@ export function OutcomeMeasuresView() {
         </Button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <MetricCard
-          title="30-Day Readmissions"
-          value={currentStats.avgReadmissions}
-          unit="per patient"
-          icon={<AlertCircle className="h-4 w-4" />}
-          change={readmissionsChange}
-          benchmark={currentStats.benchmark.readmissions}
-          lowerIsBetter={true}
-        />
-        <MetricCard
-          title="Hospitalizations"
-          value={currentStats.avgHospitalizations}
-          unit="per patient"
-          icon={<Activity className="h-4 w-4" />}
-          change={hospitalizationsChange}
-          benchmark={currentStats.benchmark.hospitalizations}
-          lowerIsBetter={true}
-        />
-        <MetricCard
-          title="ED Visits"
-          value={currentStats.avgEdVisits}
-          unit="per patient"
-          icon={<Heart className="h-4 w-4" />}
-          change={edVisitsChange}
-          benchmark={currentStats.benchmark.edVisits}
-          lowerIsBetter={true}
-        />
-        <MetricCard
-          title="Functional Capacity"
-          value={currentStats.avgFunctionalCapacity}
-          unit="score"
-          icon={<Users className="h-4 w-4" />}
-          change={functionalCapacityChange}
-          benchmark={currentStats.benchmark.functionalCapacity}
-          lowerIsBetter={false}
-        />
-        <MetricCard
-          title="Patient Engagement"
-          value={currentStats.avgEngagementScore}
-          unit="score"
-          icon={<UserCheck className="h-4 w-4" />}
-          change={engagementScoreChange}
-          benchmark={currentStats.benchmark.engagementScore}
-          lowerIsBetter={true}
-        />
-        <MetricCard
-          title="Patient Satisfaction"
-          value={currentStats.avgSatisfactionScore}
-          unit="score"
-          icon={<ThumbsUp className="h-4 w-4" />}
-          change={satisfactionScoreChange}
-          benchmark={currentStats.benchmark.satisfactionScore}
-          lowerIsBetter={true}
-        />
-      </div>
-
       <Card>
         <CardHeader>
           <CardTitle>Smoking Status Distribution</CardTitle>
