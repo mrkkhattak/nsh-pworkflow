@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -12,10 +12,21 @@ import {
   healthDimensionsConfig,
   type DimensionGoal
 } from "@/lib/nsh-assessment-mock"
-import { Target, Calendar, TrendingDown, CheckCircle, AlertCircle, Activity, ArrowLeft, Filter, Edit, Plus, Pill } from "lucide-react"
+import { Target, Calendar, TrendingDown, CheckCircle, AlertCircle, Activity, ArrowLeft, Filter, Edit, Plus, Pill, ChevronDown, ChevronUp } from "lucide-react"
 import { EditGoalDialog } from "@/components/edit-goal-dialog"
 import { AddInterventionDialog } from "@/components/add-intervention-dialog"
+import { InterventionListItem } from "@/components/intervention-list-item"
+import { StopInterventionDialog } from "@/components/stop-intervention-dialog"
 import { useToast } from "@/hooks/use-toast"
+import {
+  getInterventionsByGoalId,
+  getDimensionInterventionsByGoalId,
+  stopIntervention,
+  stopDimensionIntervention,
+  getInterventionStats,
+  type Intervention,
+  type DimensionIntervention,
+} from "@/lib/intervention-service"
 
 interface AllGoalsPhysicianViewProps {
   patientId: number
@@ -26,9 +37,15 @@ export function AllGoalsPhysicianView({ patientId, patientName }: AllGoalsPhysic
   const { toast } = useToast()
   const [filterDimension, setFilterDimension] = useState<string>("all")
   const [filterStatus, setFilterStatus] = useState<string>("all")
+  const [filterInterventions, setFilterInterventions] = useState<string>("all")
   const [sortBy, setSortBy] = useState<string>("deadline")
   const [editingGoal, setEditingGoal] = useState<DimensionGoal | null>(null)
   const [addingInterventionForGoal, setAddingInterventionForGoal] = useState<DimensionGoal | null>(null)
+  const [expandedGoalIds, setExpandedGoalIds] = useState<Set<string>>(new Set())
+  const [goalInterventions, setGoalInterventions] = useState<Record<string, (Intervention | DimensionIntervention)[]>>({})
+  const [stoppingIntervention, setStoppingIntervention] = useState<Intervention | DimensionIntervention | null>(null)
+  const [interventionStats, setInterventionStats] = useState<any>(null)
+  const [loading, setLoading] = useState(false)
 
   let filteredGoals = [...mockDimensionGoals]
 
@@ -38,6 +55,20 @@ export function AllGoalsPhysicianView({ patientId, patientName }: AllGoalsPhysic
 
   if (filterStatus !== "all") {
     filteredGoals = filteredGoals.filter(goal => goal.status === filterStatus)
+  }
+
+  if (filterInterventions !== "all") {
+    filteredGoals = filteredGoals.filter(goal => {
+      const interventions = goalInterventions[goal.id] || []
+      if (filterInterventions === "with-interventions") {
+        return interventions.length > 0
+      } else if (filterInterventions === "without-interventions") {
+        return interventions.length === 0
+      } else if (filterInterventions === "active-interventions") {
+        return interventions.some(i => i.status === 'active')
+      }
+      return true
+    })
   }
 
   filteredGoals.sort((a, b) => {
@@ -98,11 +129,114 @@ export function AllGoalsPhysicianView({ patientId, patientName }: AllGoalsPhysic
     })
   }
 
-  const handleSaveIntervention = (intervention: any) => {
+  useEffect(() => {
+    loadInterventionStats()
+  }, [])
+
+  const loadInterventionStats = async () => {
+    const stats = await getInterventionStats(patientId)
+    setInterventionStats(stats)
+  }
+
+  const loadGoalInterventions = async (goalId: string) => {
+    if (goalInterventions[goalId]) {
+      return
+    }
+
+    const [regularInterventions, dimensionInterventions] = await Promise.all([
+      getInterventionsByGoalId(goalId),
+      getDimensionInterventionsByGoalId(goalId),
+    ])
+
+    setGoalInterventions(prev => ({
+      ...prev,
+      [goalId]: [...regularInterventions, ...dimensionInterventions],
+    }))
+  }
+
+  const toggleGoalExpanded = async (goalId: string) => {
+    const newExpanded = new Set(expandedGoalIds)
+    if (newExpanded.has(goalId)) {
+      newExpanded.delete(goalId)
+    } else {
+      newExpanded.add(goalId)
+      await loadGoalInterventions(goalId)
+    }
+    setExpandedGoalIds(newExpanded)
+  }
+
+  const handleSaveIntervention = async (intervention: any) => {
     toast({
       title: "Intervention Added",
       description: "The intervention has been successfully added to the goal.",
     })
+    if (addingInterventionForGoal) {
+      setGoalInterventions(prev => {
+        const updated = { ...prev }
+        delete updated[addingInterventionForGoal.id]
+        return updated
+      })
+      if (expandedGoalIds.has(addingInterventionForGoal.id)) {
+        await loadGoalInterventions(addingInterventionForGoal.id)
+      }
+    }
+    await loadInterventionStats()
+  }
+
+  const handleStopIntervention = async (stoppedDate: string, stoppedReason: string) => {
+    if (!stoppingIntervention) return
+
+    setLoading(true)
+    try {
+      let result
+      if ('type' in stoppingIntervention) {
+        result = await stopIntervention(
+          stoppingIntervention.id,
+          stoppedDate,
+          stoppedReason,
+          'Dr. Anderson'
+        )
+      } else {
+        result = await stopDimensionIntervention(
+          stoppingIntervention.id,
+          stoppedDate,
+          stoppedReason
+        )
+      }
+
+      if (result) {
+        toast({
+          title: "Intervention Stopped",
+          description: "The intervention has been successfully stopped.",
+        })
+
+        const goalId = stoppingIntervention.goal_id
+        if (goalId) {
+          setGoalInterventions(prev => {
+            const updated = { ...prev }
+            delete updated[goalId]
+            return updated
+          })
+          await loadGoalInterventions(goalId)
+        }
+        await loadInterventionStats()
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to stop intervention. Please try again.",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An error occurred while stopping the intervention.",
+        variant: "destructive",
+      })
+    } finally {
+      setLoading(false)
+      setStoppingIntervention(null)
+    }
   }
 
   const GoalCard = ({ goal }: { goal: DimensionGoal }) => {
@@ -110,6 +244,9 @@ export function AllGoalsPhysicianView({ patientId, patientName }: AllGoalsPhysic
     const isApproachingDeadline = daysLeft <= 14 && daysLeft > 0
     const isOverdue = daysLeft < 0
     const dimensionConfig = healthDimensionsConfig.find(c => c.id === goal.dimensionId)
+    const isExpanded = expandedGoalIds.has(goal.id)
+    const interventions = goalInterventions[goal.id] || []
+    const activeInterventionsCount = interventions.filter(i => i.status === 'active').length
 
     return (
       <Card className="shadow-sm border-gray-200 bg-white hover:shadow-md transition-shadow">
@@ -196,21 +333,47 @@ export function AllGoalsPhysicianView({ patientId, patientName }: AllGoalsPhysic
                 )}
               </div>
 
-              {goal.linkedInterventions.length > 0 && (
-                <div className="pt-4 border-t border-gray-200">
-                  <p className="text-xs font-medium text-gray-700 mb-2 flex items-center gap-2">
-                    <Activity className="h-3 w-3" />
-                    Linked Interventions:
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {goal.linkedInterventions.map((intervention, idx) => (
-                      <Badge key={idx} variant="secondary" className="text-xs">
-                        {intervention}
-                      </Badge>
-                    ))}
+              <div className="pt-4 border-t border-gray-200">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => toggleGoalExpanded(goal.id)}
+                  className="w-full justify-between hover:bg-gray-50"
+                >
+                  <div className="flex items-center gap-2">
+                    <Activity className="h-4 w-4" />
+                    <span className="text-sm font-medium">
+                      Interventions ({activeInterventionsCount} active)
+                    </span>
                   </div>
-                </div>
-              )}
+                  {isExpanded ? (
+                    <ChevronUp className="h-4 w-4" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4" />
+                  )}
+                </Button>
+
+                {isExpanded && (
+                  <div className="mt-3 space-y-2">
+                    {interventions.length > 0 ? (
+                      interventions.map((intervention) => (
+                        <InterventionListItem
+                          key={intervention.id}
+                          intervention={intervention}
+                          onStop={setStoppingIntervention}
+                          showStopButton={true}
+                        />
+                      ))
+                    ) : (
+                      <div className="text-center py-8 text-gray-500">
+                        <Pill className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                        <p className="text-sm">No interventions yet</p>
+                        <p className="text-xs mt-1">Click "Add Intervention" to create one</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </CardContent>
@@ -239,7 +402,7 @@ export function AllGoalsPhysicianView({ patientId, patientName }: AllGoalsPhysic
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card className="shadow-sm border-gray-200 bg-white">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -266,10 +429,10 @@ export function AllGoalsPhysicianView({ patientId, patientName }: AllGoalsPhysic
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Overdue</p>
-                <p className="text-2xl font-bold text-gray-900">{overdueGoals.length}</p>
+                <p className="text-sm text-gray-600">Achieved</p>
+                <p className="text-2xl font-bold text-gray-900">{achievedGoals.length}</p>
               </div>
-              <Calendar className="h-8 w-8 text-orange-600" />
+              <CheckCircle className="h-8 w-8 text-green-600" />
             </div>
           </CardContent>
         </Card>
@@ -277,10 +440,21 @@ export function AllGoalsPhysicianView({ patientId, patientName }: AllGoalsPhysic
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Achieved</p>
-                <p className="text-2xl font-bold text-gray-900">{achievedGoals.length}</p>
+                <p className="text-sm text-gray-600">Active Interventions</p>
+                <p className="text-2xl font-bold text-gray-900">{interventionStats?.active || 0}</p>
               </div>
-              <CheckCircle className="h-8 w-8 text-green-600" />
+              <Activity className="h-8 w-8 text-teal-600" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="shadow-sm border-gray-200 bg-white">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Total Interventions</p>
+                <p className="text-2xl font-bold text-gray-900">{interventionStats?.total || 0}</p>
+              </div>
+              <Pill className="h-8 w-8 text-purple-600" />
             </div>
           </CardContent>
         </Card>
@@ -296,7 +470,7 @@ export function AllGoalsPhysicianView({ patientId, patientName }: AllGoalsPhysic
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">Health Dimension</label>
               <Select value={filterDimension} onValueChange={setFilterDimension}>
@@ -324,6 +498,20 @@ export function AllGoalsPhysicianView({ patientId, patientName }: AllGoalsPhysic
                   <SelectItem value="on-track">On Track</SelectItem>
                   <SelectItem value="at-risk">At Risk</SelectItem>
                   <SelectItem value="achieved">Achieved</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Interventions</label>
+              <Select value={filterInterventions} onValueChange={setFilterInterventions}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Goals</SelectItem>
+                  <SelectItem value="with-interventions">With Interventions</SelectItem>
+                  <SelectItem value="without-interventions">Without Interventions</SelectItem>
+                  <SelectItem value="active-interventions">With Active Interventions</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -389,9 +577,17 @@ export function AllGoalsPhysicianView({ patientId, patientName }: AllGoalsPhysic
           dimensionId={addingInterventionForGoal.dimensionId}
           dimensionName={addingInterventionForGoal.dimensionName}
           goals={mockDimensionGoals}
+          patientId={patientId}
           onSave={handleSaveIntervention}
         />
       )}
+
+      <StopInterventionDialog
+        open={!!stoppingIntervention}
+        onOpenChange={(open) => !open && setStoppingIntervention(null)}
+        intervention={stoppingIntervention}
+        onConfirm={handleStopIntervention}
+      />
     </div>
   )
 }
