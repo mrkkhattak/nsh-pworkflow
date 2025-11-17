@@ -470,7 +470,7 @@ export function PatientDetailView() {
         }}
         className="space-y-6"
       >
-        <TabsList className="grid w-full grid-cols-8 bg-gray-100 p-1 rounded-lg">
+        <TabsList className="grid w-full grid-cols-9 bg-gray-100 p-1 rounded-lg">
           <TabsTrigger value="overview" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
             Overview
           </TabsTrigger>
@@ -488,6 +488,9 @@ export function PatientDetailView() {
           </TabsTrigger>
           <TabsTrigger value="medications" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
             Medications
+          </TabsTrigger>
+          <TabsTrigger value="biometrics" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+            Biometrics
           </TabsTrigger>
           <TabsTrigger value="outcomes" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
             Outcome Measures
@@ -934,12 +937,15 @@ export function PatientDetailView() {
           <PatientTasksView patientId={mockPatientDetail.id} />
         </TabsContent>
 
+        <TabsContent value="biometrics" className="space-y-6">
+          <BiometricsTracking patientId={mockPatientDetail.id} />
+        </TabsContent>
+
         <TabsContent value="outcomes" className="space-y-6">
           <PatientOutcomeMeasures patientId={mockPatientDetail.id.toString()} />
         </TabsContent>
 
         <TabsContent value="progress" className="space-y-6">
-          <BiometricsTracking patientId={mockPatientDetail.id} />
 
           {latestAssessment ? (
             <>
