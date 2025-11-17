@@ -1,93 +1,72 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { TrendingDown, TrendingUp, Activity, Heart, AlertCircle, Users, Cigarette, CigaretteOff, UserCheck, ThumbsUp } from 'lucide-react';
-import {
-  getCurrentQuarterStats,
-  getPreviousQuarterStats,
-  getQuarterOverQuarterChange,
-  getQuarterlyTrends,
-  cohortStatistics,
-  getSmokingStatusDistribution,
-  getSmokingStatusLabel,
-} from '@/lib/outcome-measures-mock';
-import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Legend, Bar, BarChart } from 'recharts';
-
-interface MetricCardProps {
-  title: string;
-  value: number;
-  unit: string;
-  icon: React.ReactNode;
-  change: { value: number; percentage: number; direction: 'up' | 'down' | 'stable' };
-  benchmark: number;
-  lowerIsBetter?: boolean;
-}
-
-function MetricCard({ title, value, unit, icon, change, benchmark, lowerIsBetter = true }: MetricCardProps) {
-  const isAboveBenchmark = value > benchmark;
-  const performanceColor = lowerIsBetter
-    ? (isAboveBenchmark ? 'text-red-600' : 'text-green-600')
-    : (isAboveBenchmark ? 'text-green-600' : 'text-red-600');
-
-  const trendColor = lowerIsBetter
-    ? (change.direction === 'down' ? 'text-green-600' : change.direction === 'up' ? 'text-red-600' : 'text-gray-600')
-    : (change.direction === 'up' ? 'text-green-600' : change.direction === 'down' ? 'text-red-600' : 'text-gray-600');
-
-  return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        <div className="h-4 w-4 text-muted-foreground">{icon}</div>
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">
-          {value.toFixed(1)} <span className="text-sm font-normal text-muted-foreground">{unit}</span>
-        </div>
-        <div className="flex items-center justify-between mt-3">
-          <div className={`flex items-center text-xs ${trendColor}`}>
-            {change.direction === 'up' && <TrendingUp className="h-3 w-3 mr-1" />}
-            {change.direction === 'down' && <TrendingDown className="h-3 w-3 mr-1" />}
-            <span>{Math.abs(change.percentage)}% vs prev quarter</span>
-          </div>
-          <div className={`text-xs ${performanceColor}`}>
-            {lowerIsBetter
-              ? (isAboveBenchmark ? 'Above' : 'Below')
-              : (isAboveBenchmark ? 'Above' : 'Below')
-            } benchmark ({benchmark})
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
+import { Cigarette, CigaretteOff } from 'lucide-react';
+import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Bar, BarChart } from 'recharts';
+import { getOutcomeTrends, getSmokingStatusDistribution, getBenchmarkComparison } from '@/lib/outcome-service';
+import type { AssessmentOutcome } from '@/lib/outcome-service';
+import { format } from 'date-fns';
 
 export function OutcomeMeasuresView() {
-  const [selectedYear, setSelectedYear] = useState('2025');
-  const [selectedQuarter, setSelectedQuarter] = useState('Q3');
-  const [comparisonMode, setComparisonMode] = useState(false);
+  const [dateRange, setDateRange] = useState('12months');
   const [dimensionFilter, setDimensionFilter] = useState('all');
   const [riskFilter, setRiskFilter] = useState('all');
   const [smokingFilter, setSmokingFilter] = useState('all');
+  const [trendData, setTrendData] = useState<AssessmentOutcome[]>([]);
+  const [smokingDistribution, setSmokingDistribution] = useState({ never: 0, former: 0, current: 0, neverPercent: 0, formerPercent: 0, currentPercent: 0 });
+  const [benchmarkData, setBenchmarkData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const currentStats = getCurrentQuarterStats();
-  const previousStats = getPreviousQuarterStats();
+  useEffect(() => {
+    loadData();
+  }, [dateRange, dimensionFilter, riskFilter, smokingFilter]);
 
-  if (!currentStats || !previousStats) {
-    return <div>Loading...</div>;
+  async function loadData() {
+    setLoading(true);
+    try {
+      const endDate = new Date();
+      const startDate = new Date();
+
+      if (dateRange === '3months') {
+        startDate.setMonth(startDate.getMonth() - 3);
+      } else if (dateRange === '6months') {
+        startDate.setMonth(startDate.getMonth() - 6);
+      } else {
+        startDate.setFullYear(startDate.getFullYear() - 1);
+      }
+
+      const [trends, smoking, comparison] = await Promise.all([
+        getOutcomeTrends(startDate, endDate, dimensionFilter, riskFilter, smokingFilter),
+        getSmokingStatusDistribution(),
+        getBenchmarkComparison(),
+      ]);
+
+      setTrendData(trends);
+      setSmokingDistribution(smoking);
+      setBenchmarkData(comparison);
+    } catch (error) {
+      console.error('Error loading outcome data:', error);
+    } finally {
+      setLoading(false);
+    }
   }
 
-  const readmissionsChange = getQuarterOverQuarterChange(currentStats.avgReadmissions, previousStats.avgReadmissions);
-  const hospitalizationsChange = getQuarterOverQuarterChange(currentStats.avgHospitalizations, previousStats.avgHospitalizations);
-  const edVisitsChange = getQuarterOverQuarterChange(currentStats.avgEdVisits, previousStats.avgEdVisits);
-  const functionalCapacityChange = getQuarterOverQuarterChange(currentStats.avgFunctionalCapacity, previousStats.avgFunctionalCapacity);
-  const engagementScoreChange = getQuarterOverQuarterChange(currentStats.avgEngagementScore, previousStats.avgEngagementScore);
-  const satisfactionScoreChange = getQuarterOverQuarterChange(currentStats.avgSatisfactionScore, previousStats.avgSatisfactionScore);
+  const chartData = trendData.map(item => ({
+    date: format(item.assessmentDate, 'MMM dd, yyyy'),
+    readmissions: item.readmissions,
+    hospitalizations: item.hospitalizations,
+    edVisits: item.edVisits,
+    functionalCapacity: item.functionalCapacity,
+    engagementScore: item.engagementScore,
+    satisfactionScore: item.satisfactionScore,
+  }));
 
-  const trendData = getQuarterlyTrends(2024, 'Q1', 2025, 'Q3');
-  const smokingDistribution = getSmokingStatusDistribution('Q3', 2025);
+  if (loading) {
+    return <div className="flex items-center justify-center h-64">Loading...</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -101,30 +80,15 @@ export function OutcomeMeasuresView() {
 
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2">
-          <label className="text-sm font-medium">Year:</label>
-          <Select value={selectedYear} onValueChange={setSelectedYear}>
-            <SelectTrigger className="w-32">
+          <label className="text-sm font-medium">Time Range:</label>
+          <Select value={dateRange} onValueChange={setDateRange}>
+            <SelectTrigger className="w-40">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="2023">2023</SelectItem>
-              <SelectItem value="2024">2024</SelectItem>
-              <SelectItem value="2025">2025</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <label className="text-sm font-medium">Quarter:</label>
-          <Select value={selectedQuarter} onValueChange={setSelectedQuarter}>
-            <SelectTrigger className="w-32">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Q1">Q1</SelectItem>
-              <SelectItem value="Q2">Q2</SelectItem>
-              <SelectItem value="Q3">Q3</SelectItem>
-              <SelectItem value="Q4">Q4</SelectItem>
+              <SelectItem value="3months">Last 3 Months</SelectItem>
+              <SelectItem value="6months">Last 6 Months</SelectItem>
+              <SelectItem value="12months">Last 12 Months</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -173,20 +137,12 @@ export function OutcomeMeasuresView() {
             </SelectContent>
           </Select>
         </div>
-
-        <Button
-          variant={comparisonMode ? 'default' : 'outline'}
-          onClick={() => setComparisonMode(!comparisonMode)}
-          size="sm"
-        >
-          Compare Q/Q
-        </Button>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle>Smoking Status Distribution</CardTitle>
-          <CardDescription>Current quarter patient smoking status breakdown</CardDescription>
+          <CardDescription>Current patient smoking status breakdown</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-3 gap-4">
@@ -222,13 +178,19 @@ export function OutcomeMeasuresView() {
         <Card>
           <CardHeader>
             <CardTitle>Readmissions Trend</CardTitle>
-            <CardDescription>Average 30-day readmissions per patient over time</CardDescription>
+            <CardDescription>Average 30-day readmissions per patient by assessment date</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={trendData}>
+              <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="quarter" />
+                <XAxis
+                  dataKey="date"
+                  tick={{ fontSize: 10 }}
+                  angle={-45}
+                  textAnchor="end"
+                  height={80}
+                />
                 <YAxis />
                 <Tooltip />
                 <Line type="monotone" dataKey="readmissions" stroke="#ef4444" strokeWidth={2} dot={{ r: 4 }} />
@@ -240,13 +202,19 @@ export function OutcomeMeasuresView() {
         <Card>
           <CardHeader>
             <CardTitle>Hospitalizations Trend</CardTitle>
-            <CardDescription>Average hospitalizations per patient over time</CardDescription>
+            <CardDescription>Average hospitalizations per patient by assessment date</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={trendData}>
+              <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="quarter" />
+                <XAxis
+                  dataKey="date"
+                  tick={{ fontSize: 10 }}
+                  angle={-45}
+                  textAnchor="end"
+                  height={80}
+                />
                 <YAxis />
                 <Tooltip />
                 <Line type="monotone" dataKey="hospitalizations" stroke="#f59e0b" strokeWidth={2} dot={{ r: 4 }} />
@@ -258,13 +226,19 @@ export function OutcomeMeasuresView() {
         <Card>
           <CardHeader>
             <CardTitle>ED Visits Trend</CardTitle>
-            <CardDescription>Average emergency department visits per patient over time</CardDescription>
+            <CardDescription>Average emergency department visits per patient by assessment date</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={trendData}>
+              <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="quarter" />
+                <XAxis
+                  dataKey="date"
+                  tick={{ fontSize: 10 }}
+                  angle={-45}
+                  textAnchor="end"
+                  height={80}
+                />
                 <YAxis />
                 <Tooltip />
                 <Line type="monotone" dataKey="edVisits" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 4 }} />
@@ -276,13 +250,19 @@ export function OutcomeMeasuresView() {
         <Card>
           <CardHeader>
             <CardTitle>Functional Capacity Trend</CardTitle>
-            <CardDescription>Average functional capacity score over time (higher is better)</CardDescription>
+            <CardDescription>Average functional capacity score by assessment date</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={trendData}>
+              <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="quarter" />
+                <XAxis
+                  dataKey="date"
+                  tick={{ fontSize: 10 }}
+                  angle={-45}
+                  textAnchor="end"
+                  height={80}
+                />
                 <YAxis domain={[0, 100]} />
                 <Tooltip />
                 <Line type="monotone" dataKey="functionalCapacity" stroke="#10b981" strokeWidth={2} dot={{ r: 4 }} />
@@ -294,13 +274,19 @@ export function OutcomeMeasuresView() {
         <Card>
           <CardHeader>
             <CardTitle>Patient Engagement Trend</CardTitle>
-            <CardDescription>Average patient engagement score over time (lower is better)</CardDescription>
+            <CardDescription>Average patient engagement score by assessment date</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={trendData}>
+              <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="quarter" />
+                <XAxis
+                  dataKey="date"
+                  tick={{ fontSize: 10 }}
+                  angle={-45}
+                  textAnchor="end"
+                  height={80}
+                />
                 <YAxis domain={[0, 100]} />
                 <Tooltip />
                 <Line type="monotone" dataKey="engagementScore" stroke="#f43f5e" strokeWidth={2} dot={{ r: 4 }} />
@@ -312,13 +298,19 @@ export function OutcomeMeasuresView() {
         <Card>
           <CardHeader>
             <CardTitle>Patient Satisfaction Trend</CardTitle>
-            <CardDescription>Average patient satisfaction score over time (lower is better)</CardDescription>
+            <CardDescription>Average patient satisfaction score by assessment date</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={trendData}>
+              <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="quarter" />
+                <XAxis
+                  dataKey="date"
+                  tick={{ fontSize: 10 }}
+                  angle={-45}
+                  textAnchor="end"
+                  height={80}
+                />
                 <YAxis domain={[0, 100]} />
                 <Tooltip />
                 <Line type="monotone" dataKey="satisfactionScore" stroke="#14b8a6" strokeWidth={2} dot={{ r: 4 }} />
@@ -331,49 +323,15 @@ export function OutcomeMeasuresView() {
       <Card>
         <CardHeader>
           <CardTitle>Cohort Performance Comparison</CardTitle>
-          <CardDescription>Current quarter performance vs. national benchmarks</CardDescription>
+          <CardDescription>Performance vs. national benchmarks</CardDescription>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart
-              data={[
-                {
-                  metric: 'Readmissions',
-                  'Your Cohort': currentStats.avgReadmissions,
-                  'Benchmark': currentStats.benchmark.readmissions,
-                },
-                {
-                  metric: 'Hospitalizations',
-                  'Your Cohort': currentStats.avgHospitalizations,
-                  'Benchmark': currentStats.benchmark.hospitalizations,
-                },
-                {
-                  metric: 'ED Visits',
-                  'Your Cohort': currentStats.avgEdVisits,
-                  'Benchmark': currentStats.benchmark.edVisits,
-                },
-                {
-                  metric: 'Functional Capacity',
-                  'Your Cohort': currentStats.avgFunctionalCapacity,
-                  'Benchmark': currentStats.benchmark.functionalCapacity,
-                },
-                {
-                  metric: 'Patient Engagement',
-                  'Your Cohort': currentStats.avgEngagementScore,
-                  'Benchmark': currentStats.benchmark.engagementScore,
-                },
-                {
-                  metric: 'Patient Satisfaction',
-                  'Your Cohort': currentStats.avgSatisfactionScore,
-                  'Benchmark': currentStats.benchmark.satisfactionScore,
-                },
-              ]}
-            >
+            <BarChart data={benchmarkData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="metric" />
               <YAxis />
               <Tooltip />
-              <Legend />
               <Bar dataKey="Your Cohort" fill="#3b82f6" />
               <Bar dataKey="Benchmark" fill="#94a3b8" />
             </BarChart>
