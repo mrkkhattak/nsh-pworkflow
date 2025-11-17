@@ -20,8 +20,7 @@ import { ScheduledAssessmentsList } from "@/components/scheduled-assessments-lis
 import { PatientTasksView } from "@/components/patient-tasks-view"
 import { BiometricsTracking } from "@/components/biometrics-tracking"
 import { PatientCohortComparison } from "@/components/patient-cohort-comparison"
-import { getPatientById, getAssessmentById, healthDimensionsConfig, getGoalsByDimension, getActiveInterventionsByDimension, getRiskLevel, mockDimensionGoals } from "@/lib/nsh-assessment-mock"
-import { getInterventionDetailsByName } from "@/lib/intervention-data"
+import { getPatientById, getAssessmentById, healthDimensionsConfig, getGoalsByDimension, getActiveInterventionsByDimension, getRiskLevel } from "@/lib/nsh-assessment-mock"
 import {
   Phone,
   Mail,
@@ -950,93 +949,6 @@ export function PatientDetailView() {
 
           {latestAssessment ? (
             <>
-              {/* Intervention Summary Statistics */}
-              <Card className="shadow-sm border-gray-200 bg-white">
-                <CardHeader>
-                  <CardTitle className="text-lg font-semibold">Treatment Overview</CardTitle>
-                  <p className="text-sm text-gray-600">Active interventions and goals across all health dimensions</p>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                    {(() => {
-                      const allInterventions = latestAssessment.dimensions.flatMap(dim =>
-                        getActiveInterventionsByDimension(dim.id)
-                      )
-                      const uniqueInterventions = Array.from(new Set(allInterventions))
-                      const interventionDetails = uniqueInterventions
-                        .map(name => getInterventionDetailsByName(name))
-                        .filter(Boolean)
-
-                      const medicationCount = interventionDetails.filter(i => i?.type === "Medication").length
-                      const lifestyleCount = interventionDetails.filter(i => i?.type === "Lifestyle").length
-                      const therapyCount = interventionDetails.filter(i => i?.type === "Therapy").length
-                      const otherCount = interventionDetails.filter(i => i?.type === "Other").length
-                      const activeGoalsCount = mockDimensionGoals.filter(g => g.status !== "achieved" && g.status !== "cancelled").length
-
-                      return (
-                        <>
-                          <Card className="shadow-sm border-gray-200 bg-white">
-                            <CardContent className="p-4">
-                              <div className="flex items-center justify-between">
-                                <div>
-                                  <p className="text-xs text-gray-600">Medications</p>
-                                  <p className="text-2xl font-bold text-gray-900">{medicationCount}</p>
-                                </div>
-                                <Pill className="h-6 w-6 text-blue-600" />
-                              </div>
-                            </CardContent>
-                          </Card>
-                          <Card className="shadow-sm border-gray-200 bg-white">
-                            <CardContent className="p-4">
-                              <div className="flex items-center justify-between">
-                                <div>
-                                  <p className="text-xs text-gray-600">Lifestyle</p>
-                                  <p className="text-2xl font-bold text-gray-900">{lifestyleCount}</p>
-                                </div>
-                                <Heart className="h-6 w-6 text-green-600" />
-                              </div>
-                            </CardContent>
-                          </Card>
-                          <Card className="shadow-sm border-gray-200 bg-white">
-                            <CardContent className="p-4">
-                              <div className="flex items-center justify-between">
-                                <div>
-                                  <p className="text-xs text-gray-600">Therapy</p>
-                                  <p className="text-2xl font-bold text-gray-900">{therapyCount}</p>
-                                </div>
-                                <Activity className="h-6 w-6 text-purple-600" />
-                              </div>
-                            </CardContent>
-                          </Card>
-                          <Card className="shadow-sm border-gray-200 bg-white">
-                            <CardContent className="p-4">
-                              <div className="flex items-center justify-between">
-                                <div>
-                                  <p className="text-xs text-gray-600">Other</p>
-                                  <p className="text-2xl font-bold text-gray-900">{otherCount}</p>
-                                </div>
-                                <Activity className="h-6 w-6 text-orange-600" />
-                              </div>
-                            </CardContent>
-                          </Card>
-                          <Card className="shadow-sm border-gray-200 bg-white">
-                            <CardContent className="p-4">
-                              <div className="flex items-center justify-between">
-                                <div>
-                                  <p className="text-xs text-gray-600">Active Goals</p>
-                                  <p className="text-2xl font-bold text-gray-900">{activeGoalsCount}</p>
-                                </div>
-                                <Target className="h-6 w-6 text-blue-600" />
-                              </div>
-                            </CardContent>
-                          </Card>
-                        </>
-                      )
-                    })()}
-                  </div>
-                </CardContent>
-              </Card>
-
               <Card className="shadow-sm border-gray-200 bg-white">
                 <CardHeader>
                   <CardTitle className="text-lg font-semibold">Health Dimensions Overview</CardTitle>
