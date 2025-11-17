@@ -152,7 +152,14 @@ export function AllGoalsPhysicianView({ patientId, patientName }: AllGoalsPhysic
         .eq('patient_id', patientId)
         .order('created_date', { ascending: false })
 
+      if (error) {
+        console.error('Error loading goals from database:', error)
+        setLoadingGoals(false)
+        return
+      }
+
       if (data && data.length > 0) {
+        console.log('Loaded goals from database:', data.length)
         const formattedGoals: DimensionGoal[] = data.map(goal => ({
           id: goal.id,
           dimensionId: goal.dimension_id,
@@ -169,6 +176,8 @@ export function AllGoalsPhysicianView({ patientId, patientName }: AllGoalsPhysic
           linkedInterventions: [],
         }))
         setDbGoals(formattedGoals)
+      } else {
+        console.log('No goals found in database, using mock data')
       }
     } catch (error) {
       console.error('Error loading goals:', error)
@@ -449,6 +458,11 @@ export function AllGoalsPhysicianView({ patientId, patientName }: AllGoalsPhysic
             {patientName ? `${patientName}'s Health Goals` : "Patient Health Goals"}
           </h1>
           <p className="text-gray-600 mt-1">Monitor and manage all treatment goals for this patient</p>
+          {dbGoals.length > 0 && (
+            <Badge className="mt-2 bg-green-100 text-green-800 border-green-300">
+              {dbGoals.length} goals loaded from database
+            </Badge>
+          )}
         </div>
         <Button className="bg-blue-600 hover:bg-blue-700">
           <Plus className="h-4 w-4 mr-2" />
