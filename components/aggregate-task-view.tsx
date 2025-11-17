@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Combobox } from "@/components/ui/combobox"
 import { healthDimensionsConfig } from "@/lib/nsh-assessment-mock"
 import {
   getAllTasks,
@@ -329,19 +330,20 @@ export function AggregateTaskView() {
 
             <div>
               <label className="text-xs text-gray-600 mb-1 block">Patient</label>
-              <Select value={filters.patientId} onValueChange={(v) => handleFilterChange('patientId', v)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Patients</SelectItem>
-                  {patients.map((patient) => (
-                    <SelectItem key={patient.id} value={patient.id}>
-                      {patient.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Combobox
+                options={[
+                  { value: "all", label: "All Patients" },
+                  ...patients.map((patient) => ({
+                    value: patient.id,
+                    label: patient.name,
+                  }))
+                ]}
+                value={filters.patientId}
+                onValueChange={(v) => handleFilterChange('patientId', v)}
+                placeholder="Select patient..."
+                searchPlaceholder="Search patients..."
+                emptyText="No patients found."
+              />
             </div>
 
             <div>
