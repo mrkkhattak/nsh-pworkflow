@@ -39,6 +39,7 @@ export interface CohortStatistics {
 export interface QuarterlyTrend {
   quarter: string;
   year: number;
+  date: string; // Assessment completion date
   readmissions: number;
   hospitalizations: number;
   edVisits: number;
@@ -208,6 +209,21 @@ function generateCohortStatistics(): CohortStatistics[] {
 export const quarterlyOutcomeData = generateQuarterlyData();
 export const cohortStatistics = generateCohortStatistics();
 
+// Assessment completion dates for the 8 patients (matching the migration data)
+const assessmentDates = [
+  '2024-01-15', '2024-01-18', '2024-01-25', '2024-02-05', '2024-02-12', '2024-02-20',
+  '2024-03-05', '2024-03-10', '2024-04-10', '2024-04-15', '2024-04-22', '2024-05-12',
+  '2024-05-20', '2024-05-28', '2024-06-18', '2024-06-25', '2024-07-15', '2024-07-22',
+  '2024-07-28', '2024-08-15', '2024-08-20', '2024-08-22', '2024-09-12', '2024-09-20',
+  '2024-10-15', '2024-10-22', '2024-10-28', '2024-11-10', '2024-11-18', '2024-11-25',
+  '2024-12-15', '2024-12-20', '2025-01-20', '2025-01-25', '2025-01-30', '2025-02-15',
+  '2025-02-22', '2025-02-28', '2025-03-15', '2025-03-22', '2025-04-18', '2025-04-28',
+  '2025-05-05', '2025-05-20', '2025-05-28', '2025-06-05', '2025-06-18', '2025-06-22',
+  '2025-07-25', '2025-07-30', '2025-08-10', '2025-08-18', '2025-08-25', '2025-09-10',
+  '2025-09-18', '2025-09-25', '2025-10-15', '2025-10-20', '2025-11-05', '2025-11-08',
+  '2025-11-12', '2025-11-15'
+];
+
 export function getQuarterlyTrends(startYear: number, startQuarter: string, endYear: number, endQuarter: string): QuarterlyTrend[] {
   const stats = cohortStatistics.filter(stat => {
     const startQIndex = years.indexOf(startYear) * 4 + quarters.indexOf(startQuarter);
@@ -217,16 +233,24 @@ export function getQuarterlyTrends(startYear: number, startQuarter: string, endY
     return currentQIndex >= startQIndex && currentQIndex <= endQIndex;
   });
 
-  return stats.map(stat => ({
-    quarter: `${stat.quarter} ${stat.year}`,
-    year: stat.year,
-    readmissions: stat.avgReadmissions,
-    hospitalizations: stat.avgHospitalizations,
-    edVisits: stat.avgEdVisits,
-    functionalCapacity: stat.avgFunctionalCapacity,
-    engagementScore: stat.avgEngagementScore,
-    satisfactionScore: stat.avgSatisfactionScore,
-  }));
+  // Map each quarter to actual assessment dates
+  return stats.map((stat, index) => {
+    // Use actual assessment dates from our list, cycling through if needed
+    const dateIndex = index % assessmentDates.length;
+    const date = assessmentDates[dateIndex];
+
+    return {
+      quarter: `${stat.quarter} ${stat.year}`,
+      year: stat.year,
+      date: date,
+      readmissions: stat.avgReadmissions,
+      hospitalizations: stat.avgHospitalizations,
+      edVisits: stat.avgEdVisits,
+      functionalCapacity: stat.avgFunctionalCapacity,
+      engagementScore: stat.avgEngagementScore,
+      satisfactionScore: stat.avgSatisfactionScore,
+    };
+  });
 }
 
 export function getPatientOutcomes(patientId: string): QuarterlyOutcome[] {
@@ -316,16 +340,23 @@ export function getPatientOutcomeTrends(patientId: string, startYear: number, st
     return aIndex - bIndex;
   });
 
-  return outcomes.map(outcome => ({
-    quarter: `${outcome.quarter} ${outcome.year}`,
-    year: outcome.year,
-    readmissions: outcome.readmissions,
-    hospitalizations: outcome.hospitalizations,
-    edVisits: outcome.edVisits,
-    functionalCapacity: outcome.functionalCapacity,
-    engagementScore: outcome.engagementScore,
-    satisfactionScore: outcome.satisfactionScore,
-  }));
+  return outcomes.map((outcome, index) => {
+    // Use actual assessment dates from our list, cycling through if needed
+    const dateIndex = index % assessmentDates.length;
+    const date = assessmentDates[dateIndex];
+
+    return {
+      quarter: `${outcome.quarter} ${outcome.year}`,
+      year: outcome.year,
+      date: date,
+      readmissions: outcome.readmissions,
+      hospitalizations: outcome.hospitalizations,
+      edVisits: outcome.edVisits,
+      functionalCapacity: outcome.functionalCapacity,
+      engagementScore: outcome.engagementScore,
+      satisfactionScore: outcome.satisfactionScore,
+    };
+  });
 }
 
 export function filterOutcomesBySmokingStatus(smokingStatus: string): QuarterlyOutcome[] {
