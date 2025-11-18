@@ -248,17 +248,8 @@ export function OutcomeMeasuresView() {
             <CardTitle>Readmissions Trend</CardTitle>
             <CardDescription>{isPatientView ? '30-day readmissions over time' : 'Average 30-day readmissions per patient over time'}</CardDescription>
             {isPatientView && selectedPatientData && (
-              <div className="flex items-center gap-4 mt-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Risk Category:</span>
-                  <Badge variant={selectedPatientData.riskLevel === 'high' ? 'destructive' : selectedPatientData.riskLevel === 'medium' ? 'secondary' : 'outline'}>
-                    {selectedPatientData.riskLevel.toUpperCase()}
-                  </Badge>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Current Score:</span>
-                  <span className="text-lg font-semibold">{selectedPatientData.readmissions.toFixed(1)} events</span>
-                </div>
+              <div className="mt-2 text-sm text-muted-foreground">
+                Risk Category: {selectedPatientData.riskLevel.toUpperCase()}
               </div>
             )}
           </CardHeader>
@@ -293,17 +284,8 @@ export function OutcomeMeasuresView() {
             <CardTitle>Hospitalizations Trend</CardTitle>
             <CardDescription>{isPatientView ? 'Hospitalizations over time' : 'Average hospitalizations per patient over time'}</CardDescription>
             {isPatientView && selectedPatientData && (
-              <div className="flex items-center gap-4 mt-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Risk Category:</span>
-                  <Badge variant={selectedPatientData.riskLevel === 'high' ? 'destructive' : selectedPatientData.riskLevel === 'medium' ? 'secondary' : 'outline'}>
-                    {selectedPatientData.riskLevel.toUpperCase()}
-                  </Badge>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Current Score:</span>
-                  <span className="text-lg font-semibold">{selectedPatientData.hospitalizations.toFixed(1)} events</span>
-                </div>
+              <div className="mt-2 text-sm text-muted-foreground">
+                Risk Category: {selectedPatientData.riskLevel.toUpperCase()}
               </div>
             )}
           </CardHeader>
@@ -338,17 +320,8 @@ export function OutcomeMeasuresView() {
             <CardTitle>ED Visits Trend</CardTitle>
             <CardDescription>{isPatientView ? 'Emergency department visits over time' : 'Average emergency department visits per patient over time'}</CardDescription>
             {isPatientView && selectedPatientData && (
-              <div className="flex items-center gap-4 mt-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Risk Category:</span>
-                  <Badge variant={selectedPatientData.riskLevel === 'high' ? 'destructive' : selectedPatientData.riskLevel === 'medium' ? 'secondary' : 'outline'}>
-                    {selectedPatientData.riskLevel.toUpperCase()}
-                  </Badge>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Current Score:</span>
-                  <span className="text-lg font-semibold">{selectedPatientData.edVisits.toFixed(1)} visits</span>
-                </div>
+              <div className="mt-2 text-sm text-muted-foreground">
+                Risk Category: {selectedPatientData.riskLevel.toUpperCase()}
               </div>
             )}
           </CardHeader>
@@ -383,17 +356,8 @@ export function OutcomeMeasuresView() {
             <CardTitle>Functional Capacity Trend</CardTitle>
             <CardDescription>{isPatientView ? 'Functional capacity score over time (higher is better)' : 'Average functional capacity score over time (higher is better)'}</CardDescription>
             {isPatientView && selectedPatientData && (
-              <div className="flex items-center gap-4 mt-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Risk Category:</span>
-                  <Badge variant={selectedPatientData.riskLevel === 'high' ? 'destructive' : selectedPatientData.riskLevel === 'medium' ? 'secondary' : 'outline'}>
-                    {selectedPatientData.riskLevel.toUpperCase()}
-                  </Badge>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Current Score:</span>
-                  <span className="text-lg font-semibold">{selectedPatientData.functionalCapacity.toFixed(1)} score</span>
-                </div>
+              <div className="mt-2 text-sm text-muted-foreground">
+                Risk Category: {selectedPatientData.riskLevel.toUpperCase()}
               </div>
             )}
           </CardHeader>
@@ -428,17 +392,8 @@ export function OutcomeMeasuresView() {
             <CardTitle>Patient Engagement Trend</CardTitle>
             <CardDescription>{isPatientView ? 'Patient engagement score over time (lower is better)' : 'Average patient engagement score over time (lower is better)'}</CardDescription>
             {isPatientView && selectedPatientData && (
-              <div className="flex items-center gap-4 mt-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Risk Category:</span>
-                  <Badge variant={selectedPatientData.riskLevel === 'high' ? 'destructive' : selectedPatientData.riskLevel === 'medium' ? 'secondary' : 'outline'}>
-                    {selectedPatientData.riskLevel.toUpperCase()}
-                  </Badge>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Current Score:</span>
-                  <span className="text-lg font-semibold">{selectedPatientData.engagementScore.toFixed(1)} score</span>
-                </div>
+              <div className="mt-2 text-sm text-muted-foreground">
+                Risk Category: {selectedPatientData.riskLevel.toUpperCase()}
               </div>
             )}
           </CardHeader>
@@ -473,17 +428,8 @@ export function OutcomeMeasuresView() {
             <CardTitle>Patient Satisfaction Trend</CardTitle>
             <CardDescription>{isPatientView ? 'Patient satisfaction score over time (lower is better)' : 'Average patient satisfaction score over time (lower is better)'}</CardDescription>
             {isPatientView && selectedPatientData && (
-              <div className="flex items-center gap-4 mt-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Risk Category:</span>
-                  <Badge variant={selectedPatientData.riskLevel === 'high' ? 'destructive' : selectedPatientData.riskLevel === 'medium' ? 'secondary' : 'outline'}>
-                    {selectedPatientData.riskLevel.toUpperCase()}
-                  </Badge>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Current Score:</span>
-                  <span className="text-lg font-semibold">{selectedPatientData.satisfactionScore.toFixed(1)} score</span>
-                </div>
+              <div className="mt-2 text-sm text-muted-foreground">
+                Risk Category: {selectedPatientData.riskLevel.toUpperCase()}
               </div>
             )}
           </CardHeader>
