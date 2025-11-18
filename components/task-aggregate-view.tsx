@@ -17,14 +17,16 @@ import {
 } from "@/components/ui/table"
 import {
   fetchAggregatePendingTasks,
-  fetchPatientTasks,
-  fetchPatientTaskSummaries,
+  fetchEntityTasks,
+  fetchEntityTaskSummaries,
   calculateTaskSummary,
   updateTaskStatus,
   getTimeFilterLabel,
+  getTaskEntityName,
+  getTaskEntityDetails,
   type Task,
   type TimeFilter,
-  type PatientTaskSummary,
+  type EntityTaskSummary,
   type TaskStatus,
 } from "@/lib/task-service"
 import {
@@ -45,9 +47,10 @@ import {
 export function TaskAggregateView() {
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('1week')
   const [tasks, setTasks] = useState<Task[]>([])
-  const [patientSummaries, setPatientSummaries] = useState<PatientTaskSummary[]>([])
+  const [entitySummaries, setEntitySummaries] = useState<EntityTaskSummary[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedPatient, setSelectedPatient] = useState<string | null>(null)
+  const [selectedEntity, setSelectedEntity] = useState<string | null>(null)
+  const [selectedEntityName, setSelectedEntityName] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
 
@@ -56,16 +59,16 @@ export function TaskAggregateView() {
     async function loadData() {
       setLoading(true)
       try {
-        if (selectedPatient) {
-          const patientTasks = await fetchPatientTasks(selectedPatient, timeFilter)
-          setTasks(patientTasks)
+        if (selectedEntity) {
+          const entityTasks = await fetchEntityTasks(selectedEntity, timeFilter)
+          setTasks(entityTasks)
         } else {
           const [aggregateTasks, summaries] = await Promise.all([
             fetchAggregatePendingTasks(timeFilter),
-            fetchPatientTaskSummaries(timeFilter)
+            fetchEntityTaskSummaries(timeFilter)
           ])
           setTasks(aggregateTasks)
-          setPatientSummaries(summaries)
+          setEntitySummaries(summaries)
         }
       } catch (error) {
         console.error('Failed to load task data:', error)
@@ -75,7 +78,7 @@ export function TaskAggregateView() {
     }
 
     loadData()
-  }, [timeFilter, selectedPatient])
+  }, [timeFilter, selectedEntity])
 
   // Calculate summary statistics
   const summary = useMemo(() => calculateTaskSummary(tasks), [tasks])
@@ -83,9 +86,10 @@ export function TaskAggregateView() {
   // Filter tasks based on search and status
   const filteredTasks = useMemo(() => {
     return tasks.filter(task => {
+      const entityName = getTaskEntityName(task)
       const matchesSearch = searchQuery === '' ||
         task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        task.patient_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        entityName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         task.description.toLowerCase().includes(searchQuery.toLowerCase())
 
       const matchesStatus = statusFilter === 'all' || task.status === statusFilter
@@ -94,16 +98,18 @@ export function TaskAggregateView() {
     })
   }, [tasks, searchQuery, statusFilter])
 
-  // Handle drill-down to patient
-  const handlePatientSelect = (patientId: string) => {
-    setSelectedPatient(patientId)
+  // Handle drill-down to entity
+  const handleEntitySelect = (entityId: string, entityName: string) => {
+    setSelectedEntity(entityId)
+    setSelectedEntityName(entityName)
     setSearchQuery('')
     setStatusFilter('all')
   }
 
   // Handle back to aggregate view
   const handleBackToAggregate = () => {
-    setSelectedPatient(null)
+    setSelectedEntity(null)
+    setSelectedEntityName(null)
     setSearchQuery('')
     setStatusFilter('all')
   }
@@ -159,16 +165,28 @@ export function TaskAggregateView() {
     return new Date(task.due_date) < new Date()
   }
 
-  const selectedPatientName = selectedPatient
-    ? patientSummaries.find(p => p.patientId === selectedPatient)?.patientName || 'Patient'
-    : null
+  // Get category badge color
+  const getCategoryColor = (category: string) => {
+    switch (category) {
+      case 'provider-level':
+        return 'bg-teal-100 text-teal-800'
+      case 'patient-level':
+        return 'bg-blue-100 text-blue-800'
+      case 'system-level':
+        return 'bg-purple-100 text-purple-800'
+      case 'community-level':
+        return 'bg-green-100 text-green-800'
+      default:
+        return 'bg-gray-100 text-gray-800'
+    }
+  }
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          {selectedPatient && (
+          {selectedEntity && (
             <Button
               variant="outline"
               size="sm"
@@ -176,17 +194,17 @@ export function TaskAggregateView() {
               className="gap-2"
             >
               <ArrowLeft className="h-4 w-4" />
-              Back to All Patients
+              Back to All Entities
             </Button>
           )}
           <div>
             <h2 className="text-2xl font-bold text-foreground">
-              {selectedPatient ? `Tasks for ${selectedPatientName}` : 'Task Management Dashboard'}
+              {selectedEntity ? `Tasks for ${selectedEntityName}` : 'Task Management Dashboard'}
             </h2>
             <p className="text-muted-foreground">
-              {selectedPatient
-                ? `View and manage tasks for individual patient`
-                : `Aggregate view of pending tasks across all patients`}
+              {selectedEntity
+                ? `View and manage tasks for this entity`
+                : `Aggregate view of pending tasks across all entities (providers, patients, systems, and community)`}
             </p>
           </div>
         </div>
@@ -266,59 +284,67 @@ export function TaskAggregateView() {
         </Card>
       </div>
 
-      {/* Patient Summaries (only in aggregate view) */}
-      {!selectedPatient && patientSummaries.length > 0 && (
+      {/* Entity Summaries (only in aggregate view) */}
+      {!selectedEntity && entitySummaries.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Users className="h-5 w-5" />
-              Patient Task Summary
+              Entity Task Summary
             </CardTitle>
             <CardDescription>
-              Click on a patient to drill down into their individual tasks
+              Click on any entity to drill down into their individual tasks (includes providers, patients, systems, and community resources)
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {patientSummaries.map((patient) => (
+              {entitySummaries.map((entity) => (
                 <div
-                  key={patient.patientId}
+                  key={entity.entityId}
                   className="flex items-center justify-between p-4 rounded-lg border hover:bg-gray-50 cursor-pointer transition-colors"
-                  onClick={() => handlePatientSelect(patient.patientId)}
+                  onClick={() => handleEntitySelect(entity.entityId, entity.entityName)}
                 >
                   <div className="flex items-center gap-3">
                     <Avatar className="h-10 w-10">
                       <AvatarImage src="/placeholder.svg" />
                       <AvatarFallback>
-                        {patient.patientName
+                        {entity.entityName
                           .split(' ')
                           .map(n => n[0])
-                          .join('')}
+                          .join('')
+                          .slice(0, 2)
+                          .toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="font-medium text-foreground">{patient.patientName}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium text-foreground">{entity.entityName}</p>
+                        <Badge variant="outline" className={getCategoryColor(entity.entityType)}>
+                          {entity.entityType.replace('-', ' ')}
+                        </Badge>
+                      </div>
                       <p className="text-sm text-muted-foreground">
-                        {patient.totalTasks} total tasks
+                        {entity.totalTasks} total tasks
+                        {entity.entityDetails && ` • ${entity.entityDetails}`}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="text-center">
-                      <p className="text-2xl font-bold text-yellow-600">{patient.pendingTasks}</p>
+                      <p className="text-2xl font-bold text-yellow-600">{entity.pendingTasks}</p>
                       <p className="text-xs text-muted-foreground">Pending</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-2xl font-bold text-red-600">{patient.overdueTasks}</p>
+                      <p className="text-2xl font-bold text-red-600">{entity.overdueTasks}</p>
                       <p className="text-xs text-muted-foreground">Overdue</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-2xl font-bold text-green-600">{patient.completedTasks}</p>
+                      <p className="text-2xl font-bold text-green-600">{entity.completedTasks}</p>
                       <p className="text-xs text-muted-foreground">Completed</p>
                     </div>
-                    {patient.highPriorityTasks > 0 && (
+                    {entity.highPriorityTasks > 0 && (
                       <Badge variant="destructive">
-                        {patient.highPriorityTasks} High Priority
+                        {entity.highPriorityTasks} High Priority
                       </Badge>
                     )}
                   </div>
@@ -336,7 +362,7 @@ export function TaskAggregateView() {
             <div>
               <CardTitle className="flex items-center gap-2">
                 <ClipboardList className="h-5 w-5" />
-                {selectedPatient ? `Tasks for ${selectedPatientName}` : 'All Pending Tasks'}
+                {selectedEntity ? `Tasks for ${selectedEntityName}` : 'All Pending Tasks'}
               </CardTitle>
               <CardDescription>
                 {getTimeFilterLabel(timeFilter)} - {filteredTasks.length} tasks
@@ -388,7 +414,7 @@ export function TaskAggregateView() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Task</TableHead>
-                  {!selectedPatient && <TableHead>Patient</TableHead>}
+                  <TableHead>Entity</TableHead>
                   <TableHead>Priority</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Due Date</TableHead>
@@ -407,22 +433,29 @@ export function TaskAggregateView() {
                         </p>
                       </div>
                     </TableCell>
-                    {!selectedPatient && (
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Avatar className="h-8 w-8">
-                            <AvatarImage src="/placeholder.svg" />
-                            <AvatarFallback className="text-xs">
-                              {task.patient_name
-                                ?.split(' ')
-                                .map(n => n[0])
-                                .join('') || 'NA'}
-                            </AvatarFallback>
-                          </Avatar>
-                          <span className="text-sm">{task.patient_name || 'N/A'}</span>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src="/placeholder.svg" />
+                          <AvatarFallback className="text-xs">
+                            {getTaskEntityName(task)
+                              .split(' ')
+                              .map(n => n[0])
+                              .join('')
+                              .slice(0, 2)
+                              .toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="text-sm font-medium">{getTaskEntityName(task)}</p>
+                          {getTaskEntityDetails(task) && (
+                            <p className="text-xs text-muted-foreground">
+                              {getTaskEntityDetails(task)}
+                            </p>
+                          )}
                         </div>
-                      </TableCell>
-                    )}
+                      </div>
+                    </TableCell>
                     <TableCell>
                       <Badge variant={getPriorityColor(task.priority)}>
                         {task.priority}

@@ -43,10 +43,39 @@ export interface Task {
   sla_status: string
   estimated_time?: string
   blockers: string[]
-  patient_id?: string
-  patient_name?: string
   created_at: string
   updated_at: string
+
+  // Provider Level fields
+  provider_name?: string
+  provider_credential?: string
+  provider_email?: string
+  provider_specialty?: string
+  provider_license_id?: string
+  provider_organization?: string
+  provider_address?: string
+  provider_zip?: string
+  provider_state?: string
+  provider_country?: string
+
+  // Patient Level fields
+  patient_id?: string
+  patient_name?: string
+  patient_website?: string
+  patient_contact?: string
+
+  // Community Level fields
+  community_resource_name?: string
+  community_website?: string
+  community_email?: string
+  community_location?: string
+  community_contact?: string
+
+  // System Level fields
+  system_name?: string
+  system_website?: string
+  system_contact?: string
+  system_location?: string
 }
 
 export interface TaskSummary {
@@ -66,6 +95,18 @@ export interface PatientTaskSummary {
   completedTasks: number
   overdueTasks: number
   highPriorityTasks: number
+}
+
+export interface EntityTaskSummary {
+  entityId: string
+  entityName: string
+  entityType: TaskCategory
+  totalTasks: number
+  pendingTasks: number
+  completedTasks: number
+  overdueTasks: number
+  highPriorityTasks: number
+  entityDetails?: string
 }
 
 /**
@@ -151,6 +192,39 @@ export async function fetchPatientTasks(
     return data || []
   } catch (error) {
     console.error('Error in fetchPatientTasks:', error)
+    return []
+  }
+}
+
+/**
+ * Fetch tasks for a specific entity (any category) with time filter
+ */
+export async function fetchEntityTasks(
+  entityId: string,
+  timeFilter: TimeFilter = '1week'
+): Promise<Task[]> {
+  try {
+    const { startDate, endDate } = getDateRange(timeFilter)
+
+    // Get all tasks in time range first
+    const { data, error } = await supabase
+      .from('tasks')
+      .select('*')
+      .gte('created_at', startDate.toISOString())
+      .lte('created_at', endDate.toISOString())
+      .order('due_date', { ascending: true })
+
+    if (error) {
+      console.error('Error fetching entity tasks:', error)
+      return []
+    }
+
+    // Filter by entity ID (which varies by category)
+    const filteredTasks = (data || []).filter(task => getTaskEntityId(task) === entityId)
+
+    return filteredTasks
+  } catch (error) {
+    console.error('Error in fetchEntityTasks:', error)
     return []
   }
 }
@@ -353,4 +427,115 @@ export function getTimeFilterLabel(filter: TimeFilter): string {
     '3months': 'Last 3 Months',
   }
   return labels[filter]
+}
+
+/**
+ * Get entity ID based on task category
+ */
+export function getTaskEntityId(task: Task): string {
+  switch (task.category) {
+    case 'provider-level':
+      return task.provider_license_id || task.provider_email || task.id
+    case 'patient-level':
+      return task.patient_id || task.id
+    case 'system-level':
+      return task.system_name || task.id
+    case 'community-level':
+      return task.community_resource_name || task.id
+    default:
+      return task.id
+  }
+}
+
+/**
+ * Get entity name based on task category
+ */
+export function getTaskEntityName(task: Task): string {
+  switch (task.category) {
+    case 'provider-level':
+      return task.provider_name || 'Provider Task'
+    case 'patient-level':
+      return task.patient_name || 'Patient Task'
+    case 'system-level':
+      return task.system_name || 'System Task'
+    case 'community-level':
+      return task.community_resource_name || 'Community Task'
+    default:
+      return 'Task'
+  }
+}
+
+/**
+ * Get entity contact/location info based on task category
+ */
+export function getTaskEntityDetails(task: Task): string | null {
+  switch (task.category) {
+    case 'provider-level':
+      return task.provider_organization || task.provider_specialty || null
+    case 'patient-level':
+      return task.patient_contact || null
+    case 'system-level':
+      return task.system_location || null
+    case 'community-level':
+      return task.community_location || null
+    default:
+      return null
+  }
+}
+
+/**
+ * Get entity task summaries for aggregate view (all categories)
+ */
+export async function fetchEntityTaskSummaries(
+  timeFilter: TimeFilter = '1week'
+): Promise<EntityTaskSummary[]> {
+  try {
+    const tasks = await fetchAggregatePendingTasks(timeFilter)
+
+    // Group tasks by entity
+    const entityMap = new Map<string, Task[]>()
+
+    tasks.forEach((task) => {
+      const entityId = getTaskEntityId(task)
+      if (!entityMap.has(entityId)) {
+        entityMap.set(entityId, [])
+      }
+      entityMap.get(entityId)!.push(task)
+    })
+
+    const now = new Date()
+    const summaries: EntityTaskSummary[] = []
+
+    entityMap.forEach((entityTasks, entityId) => {
+      const firstTask = entityTasks[0]
+      const entityName = getTaskEntityName(firstTask)
+      const entityDetails = getTaskEntityDetails(firstTask)
+
+      const summary: EntityTaskSummary = {
+        entityId,
+        entityName,
+        entityType: firstTask.category,
+        totalTasks: entityTasks.length,
+        pendingTasks: entityTasks.filter(t =>
+          ['pending', 'acknowledged', 'scheduled', 'todo'].includes(t.status)
+        ).length,
+        completedTasks: entityTasks.filter(t => t.status === 'completed').length,
+        overdueTasks: entityTasks.filter(t =>
+          t.due_date &&
+          new Date(t.due_date) < now &&
+          t.status !== 'completed'
+        ).length,
+        highPriorityTasks: entityTasks.filter(t => t.priority === 'high').length,
+        entityDetails: entityDetails || undefined,
+      }
+
+      summaries.push(summary)
+    })
+
+    // Sort by number of pending tasks (descending)
+    return summaries.sort((a, b) => b.pendingTasks - a.pendingTasks)
+  } catch (error) {
+    console.error('Error in fetchEntityTaskSummaries:', error)
+    return []
+  }
 }
