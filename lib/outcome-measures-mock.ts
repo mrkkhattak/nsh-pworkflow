@@ -373,6 +373,15 @@ export interface SmokingStatusDistribution {
   currentPercent: number;
 }
 
+export interface RiskLevelDistribution {
+  low: number;
+  medium: number;
+  high: number;
+  lowPercent: number;
+  mediumPercent: number;
+  highPercent: number;
+}
+
 export function getSmokingStatusDistribution(quarter: string, year: number): SmokingStatusDistribution {
   const quarterData = quarterlyOutcomeData.filter(d => d.quarter === quarter && d.year === year);
   const total = quarterData.length;
@@ -409,4 +418,33 @@ export function getSmokingStatusLabel(status: 'never' | 'former' | 'current'): s
     current: 'Current Smoker',
   };
   return labels[status];
+}
+
+export function getRiskLevelDistribution(quarter: string, year: number): RiskLevelDistribution {
+  const quarterData = quarterlyOutcomeData.filter(d => d.quarter === quarter && d.year === year);
+  const total = quarterData.length;
+
+  if (total === 0) {
+    return {
+      low: 0,
+      medium: 0,
+      high: 0,
+      lowPercent: 0,
+      mediumPercent: 0,
+      highPercent: 0,
+    };
+  }
+
+  const lowCount = quarterData.filter(d => d.riskLevel === 'low').length;
+  const mediumCount = quarterData.filter(d => d.riskLevel === 'medium').length;
+  const highCount = quarterData.filter(d => d.riskLevel === 'high').length;
+
+  return {
+    low: lowCount,
+    medium: mediumCount,
+    high: highCount,
+    lowPercent: Math.round((lowCount / total) * 100),
+    mediumPercent: Math.round((mediumCount / total) * 100),
+    highPercent: Math.round((highCount / total) * 100),
+  };
 }

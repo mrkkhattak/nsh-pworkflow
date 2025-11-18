@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { TrendingDown, TrendingUp, Activity, Heart, AlertCircle, Users, Cigarette, CigaretteOff, UserCheck, ThumbsUp } from 'lucide-react';
+import { TrendingDown, TrendingUp, Activity, Heart, AlertCircle, Users, Cigarette, CigaretteOff, UserCheck, ThumbsUp, ShieldAlert, ShieldCheck } from 'lucide-react';
 import {
   getCurrentQuarterStats,
   getPreviousQuarterStats,
@@ -16,6 +16,7 @@ import {
   getPatientOutcomes,
   getPatientOutcomeTrends,
   quarterlyOutcomeData,
+  getRiskLevelDistribution,
 } from '@/lib/outcome-measures-mock';
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Legend, Bar, BarChart, ReferenceLine } from 'recharts';
 
@@ -87,6 +88,8 @@ export function OutcomeMeasuresView() {
 
   const isPatientView = patientFilter !== 'all';
   const selectedPatientData = isPatientView ? getPatientOutcomes(patientFilter).find(o => o.quarter === 'Q3' && o.year === 2025) : null;
+
+  const riskDistribution = getRiskLevelDistribution('Q3', 2025);
 
   const readmissionsChange = getQuarterOverQuarterChange(currentStats.avgReadmissions, previousStats.avgReadmissions);
   const hospitalizationsChange = getQuarterOverQuarterChange(currentStats.avgHospitalizations, previousStats.avgHospitalizations);
@@ -207,40 +210,77 @@ export function OutcomeMeasuresView() {
         </Button>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Smoking Status Distribution</CardTitle>
-          <CardDescription>Current quarter patient smoking status breakdown</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-3 gap-4">
-            <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
-              <CigaretteOff className="h-8 w-8 text-green-600" />
-              <div>
-                <div className="text-2xl font-bold text-green-900">{smokingDistribution.neverPercent}%</div>
-                <div className="text-sm text-green-700">Never Smoked</div>
-                <div className="text-xs text-green-600">{smokingDistribution.never} patients</div>
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Risk Level Distribution</CardTitle>
+            <CardDescription>Current quarter patient risk level breakdown</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <ShieldCheck className="h-8 w-8 text-green-600" />
+                <div>
+                  <div className="text-2xl font-bold text-green-900">{riskDistribution.lowPercent}%</div>
+                  <div className="text-sm text-green-700">Low Risk</div>
+                  <div className="text-xs text-green-600">{riskDistribution.low} patients</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <AlertCircle className="h-8 w-8 text-yellow-600" />
+                <div>
+                  <div className="text-2xl font-bold text-yellow-900">{riskDistribution.mediumPercent}%</div>
+                  <div className="text-sm text-yellow-700">Medium Risk</div>
+                  <div className="text-xs text-yellow-600">{riskDistribution.medium} patients</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <ShieldAlert className="h-8 w-8 text-red-600" />
+                <div>
+                  <div className="text-2xl font-bold text-red-900">{riskDistribution.highPercent}%</div>
+                  <div className="text-sm text-red-700">High Risk</div>
+                  <div className="text-xs text-red-600">{riskDistribution.high} patients</div>
+                </div>
               </div>
             </div>
-            <div className="flex items-center gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <CigaretteOff className="h-8 w-8 text-blue-600" />
-              <div>
-                <div className="text-2xl font-bold text-blue-900">{smokingDistribution.formerPercent}%</div>
-                <div className="text-sm text-blue-700">Former Smoker</div>
-                <div className="text-xs text-blue-600">{smokingDistribution.former} patients</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Smoking Status Distribution</CardTitle>
+            <CardDescription>Current quarter patient smoking status breakdown</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <CigaretteOff className="h-8 w-8 text-green-600" />
+                <div>
+                  <div className="text-2xl font-bold text-green-900">{smokingDistribution.neverPercent}%</div>
+                  <div className="text-sm text-green-700">Never Smoked</div>
+                  <div className="text-xs text-green-600">{smokingDistribution.never} patients</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <CigaretteOff className="h-8 w-8 text-blue-600" />
+                <div>
+                  <div className="text-2xl font-bold text-blue-900">{smokingDistribution.formerPercent}%</div>
+                  <div className="text-sm text-blue-700">Former Smoker</div>
+                  <div className="text-xs text-blue-600">{smokingDistribution.former} patients</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <Cigarette className="h-8 w-8 text-red-600" />
+                <div>
+                  <div className="text-2xl font-bold text-red-900">{smokingDistribution.currentPercent}%</div>
+                  <div className="text-sm text-red-700">Current Smoker</div>
+                  <div className="text-xs text-red-600">{smokingDistribution.current} patients</div>
+                </div>
               </div>
             </div>
-            <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <Cigarette className="h-8 w-8 text-red-600" />
-              <div>
-                <div className="text-2xl font-bold text-red-900">{smokingDistribution.currentPercent}%</div>
-                <div className="text-sm text-red-700">Current Smoker</div>
-                <div className="text-xs text-red-600">{smokingDistribution.current} patients</div>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
 
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
