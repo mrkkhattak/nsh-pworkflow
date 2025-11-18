@@ -248,8 +248,13 @@ export function OutcomeMeasuresView() {
             <CardTitle>Readmissions Trend</CardTitle>
             <CardDescription>{isPatientView ? '30-day readmissions over time' : 'Average 30-day readmissions per patient over time'}</CardDescription>
             {isPatientView && selectedPatientData && (
-              <div className="mt-2 text-sm font-medium">
-                Risk Category: {selectedPatientData.riskLevel.toUpperCase()}
+              <div className="mt-2 space-y-1">
+                <div className="text-sm font-medium">
+                  Risk Category: {selectedPatientData.riskLevel.toUpperCase()}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Current Score: {selectedPatientData.readmissions.toFixed(1)} events
+                </div>
               </div>
             )}
           </CardHeader>
@@ -284,8 +289,13 @@ export function OutcomeMeasuresView() {
             <CardTitle>Hospitalizations Trend</CardTitle>
             <CardDescription>{isPatientView ? 'Hospitalizations over time' : 'Average hospitalizations per patient over time'}</CardDescription>
             {isPatientView && selectedPatientData && (
-              <div className="mt-2 text-sm font-medium">
-                Risk Category: {selectedPatientData.riskLevel.toUpperCase()}
+              <div className="mt-2 space-y-1">
+                <div className="text-sm font-medium">
+                  Risk Category: {selectedPatientData.riskLevel.toUpperCase()}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Current Score: {selectedPatientData.hospitalizations.toFixed(1)} events
+                </div>
               </div>
             )}
           </CardHeader>
@@ -320,8 +330,13 @@ export function OutcomeMeasuresView() {
             <CardTitle>ED Visits Trend</CardTitle>
             <CardDescription>{isPatientView ? 'Emergency department visits over time' : 'Average emergency department visits per patient over time'}</CardDescription>
             {isPatientView && selectedPatientData && (
-              <div className="mt-2 text-sm font-medium">
-                Risk Category: {selectedPatientData.riskLevel.toUpperCase()}
+              <div className="mt-2 space-y-1">
+                <div className="text-sm font-medium">
+                  Risk Category: {selectedPatientData.riskLevel.toUpperCase()}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Current Score: {selectedPatientData.edVisits.toFixed(1)} visits
+                </div>
               </div>
             )}
           </CardHeader>
@@ -356,8 +371,13 @@ export function OutcomeMeasuresView() {
             <CardTitle>Functional Capacity Trend</CardTitle>
             <CardDescription>{isPatientView ? 'Functional capacity score over time (higher is better)' : 'Average functional capacity score over time (higher is better)'}</CardDescription>
             {isPatientView && selectedPatientData && (
-              <div className="mt-2 text-sm font-medium">
-                Risk Category: {selectedPatientData.riskLevel.toUpperCase()}
+              <div className="mt-2 space-y-1">
+                <div className="text-sm font-medium">
+                  Risk Category: {selectedPatientData.riskLevel.toUpperCase()}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Current Score: {selectedPatientData.functionalCapacity.toFixed(1)}
+                </div>
               </div>
             )}
           </CardHeader>
@@ -392,8 +412,13 @@ export function OutcomeMeasuresView() {
             <CardTitle>Patient Engagement Trend</CardTitle>
             <CardDescription>{isPatientView ? 'Patient engagement score over time (lower is better)' : 'Average patient engagement score over time (lower is better)'}</CardDescription>
             {isPatientView && selectedPatientData && (
-              <div className="mt-2 text-sm font-medium">
-                Risk Category: {selectedPatientData.riskLevel.toUpperCase()}
+              <div className="mt-2 space-y-1">
+                <div className="text-sm font-medium">
+                  Risk Category: {selectedPatientData.riskLevel.toUpperCase()}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Current Score: {selectedPatientData.engagementScore.toFixed(1)}
+                </div>
               </div>
             )}
           </CardHeader>
@@ -428,8 +453,13 @@ export function OutcomeMeasuresView() {
             <CardTitle>Patient Satisfaction Trend</CardTitle>
             <CardDescription>{isPatientView ? 'Patient satisfaction score over time (lower is better)' : 'Average patient satisfaction score over time (lower is better)'}</CardDescription>
             {isPatientView && selectedPatientData && (
-              <div className="mt-2 text-sm font-medium">
-                Risk Category: {selectedPatientData.riskLevel.toUpperCase()}
+              <div className="mt-2 space-y-1">
+                <div className="text-sm font-medium">
+                  Risk Category: {selectedPatientData.riskLevel.toUpperCase()}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Current Score: {selectedPatientData.satisfactionScore.toFixed(1)}
+                </div>
               </div>
             )}
           </CardHeader>
