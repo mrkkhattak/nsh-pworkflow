@@ -13,8 +13,11 @@ import {
   cohortStatistics,
   getSmokingStatusDistribution,
   getSmokingStatusLabel,
+  getPatientOutcomes,
+  getPatientOutcomeTrends,
+  quarterlyOutcomeData,
 } from '@/lib/outcome-measures-mock';
-import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Legend, Bar, BarChart } from 'recharts';
+import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Legend, Bar, BarChart, ReferenceLine } from 'recharts';
 
 interface MetricCardProps {
   title: string;
@@ -71,6 +74,7 @@ export function OutcomeMeasuresView() {
   const [dimensionFilter, setDimensionFilter] = useState('all');
   const [riskFilter, setRiskFilter] = useState('all');
   const [smokingFilter, setSmokingFilter] = useState('all');
+  const [patientFilter, setPatientFilter] = useState('all');
 
   const currentStats = getCurrentQuarterStats();
   const previousStats = getPreviousQuarterStats();
@@ -79,6 +83,11 @@ export function OutcomeMeasuresView() {
     return <div>Loading...</div>;
   }
 
+  const allPatients = Array.from(new Set(quarterlyOutcomeData.map(d => ({ id: d.patientId, name: d.patientName })).map(p => JSON.stringify(p)))).map(p => JSON.parse(p));
+
+  const isPatientView = patientFilter !== 'all';
+  const selectedPatientData = isPatientView ? getPatientOutcomes(patientFilter).find(o => o.quarter === 'Q3' && o.year === 2025) : null;
+
   const readmissionsChange = getQuarterOverQuarterChange(currentStats.avgReadmissions, previousStats.avgReadmissions);
   const hospitalizationsChange = getQuarterOverQuarterChange(currentStats.avgHospitalizations, previousStats.avgHospitalizations);
   const edVisitsChange = getQuarterOverQuarterChange(currentStats.avgEdVisits, previousStats.avgEdVisits);
@@ -86,7 +95,7 @@ export function OutcomeMeasuresView() {
   const engagementScoreChange = getQuarterOverQuarterChange(currentStats.avgEngagementScore, previousStats.avgEngagementScore);
   const satisfactionScoreChange = getQuarterOverQuarterChange(currentStats.avgSatisfactionScore, previousStats.avgSatisfactionScore);
 
-  const trendData = getQuarterlyTrends(2024, 'Q1', 2025, 'Q3');
+  const trendData = isPatientView ? getPatientOutcomeTrends(patientFilter, 2024, 'Q1', 2025, 'Q3') : getQuarterlyTrends(2024, 'Q1', 2025, 'Q3');
   const smokingDistribution = getSmokingStatusDistribution('Q3', 2025);
 
   return (
@@ -174,6 +183,21 @@ export function OutcomeMeasuresView() {
           </Select>
         </div>
 
+        <div className="flex items-center gap-2">
+          <label className="text-sm font-medium">Patient:</label>
+          <Select value={patientFilter} onValueChange={setPatientFilter}>
+            <SelectTrigger className="w-48">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Patients (Cohort)</SelectItem>
+              {allPatients.map(patient => (
+                <SelectItem key={patient.id} value={patient.id}>{patient.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
         <Button
           variant={comparisonMode ? 'default' : 'outline'}
           onClick={() => setComparisonMode(!comparisonMode)}
@@ -222,7 +246,21 @@ export function OutcomeMeasuresView() {
         <Card>
           <CardHeader>
             <CardTitle>Readmissions Trend</CardTitle>
-            <CardDescription>Average 30-day readmissions per patient over time</CardDescription>
+            <CardDescription>{isPatientView ? '30-day readmissions over time' : 'Average 30-day readmissions per patient over time'}</CardDescription>
+            {isPatientView && selectedPatientData && (
+              <div className="flex items-center gap-4 mt-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Risk Category:</span>
+                  <Badge variant={selectedPatientData.riskLevel === 'high' ? 'destructive' : selectedPatientData.riskLevel === 'medium' ? 'secondary' : 'outline'}>
+                    {selectedPatientData.riskLevel.toUpperCase()}
+                  </Badge>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Current Score:</span>
+                  <span className="text-lg font-semibold">{selectedPatientData.readmissions.toFixed(1)} events</span>
+                </div>
+              </div>
+            )}
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -242,7 +280,9 @@ export function OutcomeMeasuresView() {
                     return d.toLocaleDateString();
                   }}
                 />
-                <Line type="monotone" dataKey="readmissions" stroke="#ef4444" strokeWidth={2} dot={{ r: 4 }} />
+                {isPatientView && <Legend />}
+                {isPatientView && <ReferenceLine y={currentStats.benchmark.readmissions} stroke="#94a3b8" strokeDasharray="5 5" label="Benchmark" />}
+                <Line type="monotone" dataKey="readmissions" stroke="#ef4444" strokeWidth={2} dot={{ r: 4 }} name={isPatientView ? 'Patient' : 'Cohort Avg'} />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
@@ -251,7 +291,21 @@ export function OutcomeMeasuresView() {
         <Card>
           <CardHeader>
             <CardTitle>Hospitalizations Trend</CardTitle>
-            <CardDescription>Average hospitalizations per patient over time</CardDescription>
+            <CardDescription>{isPatientView ? 'Hospitalizations over time' : 'Average hospitalizations per patient over time'}</CardDescription>
+            {isPatientView && selectedPatientData && (
+              <div className="flex items-center gap-4 mt-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Risk Category:</span>
+                  <Badge variant={selectedPatientData.riskLevel === 'high' ? 'destructive' : selectedPatientData.riskLevel === 'medium' ? 'secondary' : 'outline'}>
+                    {selectedPatientData.riskLevel.toUpperCase()}
+                  </Badge>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Current Score:</span>
+                  <span className="text-lg font-semibold">{selectedPatientData.hospitalizations.toFixed(1)} events</span>
+                </div>
+              </div>
+            )}
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -271,7 +325,9 @@ export function OutcomeMeasuresView() {
                     return d.toLocaleDateString();
                   }}
                 />
-                <Line type="monotone" dataKey="hospitalizations" stroke="#f59e0b" strokeWidth={2} dot={{ r: 4 }} />
+                {isPatientView && <Legend />}
+                {isPatientView && <ReferenceLine y={currentStats.benchmark.hospitalizations} stroke="#94a3b8" strokeDasharray="5 5" label="Benchmark" />}
+                <Line type="monotone" dataKey="hospitalizations" stroke="#f59e0b" strokeWidth={2} dot={{ r: 4 }} name={isPatientView ? 'Patient' : 'Cohort Avg'} />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
@@ -280,7 +336,21 @@ export function OutcomeMeasuresView() {
         <Card>
           <CardHeader>
             <CardTitle>ED Visits Trend</CardTitle>
-            <CardDescription>Average emergency department visits per patient over time</CardDescription>
+            <CardDescription>{isPatientView ? 'Emergency department visits over time' : 'Average emergency department visits per patient over time'}</CardDescription>
+            {isPatientView && selectedPatientData && (
+              <div className="flex items-center gap-4 mt-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Risk Category:</span>
+                  <Badge variant={selectedPatientData.riskLevel === 'high' ? 'destructive' : selectedPatientData.riskLevel === 'medium' ? 'secondary' : 'outline'}>
+                    {selectedPatientData.riskLevel.toUpperCase()}
+                  </Badge>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Current Score:</span>
+                  <span className="text-lg font-semibold">{selectedPatientData.edVisits.toFixed(1)} visits</span>
+                </div>
+              </div>
+            )}
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -300,7 +370,9 @@ export function OutcomeMeasuresView() {
                     return d.toLocaleDateString();
                   }}
                 />
-                <Line type="monotone" dataKey="edVisits" stroke="#3b82f6" strokeWidth={2} dot={{ r: 4 }} />
+                {isPatientView && <Legend />}
+                {isPatientView && <ReferenceLine y={currentStats.benchmark.edVisits} stroke="#94a3b8" strokeDasharray="5 5" label="Benchmark" />}
+                <Line type="monotone" dataKey="edVisits" stroke="#3b82f6" strokeWidth={2} dot={{ r: 4 }} name={isPatientView ? 'Patient' : 'Cohort Avg'} />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
@@ -309,7 +381,21 @@ export function OutcomeMeasuresView() {
         <Card>
           <CardHeader>
             <CardTitle>Functional Capacity Trend</CardTitle>
-            <CardDescription>Average functional capacity score over time (higher is better)</CardDescription>
+            <CardDescription>{isPatientView ? 'Functional capacity score over time (higher is better)' : 'Average functional capacity score over time (higher is better)'}</CardDescription>
+            {isPatientView && selectedPatientData && (
+              <div className="flex items-center gap-4 mt-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Risk Category:</span>
+                  <Badge variant={selectedPatientData.riskLevel === 'high' ? 'destructive' : selectedPatientData.riskLevel === 'medium' ? 'secondary' : 'outline'}>
+                    {selectedPatientData.riskLevel.toUpperCase()}
+                  </Badge>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Current Score:</span>
+                  <span className="text-lg font-semibold">{selectedPatientData.functionalCapacity.toFixed(1)} score</span>
+                </div>
+              </div>
+            )}
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -329,7 +415,9 @@ export function OutcomeMeasuresView() {
                     return d.toLocaleDateString();
                   }}
                 />
-                <Line type="monotone" dataKey="functionalCapacity" stroke="#10b981" strokeWidth={2} dot={{ r: 4 }} />
+                {isPatientView && <Legend />}
+                {isPatientView && <ReferenceLine y={currentStats.benchmark.functionalCapacity} stroke="#94a3b8" strokeDasharray="5 5" label="Benchmark" />}
+                <Line type="monotone" dataKey="functionalCapacity" stroke="#10b981" strokeWidth={2} dot={{ r: 4 }} name={isPatientView ? 'Patient' : 'Cohort Avg'} />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
@@ -338,7 +426,21 @@ export function OutcomeMeasuresView() {
         <Card>
           <CardHeader>
             <CardTitle>Patient Engagement Trend</CardTitle>
-            <CardDescription>Average patient engagement score over time (lower is better)</CardDescription>
+            <CardDescription>{isPatientView ? 'Patient engagement score over time (lower is better)' : 'Average patient engagement score over time (lower is better)'}</CardDescription>
+            {isPatientView && selectedPatientData && (
+              <div className="flex items-center gap-4 mt-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Risk Category:</span>
+                  <Badge variant={selectedPatientData.riskLevel === 'high' ? 'destructive' : selectedPatientData.riskLevel === 'medium' ? 'secondary' : 'outline'}>
+                    {selectedPatientData.riskLevel.toUpperCase()}
+                  </Badge>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Current Score:</span>
+                  <span className="text-lg font-semibold">{selectedPatientData.engagementScore.toFixed(1)} score</span>
+                </div>
+              </div>
+            )}
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -358,7 +460,9 @@ export function OutcomeMeasuresView() {
                     return d.toLocaleDateString();
                   }}
                 />
-                <Line type="monotone" dataKey="engagementScore" stroke="#f43f5e" strokeWidth={2} dot={{ r: 4 }} />
+                {isPatientView && <Legend />}
+                {isPatientView && <ReferenceLine y={currentStats.benchmark.engagementScore} stroke="#94a3b8" strokeDasharray="5 5" label="Benchmark" />}
+                <Line type="monotone" dataKey="engagementScore" stroke="#f43f5e" strokeWidth={2} dot={{ r: 4 }} name={isPatientView ? 'Patient' : 'Cohort Avg'} />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
@@ -367,7 +471,21 @@ export function OutcomeMeasuresView() {
         <Card>
           <CardHeader>
             <CardTitle>Patient Satisfaction Trend</CardTitle>
-            <CardDescription>Average patient satisfaction score over time (lower is better)</CardDescription>
+            <CardDescription>{isPatientView ? 'Patient satisfaction score over time (lower is better)' : 'Average patient satisfaction score over time (lower is better)'}</CardDescription>
+            {isPatientView && selectedPatientData && (
+              <div className="flex items-center gap-4 mt-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Risk Category:</span>
+                  <Badge variant={selectedPatientData.riskLevel === 'high' ? 'destructive' : selectedPatientData.riskLevel === 'medium' ? 'secondary' : 'outline'}>
+                    {selectedPatientData.riskLevel.toUpperCase()}
+                  </Badge>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Current Score:</span>
+                  <span className="text-lg font-semibold">{selectedPatientData.satisfactionScore.toFixed(1)} score</span>
+                </div>
+              </div>
+            )}
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -387,7 +505,9 @@ export function OutcomeMeasuresView() {
                     return d.toLocaleDateString();
                   }}
                 />
-                <Line type="monotone" dataKey="satisfactionScore" stroke="#14b8a6" strokeWidth={2} dot={{ r: 4 }} />
+                {isPatientView && <Legend />}
+                {isPatientView && <ReferenceLine y={currentStats.benchmark.satisfactionScore} stroke="#94a3b8" strokeDasharray="5 5" label="Benchmark" />}
+                <Line type="monotone" dataKey="satisfactionScore" stroke="#14b8a6" strokeWidth={2} dot={{ r: 4 }} name={isPatientView ? 'Patient' : 'Cohort Avg'} />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
