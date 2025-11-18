@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { CohortPatientListDialog } from "@/components/cohort-patient-list-dialog"
+import { RiskDistributionTrends } from "@/components/risk-distribution-trends"
 import {
   LineChart,
   Line,
@@ -559,8 +560,11 @@ export function AnalyticsCohortManagement() {
         </TabsList>
 
         <TabsContent value="cohorts">
-          {/* Cohort Heatmap */}
-          <Card>
+          <div className="space-y-6">
+            <RiskDistributionTrends timeframe={selectedTimeframe} cohortFilter={selectedCohort} />
+
+            {/* Cohort Heatmap */}
+            <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
@@ -909,6 +913,7 @@ export function AnalyticsCohortManagement() {
               </div>
             </CardContent>
           </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="trends">
