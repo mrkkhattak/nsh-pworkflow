@@ -1,9 +1,11 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export const supabase = supabaseUrl && supabaseAnonKey
+  ? createClient(supabaseUrl, supabaseAnonKey)
+  : null
 
 export type TaskStatus =
   | 'pending'
@@ -143,6 +145,8 @@ export function getDateRange(timeFilter: TimeFilter): { startDate: Date; endDate
 export async function fetchAggregatePendingTasks(
   timeFilter: TimeFilter = '1week'
 ): Promise<Task[]> {
+  if (!supabase) return []
+
   try {
     const { startDate, endDate } = getDateRange(timeFilter)
 
@@ -173,6 +177,8 @@ export async function fetchPatientTasks(
   patientId: string,
   timeFilter: TimeFilter = '1week'
 ): Promise<Task[]> {
+  if (!supabase) return []
+
   try {
     const { startDate, endDate } = getDateRange(timeFilter)
 
@@ -203,6 +209,8 @@ export async function fetchEntityTasks(
   entityId: string,
   timeFilter: TimeFilter = '1week'
 ): Promise<Task[]> {
+  if (!supabase) return []
+
   try {
     const { startDate, endDate } = getDateRange(timeFilter)
 
@@ -239,6 +247,8 @@ export async function fetchTasks(filters: {
   status?: TaskStatus
   priority?: TaskPriority
 }): Promise<Task[]> {
+  if (!supabase) return []
+
   try {
     const { timeFilter = '1week', patientId, category, status, priority } = filters
     const { startDate, endDate } = getDateRange(timeFilter)
@@ -394,6 +404,8 @@ export async function updateTaskStatus(
   taskId: string,
   newStatus: TaskStatus
 ): Promise<boolean> {
+  if (!supabase) return false
+
   try {
     const { error } = await supabase
       .from('tasks')

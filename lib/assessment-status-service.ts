@@ -1,9 +1,11 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export const supabase = supabaseUrl && supabaseAnonKey
+  ? createClient(supabaseUrl, supabaseAnonKey)
+  : null
 
 export interface AssessmentStatusCounts {
   completed: number
@@ -42,6 +44,8 @@ export interface AssessmentStatusMetrics {
  * Fetch overall assessment status counts
  */
 export async function fetchAssessmentStatusCounts(): Promise<AssessmentStatusCounts> {
+  if (!supabase) return generateMockStatusCounts()
+
   try {
     const { data, error } = await supabase
       .from('scheduled_assessments')
@@ -80,6 +84,8 @@ export async function fetchAssessmentStatusCounts(): Promise<AssessmentStatusCou
  * Fetch assessment status metrics including unique patients with completed assessments
  */
 export async function fetchAssessmentStatusMetrics(): Promise<AssessmentStatusMetrics> {
+  if (!supabase) return generateMockMetrics()
+
   try {
     // Fetch all assessments
     const { data: allAssessments, error: allError } = await supabase

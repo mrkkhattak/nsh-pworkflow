@@ -2,6 +2,8 @@ import { TaskAggregateView } from "@/components/task-aggregate-view"
 import { TaskKanbanBoard } from "@/components/task-kanban-board"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
+export const dynamic = 'force-dynamic'
+
 export default function TasksPage() {
   return (
     <Tabs defaultValue="aggregate" className="space-y-6">
