@@ -1,9 +1,11 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export const supabase = supabaseUrl && supabaseAnonKey
+  ? createClient(supabaseUrl, supabaseAnonKey)
+  : null
 
 export type RiskCategory = 'very_high' | 'high' | 'moderate' | 'low'
 
@@ -61,6 +63,8 @@ export async function fetchRiskTrendData(
   timeframe: '1month' | '3months' | '6months' | '1year',
   cohortFilter: string = 'all'
 ): Promise<RiskTrendData[]> {
+  if (!supabase) return generateMockRiskTrendData(timeframe)
+
   const monthsMap = {
     '1month': 1,
     '3months': 3,

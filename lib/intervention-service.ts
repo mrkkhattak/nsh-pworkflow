@@ -1,9 +1,11 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
-const supabase = createClient(supabaseUrl, supabaseAnonKey)
+const supabase = supabaseUrl && supabaseAnonKey
+  ? createClient(supabaseUrl, supabaseAnonKey)
+  : null
 
 export interface Intervention {
   id: string
@@ -44,6 +46,8 @@ export interface DimensionIntervention {
 }
 
 export async function getInterventionsByGoalId(goalId: string): Promise<Intervention[]> {
+  if (!supabase) return []
+
   const { data, error } = await supabase
     .from('interventions')
     .select('*')
@@ -59,6 +63,8 @@ export async function getInterventionsByGoalId(goalId: string): Promise<Interven
 }
 
 export async function getInterventionsByPatientId(patientId: number): Promise<Intervention[]> {
+  if (!supabase) return []
+
   const { data, error } = await supabase
     .from('interventions')
     .select('*')
@@ -74,6 +80,8 @@ export async function getInterventionsByPatientId(patientId: number): Promise<In
 }
 
 export async function getDimensionInterventionsByGoalId(goalId: string): Promise<DimensionIntervention[]> {
+  if (!supabase) return []
+
   const { data, error } = await supabase
     .from('dimension_interventions')
     .select('*')
@@ -89,6 +97,8 @@ export async function getDimensionInterventionsByGoalId(goalId: string): Promise
 }
 
 export async function getDimensionInterventionsByPatientId(patientId: number): Promise<DimensionIntervention[]> {
+  if (!supabase) return []
+
   const { data, error } = await supabase
     .from('dimension_interventions')
     .select('*')
@@ -104,6 +114,8 @@ export async function getDimensionInterventionsByPatientId(patientId: number): P
 }
 
 export async function createIntervention(intervention: Omit<Intervention, 'id' | 'created_at' | 'updated_at'>): Promise<Intervention | null> {
+  if (!supabase) return null
+
   const { data, error } = await supabase
     .from('interventions')
     .insert([intervention])
@@ -119,6 +131,8 @@ export async function createIntervention(intervention: Omit<Intervention, 'id' |
 }
 
 export async function createDimensionIntervention(intervention: Omit<DimensionIntervention, 'id' | 'created_date' | 'updated_at'>): Promise<DimensionIntervention | null> {
+  if (!supabase) return null
+
   const { data, error } = await supabase
     .from('dimension_interventions')
     .insert([intervention])
@@ -134,6 +148,8 @@ export async function createDimensionIntervention(intervention: Omit<DimensionIn
 }
 
 export async function updateIntervention(id: string, updates: Partial<Intervention>): Promise<Intervention | null> {
+  if (!supabase) return null
+
   const { data, error } = await supabase
     .from('interventions')
     .update(updates)
@@ -150,6 +166,8 @@ export async function updateIntervention(id: string, updates: Partial<Interventi
 }
 
 export async function updateDimensionIntervention(id: string, updates: Partial<DimensionIntervention>): Promise<DimensionIntervention | null> {
+  if (!supabase) return null
+
   const { data, error } = await supabase
     .from('dimension_interventions')
     .update(updates)
