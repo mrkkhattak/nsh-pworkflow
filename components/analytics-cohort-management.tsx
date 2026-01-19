@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -9,7 +9,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { CohortPatientListDialog } from "@/components/cohort-patient-list-dialog"
-import { RiskDistributionTrends } from "@/components/risk-distribution-trends"
 import {
   LineChart,
   Line,
@@ -52,9 +51,7 @@ import {
   DollarSign,
   ChevronDown,
   ChevronUp,
-  ClipboardCheck,
 } from "lucide-react"
-import { fetchAssessmentStatusMetrics, type AssessmentStatusMetrics } from "@/lib/assessment-status-service"
 import { healthDimensionsConfig } from "@/lib/nsh-assessment-mock"
 
 const dimensionIcons = {
@@ -311,25 +308,6 @@ export function AnalyticsCohortManagement() {
     dimensionColor: string
     performanceTier: "high" | "moderate" | "low"
   } | null>(null)
-  const [assessmentMetrics, setAssessmentMetrics] = useState<AssessmentStatusMetrics | null>(null)
-  const [loadingMetrics, setLoadingMetrics] = useState(true)
-
-  useEffect(() => {
-    async function loadAssessmentMetrics() {
-      try {
-        setLoadingMetrics(true)
-        const metrics = await fetchAssessmentStatusMetrics()
-        setAssessmentMetrics(metrics)
-      } catch (error) {
-        console.error("Failed to load assessment metrics:", error)
-      } finally {
-        setLoadingMetrics(false)
-      }
-    }
-    
-    loadAssessmentMetrics()
-  }, [])
-
 
   const groupedDimensions = groupDimensionsByPerformance(cohortData.dimensions)
 
@@ -519,7 +497,7 @@ export function AnalyticsCohortManagement() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <MetricCard
           title="Total Patients"
           value={cohortData.overview.totalPatients}
@@ -568,19 +546,6 @@ export function AnalyticsCohortManagement() {
           comparison={{ label: "vs last quarter", value: 4, type: "increase" }}
           trend="up"
         />
-        <MetricCard
-          title="Completed Assessments"
-          value={assessmentMetrics?.uniquePatientsCompleted ?? 0}
-          subtitle={`${assessmentMetrics?.totalCompletedAssessments ?? 0} total assessments`}
-          icon={ClipboardCheck}
-          sparklineData={[68, 72, 75, 78, 81, assessmentMetrics?.uniquePatientsCompleted ?? 84]}
-          comparison={{ 
-            label: "vs last month", 
-            value: assessmentMetrics?.trendData.change ?? 0, 
-            type: (assessmentMetrics?.trendData.change ?? 0) > 0 ? "increase" : (assessmentMetrics?.trendData.change ?? 0) < 0 ? "decrease" : "neutral"
-          }}
-          trend={(assessmentMetrics?.trendData.change ?? 0) > 0 ? "up" : (assessmentMetrics?.trendData.change ?? 0) < 0 ? "down" : "neutral"}
-        />
       </div>
 
       <Tabs defaultValue="cohorts" className="space-y-6">
@@ -594,11 +559,8 @@ export function AnalyticsCohortManagement() {
         </TabsList>
 
         <TabsContent value="cohorts">
-          <div className="space-y-6">
-            <RiskDistributionTrends timeframe={selectedTimeframe} cohortFilter={selectedCohort} />
-
-            {/* Cohort Heatmap */}
-            <Card>
+          {/* Cohort Heatmap */}
+          <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
@@ -947,7 +909,6 @@ export function AnalyticsCohortManagement() {
               </div>
             </CardContent>
           </Card>
-          </div>
         </TabsContent>
 
         <TabsContent value="trends">
