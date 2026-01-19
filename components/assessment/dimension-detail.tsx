@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { ScoreCard } from "./score-card"
 import { RiskScaleBar } from "./risk-scale-bar"
@@ -7,11 +8,16 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import type { Assessment, Patient, HealthDimension, ActionItem } from "@/lib/nsh-assessment-mock"
-import { getRiskColor, getRiskLabel, getRiskBgColor, getRiskBorderColor } from "@/lib/nsh-assessment-mock"
-import { ArrowLeft, Stethoscope, Users, Building2, TrendingUp, TrendingDown } from "lucide-react"
+import type { Assessment, Patient, HealthDimension, ActionItem, DimensionGoal } from "@/lib/nsh-assessment-mock"
+import { getRiskColor, getRiskLabel, getRiskBgColor, getRiskBorderColor, getGoalsByDimension, getActiveInterventionsByDimension } from "@/lib/nsh-assessment-mock"
+import { ArrowLeft, Stethoscope, Users, Building2, TrendingUp, TrendingDown, Target, Activity, Calendar, CheckCircle, AlertCircle } from "lucide-react"
+import { Progress } from "@/components/ui/progress"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts"
+import { AddGoalDialog } from "@/components/add-goal-dialog"
+import { AddInterventionDialog } from "@/components/add-intervention-dialog"
+import { ScheduleAssessmentDialog } from "@/components/schedule-assessment-dialog"
+import { useToast } from "@/hooks/use-toast"
 
 type Props = {
   patient: Patient
@@ -28,9 +34,22 @@ const mockTrendData = [
 
 export function DimensionDetail({ patient, assessment, dimension }: Props) {
   const router = useRouter()
+  const { toast } = useToast()
+
+  const [showAddGoalDialog, setShowAddGoalDialog] = useState(false)
+  const [showAddInterventionDialog, setShowAddInterventionDialog] = useState(false)
+  const [showScheduleAssessmentDialog, setShowScheduleAssessmentDialog] = useState(false)
+  const [newGoals, setNewGoals] = useState<DimensionGoal[]>([])
+  const [newInterventions, setNewInterventions] = useState<string[]>([])
+
+  const dimensionGoals = getGoalsByDimension(dimension.id)
+  const allGoals = [...dimensionGoals, ...newGoals]
+  const activeGoals = allGoals.filter((goal) => goal.status !== "achieved" && goal.status !== "cancelled")
+  const baseInterventions = getActiveInterventionsByDimension(dimension.id)
+  const activeInterventions = [...baseInterventions, ...newInterventions]
 
   const dimensionActionItems = assessment.actionItems.filter((item) => {
-    if (item.type === "physician" || item.type === "patient" || item.type === "community") {
+    if (item.type === "provider" || item.type === "patient" || item.type === "community") {
       return item.dimensionId === dimension.id
     }
     if (item.type === "system") {
@@ -39,7 +58,7 @@ export function DimensionDetail({ patient, assessment, dimension }: Props) {
     return false
   })
 
-  const physicianActions = dimensionActionItems.filter((item) => item.type === "physician")
+  const providerActions = dimensionActionItems.filter((item) => item.type === "provider")
   const patientActions = dimensionActionItems.filter((item) => item.type === "patient")
   const communityActions = dimensionActionItems.filter((item) => item.type === "community")
   const systemActions = dimensionActionItems.filter((item) => item.type === "system")
@@ -63,9 +82,73 @@ export function DimensionDetail({ patient, assessment, dimension }: Props) {
     },
   }
 
+  const handleAddGoal = (goalData: {
+    description: string
+    baseline: number
+    target: number
+    current: number
+    timeframe: string
+    deadline: string
+  }) => {
+    const progress = Math.round(((goalData.baseline - goalData.current) / (goalData.baseline - goalData.target)) * 100)
+    const newGoal: DimensionGoal = {
+      id: `goal-${dimension.id}-${Date.now()}`,
+      dimensionId: dimension.id,
+      dimensionName: dimension.name,
+      description: goalData.description,
+      baseline: goalData.baseline,
+      target: goalData.target,
+      current: goalData.current,
+      timeframe: goalData.timeframe,
+      deadline: goalData.deadline,
+      progress: Math.max(0, Math.min(100, progress)),
+      status: "on-track",
+      createdDate: new Date().toISOString(),
+      linkedInterventions: [],
+    }
+    setNewGoals([...newGoals, newGoal])
+    toast({
+      title: "Goal Added",
+      description: "New goal has been successfully added.",
+    })
+  }
+
+  const handleAddIntervention = (interventionData: {
+    type: "Medication" | "Lifestyle" | "Therapy" | "Social" | "Other"
+    date: string
+    endDate?: string
+    details: Record<string, string>
+    notes?: string
+    goalId?: string
+  }) => {
+    let interventionName = ""
+    switch (interventionData.type) {
+      case "Medication":
+        interventionName = `${interventionData.details.drugName} ${interventionData.details.dose}`
+        break
+      case "Lifestyle":
+        interventionName = interventionData.details.specificChange
+        break
+      case "Therapy":
+        interventionName = `${interventionData.details.type} - ${interventionData.details.frequency}`
+        break
+      case "Social":
+        interventionName = `${interventionData.details.activity} - ${interventionData.details.frequency}`
+        break
+      case "Other":
+        interventionName = interventionData.details.name
+        break
+    }
+    setNewInterventions([...newInterventions, interventionName])
+    toast({
+      title: "Intervention Added",
+      description: "New intervention has been successfully added.",
+    })
+  }
+
   return (
     <div className="space-y-8">
-      <div className="flex items-center gap-4">
+      <div className="flex items-center justify-between">
         <Button
           variant="outline"
           onClick={() => router.back()}
@@ -73,6 +156,13 @@ export function DimensionDetail({ patient, assessment, dimension }: Props) {
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Assessment
+        </Button>
+        <Button
+          onClick={() => setShowScheduleAssessmentDialog(true)}
+          className="bg-blue-600 hover:bg-blue-700"
+        >
+          <Calendar className="h-4 w-4 mr-2" />
+          Schedule Reassessment
         </Button>
       </div>
 
@@ -90,6 +180,7 @@ export function DimensionDetail({ patient, assessment, dimension }: Props) {
         statusColorClass={getRiskColor(dimension.riskLevel)}
         interpretation={dimension.interpretation}
         riskLevel={dimension.riskLevel}
+        mcid={dimension.mcid}
       />
 
       <Tabs defaultValue="subcategories" className="space-y-6">
@@ -230,23 +321,23 @@ export function DimensionDetail({ patient, assessment, dimension }: Props) {
               <CardDescription>Organized by stakeholder level</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {physicianActions.length > 0 && (
+              {providerActions.length > 0 && (
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
                     <Stethoscope className="h-4 w-4" />
-                    Physician-Level Actions
+                    Provider-Level Actions
                   </h3>
                   <div className="space-y-2">
-                    {physicianActions.map((item) => {
-                      const physItem = item as Extract<ActionItem, { type: "physician" }>
+                    {providerActions.map((item) => {
+                      const providerItem = item as Extract<ActionItem, { type: "provider" }>
                       return (
                         <div key={item.id} className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
                           <div className="flex items-start justify-between mb-1">
                             <div>
                               <span className="font-medium text-sm text-gray-900">
-                                {physItem.providerName} - {physItem.designation}
+                                {providerItem.providerName} - {providerItem.designation}
                               </span>
-                              <p className="text-xs text-gray-700 mt-1">{physItem.action}</p>
+                              <p className="text-xs text-gray-700 mt-1">{providerItem.action}</p>
                             </div>
                             <Badge
                               variant={
@@ -449,6 +540,176 @@ export function DimensionDetail({ patient, assessment, dimension }: Props) {
               </div>
             </CardContent>
           </Card>
+
+          {activeGoals.length > 0 && (
+            <Card className="bg-white border-gray-200 shadow-sm">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                      <Target className="h-5 w-5 text-blue-600" />
+                      Active Goals
+                    </CardTitle>
+                    <CardDescription>Current health improvement goals for {dimension.name}</CardDescription>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={() => setShowAddGoalDialog(true)}>
+                    Add Goal
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {activeGoals.map((goal) => {
+                  const isOverdue = new Date(goal.deadline) < new Date()
+                  const daysUntilDeadline = Math.ceil(
+                    (new Date(goal.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
+                  )
+                  const isApproaching = daysUntilDeadline > 0 && daysUntilDeadline <= 14
+
+                  return (
+                    <Card
+                      key={goal.id}
+                      className={`border ${goal.status === "at-risk" ? "border-orange-200 bg-orange-50" : "border-gray-200"}`}
+                    >
+                      <CardContent className="p-4 space-y-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <h4 className="font-semibold text-gray-900">{goal.description}</h4>
+                              {goal.status === "at-risk" && (
+                                <Badge
+                                  variant="secondary"
+                                  className="bg-orange-600 text-white"
+                                >
+                                  <AlertCircle className="h-3 w-3 mr-1" />
+                                  at risk
+                                </Badge>
+                              )}
+                            </div>
+
+                            <div className="grid grid-cols-3 gap-3 text-sm mb-3">
+                              <div>
+                                <span className="text-gray-600">Baseline:</span>
+                                <span className="ml-1 font-semibold text-gray-900">{goal.baseline}</span>
+                              </div>
+                              <div>
+                                <span className="text-gray-600">Current:</span>
+                                <span className="ml-1 font-semibold text-gray-900">{goal.current}</span>
+                              </div>
+                              <div>
+                                <span className="text-gray-600">Target:</span>
+                                <span className="ml-1 font-semibold text-gray-900">{goal.target}</span>
+                              </div>
+                            </div>
+
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between text-sm">
+                                <span className="text-gray-600">Progress</span>
+                                <span className="font-semibold text-gray-900">{goal.progress}%</span>
+                              </div>
+                              <Progress value={goal.progress} className="h-2" />
+                            </div>
+
+                            <div className="flex items-center gap-4 mt-3 text-sm">
+                              <div className="flex items-center gap-1">
+                                <Calendar className="h-4 w-4 text-gray-500" />
+                                <span className="text-gray-600">Deadline:</span>
+                                <span
+                                  className={`font-medium ${
+                                    isOverdue
+                                      ? "text-red-600"
+                                      : isApproaching
+                                        ? "text-orange-600"
+                                        : "text-gray-900"
+                                  }`}
+                                >
+                                  {new Date(goal.deadline).toLocaleDateString()}
+                                  {isOverdue && " (Overdue)"}
+                                  {isApproaching && !isOverdue && ` (${daysUntilDeadline} days)`}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Activity className="h-4 w-4 text-gray-500" />
+                                <span className="text-gray-600">Timeframe:</span>
+                                <span className="font-medium text-gray-900">{goal.timeframe}</span>
+                              </div>
+                            </div>
+
+                            {goal.linkedInterventions.length > 0 && (
+                              <div className="mt-3">
+                                <span className="text-sm text-gray-600 mb-1 block">Linked Interventions:</span>
+                                <div className="flex flex-wrap gap-2">
+                                  {goal.linkedInterventions.map((intervention, idx) => (
+                                    <Badge key={idx} variant="outline" className="text-xs">
+                                      {intervention}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )
+                })}
+              </CardContent>
+            </Card>
+          )}
+
+          {activeInterventions.length > 0 && (
+            <Card className="bg-white border-gray-200 shadow-sm">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                      <Activity className="h-5 w-5 text-blue-600" />
+                      Active Interventions
+                    </CardTitle>
+                    <CardDescription>
+                      {activeInterventions.length} active intervention{activeInterventions.length !== 1 ? "s" : ""} for {dimension.name}
+                    </CardDescription>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={() => setShowAddInterventionDialog(true)}>
+                    Add Intervention
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-2">
+                  {activeInterventions.map((intervention, idx) => (
+                    <Badge
+                      key={idx}
+                      variant="secondary"
+                      className="px-3 py-1.5 text-sm bg-blue-100 text-blue-800 border border-blue-200"
+                    >
+                      {intervention}
+                    </Badge>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {activeGoals.length === 0 && activeInterventions.length === 0 && (
+            <Card className="bg-white border-gray-200 shadow-sm">
+              <CardContent className="py-8">
+                <div className="text-center">
+                  <Target className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                  <p className="text-sm text-gray-500 mb-4">
+                    No active goals or interventions for this dimension.
+                  </p>
+                  <div className="flex items-center justify-center gap-2">
+                    <Button variant="outline" size="sm" onClick={() => setShowAddGoalDialog(true)}>
+                      Add Goal
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => setShowAddInterventionDialog(true)}>
+                      Add Intervention
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         <TabsContent value="questionnaire" className="space-y-6">
@@ -478,6 +739,38 @@ export function DimensionDetail({ patient, assessment, dimension }: Props) {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <AddGoalDialog
+        open={showAddGoalDialog}
+        onOpenChange={setShowAddGoalDialog}
+        dimensionId={dimension.id}
+        dimensionName={dimension.name}
+        currentScore={dimension.score}
+        onSave={handleAddGoal}
+      />
+
+      <AddInterventionDialog
+        open={showAddInterventionDialog}
+        onOpenChange={setShowAddInterventionDialog}
+        dimensionId={dimension.id}
+        dimensionName={dimension.name}
+        goals={allGoals}
+        onSave={handleAddIntervention}
+      />
+
+      <ScheduleAssessmentDialog
+        open={showScheduleAssessmentDialog}
+        onOpenChange={setShowScheduleAssessmentDialog}
+        patientId={patient.id}
+        patientName={patient.name}
+        defaultDimension={dimension.id}
+        onScheduled={(data) => {
+          toast({
+            title: "Assessment Scheduled",
+            description: `Reassessment for ${dimension.name} has been scheduled.`,
+          })
+        }}
+      />
     </div>
   )
 }

@@ -4,21 +4,14 @@ import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Legend } from "recharts"
 import { InterventionTimeline } from "@/components/intervention-timeline"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { GoalTemplatesSystem } from "@/components/goal-templates-system"
+import { ScheduleAssessmentDialog } from "@/components/schedule-assessment-dialog"
 import Link from "next/link"
-import {
-  Calendar,
-  FileText,
-  CheckCircle,
-  Target,
-  Activity,
-  Heart,
-} from "lucide-react"
+import { Calendar, Target } from "lucide-react"
 
 // Mock PROM data for demonstration
 const mockPromDataByPatient = {
@@ -135,6 +128,7 @@ export function PatientAssessmentTracking() {
   const [isGoalDialogOpen, setIsGoalDialogOpen] = useState(false)
   const [createGoalOpen, setCreateGoalOpen] = useState(false)
   const [goalsOptions, setGoalsOptions] = useState<{ id: string; label: string }[]>([])
+  const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false)
 
   const currentPatientData = mockPromDataByPatient[1]
 
@@ -241,7 +235,10 @@ export function PatientAssessmentTracking() {
             Create Goal
           </Button>
 
-          <Button className="shadow-sm bg-blue-600 hover:bg-blue-700 border-0">
+          <Button
+            className="shadow-sm bg-blue-600 hover:bg-blue-700 border-0"
+            onClick={() => setIsScheduleDialogOpen(true)}
+          >
             <Calendar className="h-4 w-4 mr-2" />
             Schedule Assessment
           </Button>
@@ -249,20 +246,7 @@ export function PatientAssessmentTracking() {
       </div>
 
 
-      <Tabs defaultValue="trends" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3 bg-gray-100 p-1 rounded-lg">
-          <TabsTrigger value="trends" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
-            Outcome Trends
-          </TabsTrigger>
-          <TabsTrigger value="assessments" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
-            Assessment History
-          </TabsTrigger>
-          <TabsTrigger value="birp" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
-            BIRP Documentation
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="trends">
+      <div className="space-y-6">
           {/* PROM Trending Chart */}
           <Card className="shadow-sm border-gray-200 bg-white">
             <CardHeader className="space-y-4">
@@ -401,196 +385,7 @@ export function PatientAssessmentTracking() {
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
-
-        <TabsContent value="assessments">
-          {/* Assessment History */}
-          <Card className="shadow-sm border-gray-200 bg-white">
-            <CardHeader className="space-y-4">
-              <div>
-                <CardTitle className="text-xl font-semibold text-gray-900">Assessment History</CardTitle>
-                <CardDescription className="text-gray-600 mt-1">
-                  Complete history of patient assessments and scores
-                </CardDescription>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {currentPatientData.assessments
-                .slice()
-                .reverse()
-                .map((assessment, index) => (
-                  <Card key={index} className="border-l-4 border-l-primary">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                          <Calendar className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-medium">{new Date(assessment.date).toLocaleDateString()}</span>
-                          <Badge
-                            variant={
-                              assessment.overallRisk === "high"
-                                ? "destructive"
-                                : assessment.overallRisk === "moderate"
-                                  ? "secondary"
-                                  : "outline"
-                            }
-                          >
-                            {assessment.overallRisk} risk
-                          </Badge>
-                          <Badge variant="outline" className="bg-blue-50 border-blue-200">
-                            MCID: {assessment.burden}%
-                          </Badge>
-                        </div>
-                        <Link href={`/assessments/${currentPatientData.patient.id}/${encodeURIComponent(assessment.date)}`}>
-                          <Button variant="outline" size="sm">
-                            <FileText className="h-4 w-4 mr-2" />
-                            View Details
-                          </Button>
-                        </Link>
-                      </div>
-
-                      {assessment.interventions.length > 0 && (
-                        <div>
-                          <span className="text-sm font-medium text-muted-foreground">Interventions: </span>
-                          {assessment.interventions.map((intervention, i) => (
-                            <Badge key={i} variant="outline" className="mr-1 text-xs">
-                              {intervention}
-                            </Badge>
-                          ))}
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="birp">
-          {/* BIRP Documentation */}
-          <Card className="shadow-sm border-gray-200 bg-white">
-            <CardHeader className="space-y-4">
-              <div>
-                <CardTitle className="text-xl font-semibold text-gray-900">BIRP Documentation</CardTitle>
-                <CardDescription className="text-gray-600 mt-1">
-                  Behavior, Intervention, Response, Plan documentation format
-                </CardDescription>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Latest BIRP Entry */}
-              <Card className="border-l-4 border-l-green-500">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">Session: January 15, 2025</CardTitle>
-                    <Badge variant="default">Dr. Anderson</Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Behavior */}
-                  <div>
-                    <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
-                      <Activity className="h-4 w-4" />
-                      BEHAVIOR
-                    </h4>
-                    <div className="bg-muted p-3 rounded-lg text-sm">
-                      <p>Patient reports improved mood stability over past 2 weeks.</p>
-                      <p>MCID improved from 14% → 11%. Sleep quality improved.</p>
-                      <p className="flex items-center gap-2 mt-2">
-                        <CheckCircle className="h-4 w-4 text-green-600" />
-                        Medication adherence at 85% (up from 65%)
-                      </p>
-                      <Button variant="link" className="p-0 h-auto text-xs">
-                        Link to Assessment Data
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Intervention */}
-                  <div>
-                    <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
-                      <Target className="h-4 w-4" />
-                      INTERVENTION
-                    </h4>
-                    <div className="bg-muted p-3 rounded-lg text-sm space-y-1">
-                      <p>• Continued sertraline 50mg daily</p>
-                      <p>• Reinforced medication timing strategies</p>
-                      <p>• Provided psychoeducation on sleep hygiene</p>
-                      <p>• Scheduled follow-up with nutritionist</p>
-                    </div>
-                  </div>
-
-                  {/* Response */}
-                  <div>
-                    <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
-                      <Heart className="h-4 w-4" />
-                      RESPONSE
-                    </h4>
-                    <div className="bg-muted p-3 rounded-lg text-sm">
-                      <p>
-                        Patient engaged well in discussion. Demonstrated good understanding of medication importance.
-                        Agreed to nutritionist referral. Set phone reminder for medications.
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Plan */}
-                  <div>
-                    <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
-                      <Calendar className="h-4 w-4" />
-                      PLAN
-                    </h4>
-                    <div className="bg-muted p-3 rounded-lg text-sm space-y-1">
-                      <p>• Continue current medication regimen</p>
-                      <p>• Follow-up in 4 weeks or sooner if symptoms worsen</p>
-                      <p>• Complete nutritionist consultation within 2 weeks</p>
-                      <p>• Patient to complete assessment in 2 weeks via app</p>
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex items-center gap-2 pt-4 border-t">
-                    <Button variant="outline" size="sm">
-                      Set Reminders
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      Schedule Follow-up
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Previous BIRP Entries */}
-              <div className="space-y-3">
-                <h4 className="font-medium">Previous Sessions</h4>
-                {[
-                  { date: "December 15, 2024", provider: "Dr. Anderson", status: "completed" },
-                  { date: "November 15, 2024", provider: "Dr. Anderson", status: "completed" },
-                  { date: "October 15, 2024", provider: "Dr. Anderson", status: "completed" },
-                ].map((session, index) => (
-                  <Card key={index} className="border-l-4 border-l-gray-300">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <Calendar className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-medium">{session.date}</span>
-                          <Badge variant="outline">{session.provider}</Badge>
-                          <Badge variant="outline" className="text-green-700">
-                            {session.status}
-                          </Badge>
-                        </div>
-                        <Button variant="outline" size="sm">
-                          <FileText className="h-4 w-4 mr-2" />
-                          View BIRP
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+      </div>
 
       {/* Goal Creation Dialog */}
       <Dialog open={isGoalDialogOpen} onOpenChange={setIsGoalDialogOpen}>
@@ -599,6 +394,7 @@ export function PatientAssessmentTracking() {
             <DialogTitle>Create Goal</DialogTitle>
           </DialogHeader>
           <GoalTemplatesSystem
+            patientId={currentPatientData.patient.id}
             openCreateDefault
             trackedDimensions={trackedDims}
             defaultDimension={selectedDimensions.length === 1 ? selectedDimensions[0] : undefined}
@@ -616,6 +412,7 @@ export function PatientAssessmentTracking() {
           </DialogHeader>
           <div className="mt-2">
             <GoalTemplatesSystem
+              patientId={currentPatientData.patient.id}
               trackedDimensions={trackedDims}
               defaultDimension={selectedDimensions.length === 1 ? selectedDimensions[0] : undefined}
               latestByDimension={latestByDimension}
@@ -625,6 +422,16 @@ export function PatientAssessmentTracking() {
         </DialogContent>
       </Dialog>
 
+      {/* Schedule Assessment Dialog */}
+      <ScheduleAssessmentDialog
+        open={isScheduleDialogOpen}
+        onOpenChange={setIsScheduleDialogOpen}
+        patientId={currentPatientData.patient.id}
+        patientName={currentPatientData.patient.name}
+        onScheduled={(assessment) => {
+          console.log("Assessment scheduled:", assessment)
+        }}
+      />
     </div>
   )
 }

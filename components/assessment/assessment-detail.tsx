@@ -56,13 +56,14 @@ export function AssessmentDetail({ patient, assessment }: Props) {
       </div>
 
       <ScoreCard
-        title="MCID %"
+        title="Global Health Index"
         score={ghi}
         statusText={getRiskLabel(ghiRiskLevel)}
         statusColorClass={getRiskColor(ghiRiskLevel)}
         icon={<Activity className="h-5 w-5 text-gray-600" />}
-        interpretation="MCID % (Minimally Clinically Important Difference) represents the percentage of clinically meaningful change in health outcomes. This metric guides clinical prioritization and treatment planning decisions."
+        interpretation="Global Health Index represents the overall health status across all dimensions. Lower scores indicate better health outcomes. This metric guides clinical prioritization and treatment planning decisions."
         riskLevel={ghiRiskLevel}
+        mcid={assessment.mcid}
       />
 
       <Tabs defaultValue="dimensions" className="space-y-6">
@@ -99,6 +100,7 @@ export function AssessmentDetail({ patient, assessment }: Props) {
                   riskLevel={dimension.riskLevel}
                   clickable={true}
                   linkHref={`/assessments/${patient.id}/${encodeURIComponent(assessment.date)}/${dimension.id}`}
+                  mcid={dimension.mcid}
                 />
               ))}
             </div>
@@ -173,11 +175,11 @@ export function AssessmentDetail({ patient, assessment }: Props) {
           <div>
             <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
               <Stethoscope className="h-4 w-4" />
-              Physician-Level Actions
+              Provider-Level Actions
             </h3>
             <div className="space-y-2">
               {assessment.actionItems
-                .filter((item) => item.type === "physician")
+                .filter((item) => item.type === "provider")
                 .map((item) => (
                   <div key={item.id} className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
                     <div className="flex items-start justify-between mb-1">

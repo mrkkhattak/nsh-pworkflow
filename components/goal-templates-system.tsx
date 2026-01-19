@@ -287,14 +287,14 @@ export function GoalTemplatesSystem({
   defaultDimension,
   latestByDimension = {},
   openCreateDefault = false,
-  onGoalCreated, // add callback to bubble up new goals
+  onGoalCreated,
 }: {
   patientId?: number
   trackedDimensions?: { id: string; label: string }[]
   defaultDimension?: string
   latestByDimension?: Record<string, number>
   openCreateDefault?: boolean
-  onGoalCreated?: (goal: { id: string; description: string }) => void // new prop type
+  onGoalCreated?: (goal: { id: string; description: string }) => void
 }) {
   const [goals, setGoals] = useState<Goal[]>([
     {
@@ -329,9 +329,10 @@ export function GoalTemplatesSystem({
   const [newIntervention, setNewIntervention] = useState<string>("")
   const [current, setCurrent] = useState<number | "">("")
   const [reassessmentDate, setReassessmentDate] = useState<string>("")
-  const [newInterventionType, setNewInterventionType] = useState<"Medication" | "Lifestyle" | "Therapy">("Medication")
+  const [newInterventionType, setNewInterventionType] = useState<"Medication" | "Lifestyle" | "Therapy" | "Social" | "Other">("Medication")
   const [newInterventionDate, setNewInterventionDate] = useState<string>(new Date().toISOString().slice(0, 10))
   const [newInterventionNotes, setNewInterventionNotes] = useState<string>("")
+  const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
     const latest = latestByDimension[selectedDimension]
@@ -543,10 +544,11 @@ export function GoalTemplatesSystem({
                 <SelectValue placeholder="Select timeframe" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="2weeks">2 Weeks</SelectItem>
-                <SelectItem value="1month">1 Month</SelectItem>
-                <SelectItem value="6weeks">6 Weeks</SelectItem>
-                <SelectItem value="3months">3 Months</SelectItem>
+                {timeframeOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -580,6 +582,8 @@ export function GoalTemplatesSystem({
                 <SelectItem value="Medication">Medication</SelectItem>
                 <SelectItem value="Lifestyle">Lifestyle</SelectItem>
                 <SelectItem value="Therapy">Therapy</SelectItem>
+                <SelectItem value="Social">Social</SelectItem>
+                <SelectItem value="Other">Other</SelectItem>
               </SelectContent>
             </Select>
 
@@ -610,6 +614,17 @@ export function GoalTemplatesSystem({
                   <Input placeholder="Type (CBT/DBT/other)" />
                   <Input placeholder="Frequency" />
                   <Input placeholder="Provider" />
+                </>
+              )}
+              {newInterventionType === "Social" && (
+                <>
+                  <Input placeholder="Activity/Engagement" />
+                  <Input placeholder="Frequency" />
+                </>
+              )}
+              {newInterventionType === "Other" && (
+                <>
+                  <Input placeholder="Intervention name" />
                 </>
               )}
             </div>
@@ -993,6 +1008,8 @@ export function GoalTemplatesSystem({
                     <SelectItem value="Medication">Medication</SelectItem>
                     <SelectItem value="Lifestyle">Lifestyle</SelectItem>
                     <SelectItem value="Therapy">Therapy</SelectItem>
+                    <SelectItem value="Social">Social</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
                   </SelectContent>
                 </Select>
 
@@ -1023,6 +1040,17 @@ export function GoalTemplatesSystem({
                       <Input placeholder="Type (CBT/DBT/other)" />
                       <Input placeholder="Frequency" />
                       <Input placeholder="Provider" />
+                    </>
+                  )}
+                  {newInterventionType === "Social" && (
+                    <>
+                      <Input placeholder="Activity/Engagement" />
+                      <Input placeholder="Frequency" />
+                    </>
+                  )}
+                  {newInterventionType === "Other" && (
+                    <>
+                      <Input placeholder="Intervention name" />
                     </>
                   )}
                 </div>
@@ -1099,7 +1127,9 @@ export function GoalTemplatesSystem({
             >
               Cancel
             </Button>
-            <Button onClick={handleCreateGoal}>Create Goal</Button>
+            <Button onClick={handleCreateGoal} disabled={isLoading}>
+              {isLoading ? "Creating..." : "Create Goal"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -9,7 +9,6 @@ import { Badge } from "@/components/ui/badge"
 import {
   Users,
   KanbanSquare,
-  TrendingUp,
   ArrowRightLeft,
   MessageCircle,
   BarChart3,
@@ -21,16 +20,19 @@ import {
   LogOut,
   User,
   UserCog,
+  TrendingUp,
+  Bell,
 } from "lucide-react"
 
 const navigationItems = [
   { id: "dashboard", label: "Dashboard", icon: Home, href: "/" },
+  { id: "notifications", label: "Notifications", icon: Bell, href: "/notifications" },
   { id: "patients", label: "Patient Pipeline", icon: Users, badge: "4", href: "/patients" },
   { id: "tasks", label: "Task Management", icon: KanbanSquare, badge: "12", href: "/tasks" },
-  { id: "assessments", label: "Outcomes Tracking", icon: TrendingUp, href: "/outcomes" },
   { id: "referrals", label: "Referrals", icon: ArrowRightLeft, badge: "2", href: "/referrals" },
   { id: "messaging", label: "Messaging", icon: MessageCircle, badge: "7", href: "/messaging" },
   { id: "team", label: "Healthcare Team", icon: UserCog, href: "/team" },
+  { id: "outcomes", label: "Outcomes", icon: TrendingUp, href: "/outcomes" },
   { id: "analytics", label: "Analytics", icon: BarChart3, href: "/analytics" },
 ]
 
