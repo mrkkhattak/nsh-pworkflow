@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -828,10 +829,12 @@ export function PatientAssessmentTracking() {
                             {assessment.overallRisk} risk
                           </Badge>
                         </div>
-                        <Button variant="outline" size="sm">
-                          <FileText className="h-4 w-4 mr-2" />
-                          View Details
-                        </Button>
+                        <Link href={`/assessments/${currentPatientData.patient.id}/${encodeURIComponent(assessment.date)}`}>
+                          <Button variant="outline" size="sm">
+                            <FileText className="h-4 w-4 mr-2" />
+                            View Details
+                          </Button>
+                        </Link>
                       </div>
 
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-3">
