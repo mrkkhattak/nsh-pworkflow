@@ -49,7 +49,7 @@ export function DimensionDetail({ patient, assessment, dimension }: Props) {
   const activeInterventions = [...baseInterventions, ...newInterventions]
 
   const dimensionActionItems = assessment.actionItems.filter((item) => {
-    if (item.type === "provider" || item.type === "patient" || item.type === "community") {
+    if (item.type === "physician" || item.type === "patient" || item.type === "community") {
       return item.dimensionId === dimension.id
     }
     if (item.type === "system") {
@@ -58,7 +58,7 @@ export function DimensionDetail({ patient, assessment, dimension }: Props) {
     return false
   })
 
-  const providerActions = dimensionActionItems.filter((item) => item.type === "provider")
+  const physicianActions = dimensionActionItems.filter((item) => item.type === "physician")
   const patientActions = dimensionActionItems.filter((item) => item.type === "patient")
   const communityActions = dimensionActionItems.filter((item) => item.type === "community")
   const systemActions = dimensionActionItems.filter((item) => item.type === "system")
@@ -321,23 +321,23 @@ export function DimensionDetail({ patient, assessment, dimension }: Props) {
               <CardDescription>Organized by stakeholder level</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {providerActions.length > 0 && (
+              {physicianActions.length > 0 && (
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
                     <Stethoscope className="h-4 w-4" />
-                    Provider-Level Actions
+                    Physician-Level Actions
                   </h3>
                   <div className="space-y-2">
-                    {providerActions.map((item) => {
-                      const providerItem = item as Extract<ActionItem, { type: "provider" }>
+                    {physicianActions.map((item) => {
+                      const physItem = item as Extract<ActionItem, { type: "physician" }>
                       return (
                         <div key={item.id} className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
                           <div className="flex items-start justify-between mb-1">
                             <div>
                               <span className="font-medium text-sm text-gray-900">
-                                {providerItem.providerName} - {providerItem.designation}
+                                {physItem.providerName} - {physItem.designation}
                               </span>
-                              <p className="text-xs text-gray-700 mt-1">{providerItem.action}</p>
+                              <p className="text-xs text-gray-700 mt-1">{physItem.action}</p>
                             </div>
                             <Badge
                               variant={

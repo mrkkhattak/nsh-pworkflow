@@ -21,12 +21,10 @@ import {
   User,
   UserCog,
   TrendingUp,
-  Bell,
 } from "lucide-react"
 
 const navigationItems = [
   { id: "dashboard", label: "Dashboard", icon: Home, href: "/" },
-  { id: "notifications", label: "Notifications", icon: Bell, href: "/notifications" },
   { id: "patients", label: "Patient Pipeline", icon: Users, badge: "4", href: "/patients" },
   { id: "tasks", label: "Task Management", icon: KanbanSquare, badge: "12", href: "/tasks" },
   { id: "referrals", label: "Referrals", icon: ArrowRightLeft, badge: "2", href: "/referrals" },
