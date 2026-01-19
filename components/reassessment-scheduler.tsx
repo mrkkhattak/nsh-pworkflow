@@ -90,7 +90,7 @@ export function ReassessmentScheduler({ patientId }: { patientId: number }) {
     )
   }
 
-  const dimensionOptions = ["All", "Mental Health", "Physical Health", "SDOH", "Patient Engagement"]
+  const dimensionOptions = ["All", "PHQ-9", "GAD-7", "WHODAS", "BPI"]
 
   return (
     <div className="space-y-6">

@@ -1,9 +1,6 @@
-"use client"
-
 import { SideNavigation } from "@/components/side-navigation"
 import { Button } from "@/components/ui/button"
 import { Bell } from "lucide-react"
-import { Toaster } from "@/components/ui/toaster"
 
 export default function DashboardLayout({
   children,
@@ -28,7 +25,6 @@ export default function DashboardLayout({
           </div>
         </div>
       </div>
-      <Toaster />
     </div>
   )
 }

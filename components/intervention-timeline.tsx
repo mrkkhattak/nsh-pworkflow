@@ -7,99 +7,23 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { AlertTriangle, Pill, Dumbbell, Brain, Users, StopCircle, Calendar, Info, Filter, Plus as PlusIcon } from "lucide-react"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
+import { AlertTriangle, Pill, Dumbbell, Brain } from "lucide-react"
 
 type Assessment = {
   date: string
   interventions: string[]
 }
 
-type InterventionStatus = "active" | "stopped" | "completed"
-
 type Intervention = {
   id: string
-  type: "Medication" | "Lifestyle" | "Therapy" | "Social" | "Other"
+  type: "Medication" | "Lifestyle" | "Therapy"
   date: string
-  endDate?: string
   details: Record<string, string>
   notes?: string
-  parentId?: string
+  parentId?: string // for continuation chains
   createdBy: string
-  goalId?: string
-  status: InterventionStatus
-  stoppedDate?: string
-  stoppedReason?: string
-  stoppedBy?: string
+  goalId?: string // link to a goal
 }
-
-const mockActiveInterventions: Intervention[] = [
-  {
-    id: "mock-1",
-    type: "Medication",
-    date: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
-    endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
-    details: {
-      drugName: "Sertraline",
-      dose: "75mg",
-      frequency: "Daily (morning)"
-    },
-    notes: "Initial dose was 50mg, increased after 2 weeks due to good tolerance",
-    createdBy: "Dr. Sarah Chen",
-    status: "active",
-  },
-  {
-    id: "mock-2",
-    type: "Therapy",
-    date: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
-    endDate: new Date(Date.now() + 120 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
-    details: {
-      therapyType: "CBT",
-      frequency: "Weekly",
-      provider: "Lisa Thompson, LCSW"
-    },
-    notes: "Focus on cognitive restructuring and behavioral activation techniques",
-    createdBy: "Dr. Sarah Chen",
-    status: "active",
-  },
-  {
-    id: "mock-3",
-    type: "Lifestyle",
-    date: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
-    details: {
-      category: "Exercise",
-      change: "30-minute daily walks"
-    },
-    notes: "Patient reports improved mood and energy with consistent exercise",
-    createdBy: "Dr. Sarah Chen",
-    status: "active",
-  },
-  {
-    id: "mock-4",
-    type: "Lifestyle",
-    date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
-    endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
-    details: {
-      category: "Sleep hygiene",
-      change: "10pm bedtime routine"
-    },
-    notes: "Includes no screens 1 hour before bed, herbal tea, reading",
-    createdBy: "Dr. Sarah Chen",
-    status: "active",
-  },
-  {
-    id: "mock-5",
-    type: "Other",
-    date: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
-    details: {
-      customName: "Mindfulness Meditation App"
-    },
-    notes: "Using Calm app, 10 minutes daily guided meditation",
-    createdBy: "Lisa Thompson, LCSW",
-    status: "active",
-  },
-]
 
 export function InterventionTimeline({
   assessments,
@@ -112,23 +36,16 @@ export function InterventionTimeline({
   canEdit?: boolean
   goalsOptions?: { id: string; label: string }[]
 }) {
-  const [items, setItems] = useState<Intervention[]>(mockActiveInterventions)
-  const [newType, setNewType] = useState<"Medication" | "Lifestyle" | "Therapy" | "Social" | "Other">("Medication")
+  const [items, setItems] = useState<Intervention[]>([])
+  const [newType, setNewType] = useState<"Medication" | "Lifestyle" | "Therapy">("Medication")
   const [newDate, setNewDate] = useState<string>(new Date().toISOString().slice(0, 10))
-  const [newEndDate, setNewEndDate] = useState<string>("")
   const [notes, setNotes] = useState("")
   const [selectedGoalId, setSelectedGoalId] = useState<string | undefined>(undefined)
-  const [filterStatus, setFilterStatus] = useState<"all" | "active" | "stopped">("all")
-  const [stopDialogOpen, setStopDialogOpen] = useState(false)
-  const [interventionToStop, setInterventionToStop] = useState<Intervention | null>(null)
-  const [stopDate, setStopDate] = useState<string>(new Date().toISOString().slice(0, 10))
-  const [stopReason, setStopReason] = useState("")
-  const [customInterventionName, setCustomInterventionName] = useState("")
 
-  const typeIcon = (t: Intervention["type"]) => (t === "Medication" ? Pill : t === "Lifestyle" ? Dumbbell : t === "Therapy" ? Brain : t === "Social" ? Users : PlusIcon)
+  const typeIcon = (t: Intervention["type"]) => (t === "Medication" ? Pill : t === "Lifestyle" ? Dumbbell : Brain)
 
   const colorClass = (t: Intervention["type"]) =>
-    t === "Medication" ? "text-blue-600" : t === "Lifestyle" ? "text-green-600" : t === "Therapy" ? "text-purple-600" : t === "Social" ? "text-pink-600" : "text-orange-600"
+    t === "Medication" ? "text-blue-600" : t === "Lifestyle" ? "text-green-600" : "text-purple-600"
 
   const renderFields = () => {
     switch (newType) {
@@ -155,40 +72,15 @@ export function InterventionTimeline({
             <Input placeholder="Provider" />
           </div>
         )
-      case "Social":
-        return (
-          <div className="grid grid-cols-2 gap-2">
-            <Input placeholder="Activity/Engagement" />
-            <Input placeholder="Frequency" />
-          </div>
-        )
-      case "Other":
-        return (
-          <div className="grid grid-cols-1 gap-2">
-            <Input
-              placeholder="Intervention name (e.g., Acupuncture, Support Group)"
-              value={customInterventionName}
-              onChange={(e) => setCustomInterventionName(e.target.value)}
-            />
-          </div>
-        )
     }
   }
 
   const addIntervention = () => {
     if (!canEdit) return
     if (!selectedGoalId) {
+      // Optionally, add a toast in your system; minimal guard for now.
       return
     }
-    if (newType === "Other" && !customInterventionName.trim()) {
-      return
-    }
-
-    const details: Record<string, string> = {}
-    if (newType === "Other") {
-      details.name = customInterventionName.trim()
-    }
-
     const id = `i-${Date.now()}`
     setItems((prev) => [
       ...prev,
@@ -196,78 +88,30 @@ export function InterventionTimeline({
         id,
         type: newType,
         date: newDate,
-        endDate: newEndDate.trim() || undefined,
-        details,
+        details: {}, // simplified for demo
         notes,
         createdBy: "Dr. Anderson",
         goalId: selectedGoalId,
-        status: "active",
       },
     ])
     setNotes("")
-    setNewEndDate("")
     setSelectedGoalId(undefined)
-    setCustomInterventionName("")
   }
-
-  const openStopDialog = (intervention: Intervention) => {
-    setInterventionToStop(intervention)
-    setStopDate(new Date().toISOString().slice(0, 10))
-    setStopReason("")
-    setStopDialogOpen(true)
-  }
-
-  const confirmStopIntervention = () => {
-    if (!interventionToStop || !stopReason.trim()) return
-
-    setItems((prev) =>
-      prev.map((item) =>
-        item.id === interventionToStop.id
-          ? {
-              ...item,
-              status: "stopped",
-              stoppedDate: stopDate,
-              stoppedReason: stopReason,
-              stoppedBy: "Dr. Anderson",
-            }
-          : item
-      )
-    )
-
-    setStopDialogOpen(false)
-    setInterventionToStop(null)
-    setStopReason("")
-  }
-
-  const filteredItems = useMemo(() => {
-    if (filterStatus === "all") return items
-    return items.filter((item) => item.status === filterStatus)
-  }, [items, filterStatus])
-
-  const activeCount = items.filter((i) => i.status === "active").length
-  const stoppedCount = items.filter((i) => i.status === "stopped").length
 
   const timeline = useMemo(() => {
-    const entries = assessments.map((a) => ({ date: a.date, interventions: a.interventions, isManual: false, item: null }))
-    const manual = filteredItems.map((i) => {
-      const interventionLabel = i.type === "Other" && i.details?.name
-        ? i.details.name
-        : i.type
-      return {
-        date: i.date,
-        interventions: [
-          `${interventionLabel} (manual${
-            i.goalId && goalsOptions?.length
-              ? ` • Goal: ${goalsOptions.find((g) => g.id === i.goalId)?.label ?? i.goalId}`
-              : ""
-          })`,
-        ],
-        isManual: true,
-        item: i,
-      }
-    })
+    const entries = assessments.map((a) => ({ date: a.date, interventions: a.interventions }))
+    const manual = items.map((i) => ({
+      date: i.date,
+      interventions: [
+        `${i.type} (manual${
+          i.goalId && goalsOptions?.length
+            ? ` • Goal: ${goalsOptions.find((g) => g.id === i.goalId)?.label ?? i.goalId}`
+            : ""
+        })`,
+      ],
+    }))
     return [...entries, ...manual].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-  }, [assessments, filteredItems, goalsOptions])
+  }, [assessments, items, goalsOptions])
 
   return (
     <div className="space-y-4">
@@ -291,42 +135,16 @@ export function InterventionTimeline({
                 <SelectItem value="Medication">Medication</SelectItem>
                 <SelectItem value="Lifestyle">Lifestyle</SelectItem>
                 <SelectItem value="Therapy">Therapy</SelectItem>
-                <SelectItem value="Social">Social</SelectItem>
-                <SelectItem value="Other">Other</SelectItem>
               </SelectContent>
             </Select>
-            <div className="flex gap-2 items-center">
-              <Input type="date" value={newDate} onChange={(e) => setNewDate(e.target.value)} className="w-44" />
-              <span className="text-sm text-gray-500">to</span>
-              <div className="relative">
-                <Input
-                  type="date"
-                  value={newEndDate}
-                  onChange={(e) => setNewEndDate(e.target.value)}
-                  className="w-44"
-                  placeholder="End date (optional)"
-                  min={newDate}
-                />
-                {newEndDate && (
-                  <button
-                    type="button"
-                    onClick={() => setNewEndDate("")}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-400 hover:text-gray-600 bg-white px-1"
-                    title="Clear end date"
-                  >
-                    ✕
-                  </button>
-                )}
-              </div>
-            </div>
+            <Input type="date" value={newDate} onChange={(e) => setNewDate(e.target.value)} className="w-44" />
             <div className="flex-1">{renderFields()}</div>
           </div>
-          {Array.isArray(goalsOptions) && goalsOptions.length > 0 ? (
-            <div className="space-y-1">
-              <Label className="text-xs text-gray-600">Associated Goal (Required)</Label>
+          {Array.isArray(goalsOptions) && goalsOptions.length > 0 && (
+            <div className="flex gap-2">
               <Select value={selectedGoalId} onValueChange={(v: any) => setSelectedGoalId(v)}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select a goal to associate with this intervention" />
+                <SelectTrigger className="w-64">
+                  <SelectValue placeholder="Select Goal" />
                 </SelectTrigger>
                 <SelectContent>
                   {goalsOptions.map((g) => (
@@ -336,16 +154,6 @@ export function InterventionTimeline({
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-          ) : (
-            <div className="p-3 bg-amber-50 border border-amber-200 rounded-md">
-              <div className="flex items-start gap-2">
-                <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5" />
-                <div className="text-sm text-amber-800">
-                  <p className="font-medium">Goal Required</p>
-                  <p className="text-xs mt-1">You must create a treatment goal before adding interventions. Click the "Add Goal" button above to create one.</p>
-                </div>
-              </div>
             </div>
           )}
           <Textarea
@@ -367,178 +175,32 @@ export function InterventionTimeline({
         </CardContent>
       </Card>
 
-      {/* Filter Controls */}
-      <div className="flex items-center gap-2 pb-2 border-b">
-        <Filter className="h-4 w-4 text-gray-500" />
-        <span className="text-sm font-medium text-gray-700">Filter:</span>
-        <div className="flex gap-2">
-          <Button
-            variant={filterStatus === "all" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setFilterStatus("all")}
-            className="text-xs"
-          >
-            All ({items.length})
-          </Button>
-          <Button
-            variant={filterStatus === "active" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setFilterStatus("active")}
-            className="text-xs"
-          >
-            Active ({activeCount})
-          </Button>
-          <Button
-            variant={filterStatus === "stopped" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setFilterStatus("stopped")}
-            className="text-xs"
-          >
-            Stopped ({stoppedCount})
-          </Button>
-        </div>
-      </div>
-
       {/* timeline */}
       <div className="space-y-3">
         {timeline.map((entry, idx) => (
           <div key={idx} className="flex items-start gap-4 text-sm">
             <div className="w-24 text-gray-500 font-medium">{new Date(entry.date).toLocaleDateString()}</div>
-            <div className="flex-1 space-y-2">
-              <div className="flex flex-wrap gap-2 items-center">
-                {entry.interventions.map((label, i) => {
-                  const t = label.startsWith("Medication")
-                    ? "Medication"
-                    : label.startsWith("Lifestyle")
-                      ? "Lifestyle"
-                      : label.startsWith("Therapy")
-                        ? "Therapy"
-                        : label.startsWith("Social")
-                          ? "Social"
-                          : label.startsWith("Other")
-                            ? "Other"
-                            : ("Other" as const)
-                  const Icon = typeIcon(t)
-                  const isStopped = entry.item?.status === "stopped"
-                  return (
-                    <div key={`${label}-${i}`} className="flex items-center gap-2">
-                      <Badge
-                        variant="outline"
-                        className={`text-xs bg-white ${colorClass(t)} ${isStopped ? "opacity-60 line-through" : ""}`}
-                      >
-                        <Icon className="h-3 w-3 mr-1" />
-                        {label}
-                      </Badge>
-                      {entry.item && (
-                        <>
-                          <Badge
-                            variant={entry.item.status === "active" ? "default" : "secondary"}
-                            className={`text-xs ${
-                              entry.item.status === "active"
-                                ? "bg-green-100 text-green-800 hover:bg-green-100"
-                                : "bg-red-100 text-red-800 hover:bg-red-100"
-                            }`}
-                          >
-                            {entry.item.status === "active" ? "Active" : "Stopped"}
-                          </Badge>
-                          {entry.item.endDate && (
-                            <div className="flex items-center gap-1 text-xs text-gray-600">
-                              <Calendar className="h-3 w-3" />
-                              <span>End: {new Date(entry.item.endDate).toLocaleDateString()}</span>
-                            </div>
-                          )}
-                          {entry.item.status === "active" && canEdit && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => openStopDialog(entry.item!)}
-                              className="h-6 px-2 text-xs text-red-600 hover:text-red-800 hover:bg-red-50"
-                            >
-                              <StopCircle className="h-3 w-3 mr-1" />
-                              Stop
-                            </Button>
-                          )}
-                        </>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-              {entry.item?.status === "stopped" && entry.item.stoppedDate && (
-                <div className="flex flex-col gap-1 text-xs text-gray-600 bg-red-50 p-3 rounded border border-red-200">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="bg-red-100 text-red-800 hover:bg-red-100">
-                      <StopCircle className="h-3 w-3 mr-1" />
-                      Stopped
-                    </Badge>
-                    <div className="flex items-center gap-1 text-gray-700">
-                      <Calendar className="h-3 w-3" />
-                      <span>{new Date(entry.item.stoppedDate).toLocaleDateString()}</span>
-                    </div>
-                  </div>
-                  {entry.item.stoppedReason && (
-                    <div className="flex items-start gap-1 mt-1">
-                      <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />
-                      <span className="font-medium">Reason:</span>
-                      <span className="flex-1">{entry.item.stoppedReason}</span>
-                    </div>
-                  )}
-                </div>
-              )}
+            <div className="flex-1 flex flex-wrap gap-2">
+              {entry.interventions.map((label, i) => {
+                const t = label.startsWith("Medication")
+                  ? "Medication"
+                  : label.startsWith("Lifestyle")
+                    ? "Lifestyle"
+                    : label.startsWith("Therapy")
+                      ? "Therapy"
+                      : ("Therapy" as const)
+                const Icon = typeIcon(t)
+                return (
+                  <Badge key={`${label}-${i}`} variant="outline" className={`text-xs bg-white ${colorClass(t)}`}>
+                    <Icon className="h-3 w-3 mr-1" />
+                    {label}
+                  </Badge>
+                )
+              })}
             </div>
           </div>
         ))}
       </div>
-
-      {/* Stop Intervention Dialog */}
-      <Dialog open={stopDialogOpen} onOpenChange={setStopDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Stop Intervention</DialogTitle>
-            <DialogDescription>
-              Please provide the date and reason for stopping this intervention.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="stop-date">Stop Date</Label>
-              <Input
-                id="stop-date"
-                type="date"
-                value={stopDate}
-                onChange={(e) => setStopDate(e.target.value)}
-                min={interventionToStop?.date}
-                max={new Date().toISOString().slice(0, 10)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="stop-reason">Reason for Stopping</Label>
-              <Textarea
-                id="stop-reason"
-                value={stopReason}
-                onChange={(e) => setStopReason(e.target.value)}
-                placeholder="Enter reason (e.g., side effects, patient request, treatment completed, etc.)"
-                className="min-h-24"
-                maxLength={500}
-              />
-              <p className="text-xs text-gray-500">{stopReason.length}/500 characters</p>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setStopDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              onClick={confirmStopIntervention}
-              disabled={!stopReason.trim()}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              <StopCircle className="h-4 w-4 mr-2" />
-              Stop Intervention
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }

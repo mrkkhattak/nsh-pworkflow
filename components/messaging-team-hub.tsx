@@ -62,7 +62,7 @@ const mockConversations = [
       status: "online",
     },
     lastMessage: {
-      content: "Patient shows significant improvement in MCID scores. Recommend continuing current treatment.",
+      content: "Patient shows significant improvement in PHQ-9 scores. Recommend continuing current treatment.",
       timestamp: "15 min ago",
       sender: "provider",
       read: false,
@@ -127,7 +127,7 @@ const mockMessages = [
     sender: "provider",
     senderName: "Dr. Anderson",
     content:
-      "That's wonderful news! This aligns with your recent MCID improvement. Let's continue with the current dosage.",
+      "That's wonderful news! This aligns with your recent PHQ-9 improvement. Let's continue with the current dosage.",
     timestamp: "2024-01-15 11:15 AM",
     type: "text",
     read: true,

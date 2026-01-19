@@ -8,7 +8,6 @@ import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
-import { CohortPatientListDialog } from "@/components/cohort-patient-list-dialog"
 import {
   LineChart,
   Line,
@@ -40,153 +39,9 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Minus,
-  Stethoscope,
-  UserCircle,
-  Building2,
-  Pill,
-  Hospital,
-  Utensils,
-  Moon,
-  Smile,
-  DollarSign,
-  ChevronDown,
-  ChevronUp,
 } from "lucide-react"
-import { healthDimensionsConfig } from "@/lib/nsh-assessment-mock"
 
-const dimensionIcons = {
-  physical: Activity,
-  mental: Brain,
-  sdoh: Building2,
-  engagement: UserCircle,
-  burden: Heart,
-  medical: Pill,
-  utilization: Hospital,
-  diet: Utensils,
-  sleep: Moon,
-  pain: Zap,
-  satisfaction: Smile,
-  cost: DollarSign,
-}
-
-interface DimensionCohortData {
-  id: string
-  name: string
-  icon: any
-  highPerforming: { count: number; percentage: number }
-  moderatePerforming: { count: number; percentage: number }
-  lowPerforming: { count: number; percentage: number }
-  trend: "improving" | "stable" | "declining"
-  avgScore: number
-  targetScore: number
-  completionRate: number
-  benchmarkScore: number
-  targetAchievementRate: number
-}
-
-function generateDimensionMockData(): DimensionCohortData[] {
-  const totalPatients = 156
-
-  return healthDimensionsConfig.map((config) => {
-    const highCount = Math.floor(Math.random() * 30) + 15
-    const moderateCount = Math.floor(Math.random() * 40) + 30
-    const lowCount = totalPatients - highCount - moderateCount
-
-    const avgScore = Math.floor(Math.random() * 40) + 20
-    const targetScore = Math.floor(avgScore * 0.6)
-    const benchmarkScore = Math.floor(avgScore * 0.85)
-    const targetAchievementRate = Math.floor(Math.random() * 40) + 50
-
-    const trends: Array<"improving" | "stable" | "declining"> = ["improving", "stable", "declining"]
-    const trend = trends[Math.floor(Math.random() * trends.length)]
-
-    return {
-      id: config.id,
-      name: config.name,
-      icon: dimensionIcons[config.id as keyof typeof dimensionIcons] || Activity,
-      highPerforming: {
-        count: highCount,
-        percentage: Math.round((highCount / totalPatients) * 100),
-      },
-      moderatePerforming: {
-        count: moderateCount,
-        percentage: Math.round((moderateCount / totalPatients) * 100),
-      },
-      lowPerforming: {
-        count: lowCount,
-        percentage: Math.round((lowCount / totalPatients) * 100),
-      },
-      trend,
-      avgScore,
-      targetScore,
-      completionRate: Math.floor(Math.random() * 20) + 75,
-      benchmarkScore,
-      targetAchievementRate,
-    }
-  })
-}
-
-function calculateCompositePerformanceScore(dimension: DimensionCohortData): number {
-  const scoreThresholdScore = Math.max(0, 100 - (dimension.avgScore / dimension.targetScore) * 100)
-  const targetAchievementScore = dimension.targetAchievementRate
-  const benchmarkComparisonScore = Math.max(0, 100 - ((dimension.avgScore / dimension.benchmarkScore) * 100))
-
-  const compositeScore = (
-    scoreThresholdScore * 0.4 +
-    targetAchievementScore * 0.35 +
-    benchmarkComparisonScore * 0.25
-  )
-
-  return Math.round(compositeScore)
-}
-
-type PerformanceTier = "high" | "moderate" | "low"
-
-function classifyDimensionPerformance(dimension: DimensionCohortData): PerformanceTier {
-  const score = calculateCompositePerformanceScore(dimension)
-
-  if (score >= 75) return "high"
-  if (score >= 50) return "moderate"
-  return "low"
-}
-
-interface GroupedDimensions {
-  high: DimensionCohortData[]
-  moderate: DimensionCohortData[]
-  low: DimensionCohortData[]
-}
-
-function groupDimensionsByPerformance(dimensions: DimensionCohortData[]): GroupedDimensions {
-  const grouped: GroupedDimensions = {
-    high: [],
-    moderate: [],
-    low: [],
-  }
-
-  dimensions.forEach((dimension) => {
-    const tier = classifyDimensionPerformance(dimension)
-    grouped[tier].push(dimension)
-  })
-
-  grouped.high.sort((a, b) => calculateCompositePerformanceScore(b) - calculateCompositePerformanceScore(a))
-  grouped.moderate.sort((a, b) => calculateCompositePerformanceScore(b) - calculateCompositePerformanceScore(a))
-  grouped.low.sort((a, b) => calculateCompositePerformanceScore(b) - calculateCompositePerformanceScore(a))
-
-  return grouped
-}
-
-function generateTrendData() {
-  const months = ["Aug", "Sep", "Oct", "Nov", "Dec", "Jan"]
-  return months.map((month) => {
-    const dataPoint: any = { month }
-    healthDimensionsConfig.forEach((config) => {
-      dataPoint[config.id] = Math.floor(Math.random() * 30) + 20
-    })
-    return dataPoint
-  })
-}
-
-const allDimensions = generateDimensionMockData()
+// Mock data for analytics
 const cohortData = {
   overview: {
     totalPatients: 156,
@@ -197,8 +52,64 @@ const cohortData = {
     improvedThisWeek: 12,
     noImprovementOver30Days: 15,
   },
-  dimensions: allDimensions,
-  trendData: generateTrendData(),
+  dimensions: [
+    {
+      id: "depression",
+      name: "Depression (PHQ-9)",
+      icon: Brain,
+      highPerforming: { count: 12, percentage: 27 },
+      moderatePerforming: { count: 20, percentage: 45 },
+      lowPerforming: { count: 12, percentage: 27 },
+      trend: "improving",
+      avgScore: 8.5,
+      targetScore: 5,
+      completionRate: 89,
+    },
+    {
+      id: "anxiety",
+      name: "Anxiety (GAD-7)",
+      icon: Heart,
+      highPerforming: { count: 15, percentage: 34 },
+      moderatePerforming: { count: 18, percentage: 41 },
+      lowPerforming: { count: 11, percentage: 25 },
+      trend: "stable",
+      avgScore: 6.2,
+      targetScore: 4,
+      completionRate: 92,
+    },
+    {
+      id: "function",
+      name: "Function (WHODAS)",
+      icon: Activity,
+      highPerforming: { count: 8, percentage: 20 },
+      moderatePerforming: { count: 22, percentage: 55 },
+      lowPerforming: { count: 10, percentage: 25 },
+      trend: "declining",
+      avgScore: 18.3,
+      targetScore: 12,
+      completionRate: 85,
+    },
+    {
+      id: "pain",
+      name: "Pain (BPI)",
+      icon: Zap,
+      highPerforming: { count: 10, percentage: 30 },
+      moderatePerforming: { count: 18, percentage: 53 },
+      lowPerforming: { count: 6, percentage: 18 },
+      trend: "improving",
+      avgScore: 4.1,
+      targetScore: 3,
+      completionRate: 88,
+    },
+  ],
+  trendData: [
+    { month: "Aug", depression: 9.2, anxiety: 7.1, function: 20.5, pain: 5.2 },
+    { month: "Sep", depression: 8.9, anxiety: 6.8, function: 19.8, pain: 4.9 },
+    { month: "Oct", depression: 8.7, anxiety: 6.5, function: 19.2, pain: 4.6 },
+    { month: "Nov", depression: 8.4, anxiety: 6.3, function: 18.8, pain: 4.3 },
+    { month: "Dec", depression: 8.1, anxiety: 6.1, function: 18.5, pain: 4.1 },
+    { month: "Jan", depression: 8.5, anxiety: 6.2, function: 18.3, pain: 4.1 },
+  ],
 }
 
 const qualityMeasures = [
@@ -292,31 +203,10 @@ const compositeScoreData = [
 ]
 
 export function AnalyticsCohortManagement() {
-  const [selectedDimension, setSelectedDimension] = useState("physical")
+  const [selectedDimension, setSelectedDimension] = useState("depression")
   const [selectedTimeframe, setSelectedTimeframe] = useState("6months")
   const [selectedCohort, setSelectedCohort] = useState("all")
   const [comparisonView, setComparisonView] = useState<"individual" | "composite">("individual")
-  const [expandedSections, setExpandedSections] = useState({
-    high: false,
-    moderate: true,
-    low: true,
-  })
-  const [patientListDialog, setPatientListDialog] = useState<{
-    open: boolean
-    dimensionId: string
-    dimensionName: string
-    dimensionColor: string
-    performanceTier: "high" | "moderate" | "low"
-  } | null>(null)
-
-  const groupedDimensions = groupDimensionsByPerformance(cohortData.dimensions)
-
-  const toggleSection = (section: keyof typeof expandedSections) => {
-    setExpandedSections((prev) => ({
-      ...prev,
-      [section]: !prev[section],
-    }))
-  }
 
   const getTrendIcon = (trend: string) => {
     switch (trend) {
@@ -346,13 +236,24 @@ export function AnalyticsCohortManagement() {
     return "bg-red-100 text-red-800 border-red-200"
   }
 
-  const chartConfig = healthDimensionsConfig.reduce((config, dimension, index) => {
-    config[dimension.id] = {
-      label: dimension.name,
-      color: dimension.color,
-    }
-    return config
-  }, {} as Record<string, { label: string; color: string }>)
+  const chartConfig = {
+    depression: {
+      label: "Depression",
+      color: "hsl(var(--chart-1))",
+    },
+    anxiety: {
+      label: "Anxiety",
+      color: "hsl(var(--chart-2))",
+    },
+    function: {
+      label: "Function",
+      color: "hsl(var(--chart-3))",
+    },
+    pain: {
+      label: "Pain",
+      color: "hsl(var(--chart-4))",
+    },
+  }
 
   const Sparkline = ({ data, color = "#3b82f6" }: { data: number[]; color?: string }) => {
     const max = Math.max(...data)
@@ -444,16 +345,6 @@ export function AnalyticsCohortManagement() {
     // Implementation would generate and download the report
   }
 
-  const handleViewPatients = (dimensionId: string, dimensionName: string, dimensionColor: string, performanceTier: "high" | "moderate" | "low") => {
-    setPatientListDialog({
-      open: true,
-      dimensionId,
-      dimensionName,
-      dimensionColor,
-      performanceTier,
-    })
-  }
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -497,7 +388,7 @@ export function AnalyticsCohortManagement() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <MetricCard
           title="Total Patients"
           value={cohortData.overview.totalPatients}
@@ -508,43 +399,31 @@ export function AnalyticsCohortManagement() {
           trend="up"
         />
         <MetricCard
-          title="High Performing Dimensions"
-          value={groupedDimensions.high.length}
-          subtitle={`${Math.round((groupedDimensions.high.length / 12) * 100)}% of dimensions`}
+          title="High Performing"
+          value={cohortData.overview.highPerforming}
+          subtitle={`${Math.round((cohortData.overview.highPerforming / cohortData.overview.totalPatients) * 100)}% of total`}
           icon={CheckCircle}
-          sparklineData={[2, 3, 3, 4, 4, groupedDimensions.high.length]}
-          comparison={{ label: "exceeding targets", value: 1, type: "increase" }}
+          sparklineData={sparklineData.highPerforming}
+          comparison={{ label: "vs peer avg", value: 7, type: "increase" }}
           trend="up"
         />
         <MetricCard
-          title="Moderate Performing"
-          value={groupedDimensions.moderate.length}
-          subtitle={`${Math.round((groupedDimensions.moderate.length / 12) * 100)}% of dimensions`}
-          icon={Target}
-          sparklineData={[5, 5, 6, 5, 5, groupedDimensions.moderate.length]}
-          comparison={{ label: "need improvement", value: 0, type: "neutral" }}
-          trend="neutral"
-        />
-        <MetricCard
-          title="Low Performing"
-          value={groupedDimensions.low.length}
-          subtitle={`${Math.round((groupedDimensions.low.length / 12) * 100)}% of dimensions`}
+          title="New High Risk"
+          value={cohortData.overview.newHighRisk}
+          subtitle="This week"
           icon={AlertTriangle}
-          sparklineData={[5, 4, 3, 3, 4, groupedDimensions.low.length]}
-          comparison={{ label: "need attention", value: -1, type: "decrease" }}
-          trend="down"
+          sparklineData={sparklineData.newHighRisk}
+          comparison={{ label: "vs last week", value: 1, type: "increase" }}
+          trend="up"
         />
         <MetricCard
-          title="Overall Portfolio Health"
-          value={Math.round(
-            cohortData.dimensions.reduce((sum, d) => sum + calculateCompositePerformanceScore(d), 0) /
-              cohortData.dimensions.length
-          )}
-          subtitle="Composite score"
-          icon={Activity}
-          sparklineData={[62, 64, 66, 67, 68, 70]}
-          comparison={{ label: "vs last quarter", value: 4, type: "increase" }}
-          trend="up"
+          title="No Improvement"
+          value={cohortData.overview.noImprovementOver30Days}
+          subtitle="Over 30 days"
+          icon={TrendingDown}
+          sparklineData={sparklineData.noImprovement}
+          comparison={{ label: "vs last month", value: -3, type: "decrease" }}
+          trend="down"
         />
       </div>
 
@@ -587,323 +466,107 @@ export function AnalyticsCohortManagement() {
               </div>
             </CardHeader>
             <CardContent>
-              {/* Performance Distribution Summary */}
-              <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-semibold text-lg mb-1">Dimension Performance Distribution</h4>
-                    <p className="text-sm text-muted-foreground">
-                      All 12 health dimensions grouped by composite performance score
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-6">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-green-700">{groupedDimensions.high.length}</div>
-                      <div className="text-xs text-muted-foreground">High Performing</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-amber-700">{groupedDimensions.moderate.length}</div>
-                      <div className="text-xs text-muted-foreground">Moderate</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-red-700">{groupedDimensions.low.length}</div>
-                      <div className="text-xs text-muted-foreground">Low Performing</div>
-                    </div>
-                  </div>
-                </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {cohortData.dimensions.map((dimension) => {
+                  const Icon = dimension.icon
+                  return (
+                    <Card key={dimension.id} className="border-2 hover:shadow-md transition-shadow cursor-pointer">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                          <Icon className="h-5 w-5 text-muted-foreground" />
+                          {getTrendIcon(dimension.trend)}
+                        </div>
+                        <CardTitle className="text-sm font-medium">{dimension.name}</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-4">
+                          {/* Performance Distribution */}
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between text-xs">
+                              <span>High Performing</span>
+                              <span className="font-medium">{dimension.highPerforming.count} patients</span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div
+                                className="bg-green-500 h-2 rounded-full"
+                                style={{ width: `${dimension.highPerforming.percentage}%` }}
+                              />
+                            </div>
+                            <div className="text-xs text-muted-foreground">{dimension.highPerforming.percentage}%</div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between text-xs">
+                              <span>Moderate Performing</span>
+                              <span className="font-medium">{dimension.moderatePerforming.count} patients</span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div
+                                className="bg-yellow-500 h-2 rounded-full"
+                                style={{ width: `${dimension.moderatePerforming.percentage}%` }}
+                              />
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {dimension.moderatePerforming.percentage}%
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between text-xs">
+                              <span>Low Performing</span>
+                              <span className="font-medium">{dimension.lowPerforming.count} patients</span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div
+                                className="bg-red-500 h-2 rounded-full"
+                                style={{ width: `${dimension.lowPerforming.percentage}%` }}
+                              />
+                            </div>
+                            <div className="text-xs text-muted-foreground">{dimension.lowPerforming.percentage}%</div>
+                          </div>
+
+                          {/* Key Metrics */}
+                          <div className="pt-2 border-t space-y-1">
+                            <div className="flex justify-between text-xs">
+                              <span className="text-muted-foreground">Avg Score:</span>
+                              <span className="font-medium">{dimension.avgScore}</span>
+                            </div>
+                            <div className="flex justify-between text-xs">
+                              <span className="text-muted-foreground">Target:</span>
+                              <span className="font-medium">{dimension.targetScore}</span>
+                            </div>
+                            <div className="flex justify-between text-xs">
+                              <span className="text-muted-foreground">Completion:</span>
+                              <span className="font-medium">{dimension.completionRate}%</span>
+                            </div>
+                          </div>
+
+                          <Button variant="outline" size="sm" className="w-full bg-transparent">
+                            <Eye className="h-3 w-3 mr-2" />
+                            View Patients
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )
+                })}
               </div>
 
-              {/* High Performing Dimensions Section */}
-              <div className="mb-6">
-                <button
-                  onClick={() => toggleSection("high")}
-                  className="w-full flex items-center justify-between p-4 bg-green-50 hover:bg-green-100 rounded-lg border-2 border-green-200 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <CheckCircle className="h-6 w-6 text-green-700" />
-                    <div className="text-left">
-                      <h3 className="font-semibold text-lg text-green-900">High Performing Dimensions</h3>
-                      <p className="text-sm text-green-700">
-                        {groupedDimensions.high.length} dimensions exceeding targets and benchmarks
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge className="bg-green-600 text-white">{groupedDimensions.high.length}</Badge>
-                    {expandedSections.high ? (
-                      <ChevronUp className="h-5 w-5 text-green-700" />
-                    ) : (
-                      <ChevronDown className="h-5 w-5 text-green-700" />
-                    )}
-                  </div>
-                </button>
-                {expandedSections.high && (
-                  <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {groupedDimensions.high.map((dimension) => {
-                      const Icon = dimension.icon
-                      const performanceScore = calculateCompositePerformanceScore(dimension)
-                      return (
-                        <Card
-                          key={dimension.id}
-                          className="border-2 border-green-200 hover:shadow-md transition-shadow cursor-pointer"
-                        >
-                          <CardHeader className="pb-3">
-                            <div className="flex items-center justify-between">
-                              <Icon className="h-5 w-5 text-green-600" />
-                              <div className="flex items-center gap-2">
-                                {getTrendIcon(dimension.trend)}
-                                <Badge className="bg-green-600 text-white text-xs">{performanceScore}</Badge>
-                              </div>
-                            </div>
-                            <CardTitle className="text-sm font-medium">{dimension.name}</CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="space-y-3">
-                              <div className="space-y-2">
-                                <div className="flex items-center justify-between text-xs">
-                                  <span>High Performing</span>
-                                  <span className="font-medium">{dimension.highPerforming.count} pts</span>
-                                </div>
-                                <Progress value={dimension.highPerforming.percentage} className="h-1.5" />
-                              </div>
-                              <div className="pt-2 border-t space-y-1">
-                                <div className="flex justify-between text-xs">
-                                  <span className="text-muted-foreground">Avg Score:</span>
-                                  <span className="font-medium">{dimension.avgScore}</span>
-                                </div>
-                                <div className="flex justify-between text-xs">
-                                  <span className="text-muted-foreground">Target:</span>
-                                  <span className="font-medium">{dimension.targetScore}</span>
-                                </div>
-                                <div className="flex justify-between text-xs">
-                                  <span className="text-muted-foreground">Achievement:</span>
-                                  <span className="font-medium">{dimension.targetAchievementRate}%</span>
-                                </div>
-                              </div>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="w-full bg-transparent text-xs"
-                                onClick={() => {
-                                  const config = healthDimensionsConfig.find(d => d.id === dimension.id)
-                                  handleViewPatients(dimension.id, dimension.name, config?.color || "#000", "high")
-                                }}
-                              >
-                                <Eye className="h-3 w-3 mr-1" />
-                                View Patients
-                              </Button>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      )
-                    })}
-                  </div>
-                )}
-              </div>
-
-              {/* Moderate Performing Dimensions Section */}
-              <div className="mb-6">
-                <button
-                  onClick={() => toggleSection("moderate")}
-                  className="w-full flex items-center justify-between p-4 bg-amber-50 hover:bg-amber-100 rounded-lg border-2 border-amber-200 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <Target className="h-6 w-6 text-amber-700" />
-                    <div className="text-left">
-                      <h3 className="font-semibold text-lg text-amber-900">Moderate Performing Dimensions</h3>
-                      <p className="text-sm text-amber-700">
-                        {groupedDimensions.moderate.length} dimensions with room for improvement
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge className="bg-amber-600 text-white">{groupedDimensions.moderate.length}</Badge>
-                    {expandedSections.moderate ? (
-                      <ChevronUp className="h-5 w-5 text-amber-700" />
-                    ) : (
-                      <ChevronDown className="h-5 w-5 text-amber-700" />
-                    )}
-                  </div>
-                </button>
-                {expandedSections.moderate && (
-                  <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {groupedDimensions.moderate.map((dimension) => {
-                      const Icon = dimension.icon
-                      const performanceScore = calculateCompositePerformanceScore(dimension)
-                      return (
-                        <Card
-                          key={dimension.id}
-                          className="border-2 border-amber-200 hover:shadow-md transition-shadow cursor-pointer"
-                        >
-                          <CardHeader className="pb-3">
-                            <div className="flex items-center justify-between">
-                              <Icon className="h-5 w-5 text-amber-600" />
-                              <div className="flex items-center gap-2">
-                                {getTrendIcon(dimension.trend)}
-                                <Badge className="bg-amber-600 text-white text-xs">{performanceScore}</Badge>
-                              </div>
-                            </div>
-                            <CardTitle className="text-sm font-medium">{dimension.name}</CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="space-y-3">
-                              <div className="space-y-2">
-                                <div className="flex items-center justify-between text-xs">
-                                  <span>Moderate</span>
-                                  <span className="font-medium">{dimension.moderatePerforming.count} pts</span>
-                                </div>
-                                <Progress value={dimension.moderatePerforming.percentage} className="h-1.5" />
-                              </div>
-                              <div className="pt-2 border-t space-y-1">
-                                <div className="flex justify-between text-xs">
-                                  <span className="text-muted-foreground">Avg Score:</span>
-                                  <span className="font-medium">{dimension.avgScore}</span>
-                                </div>
-                                <div className="flex justify-between text-xs">
-                                  <span className="text-muted-foreground">Target:</span>
-                                  <span className="font-medium">{dimension.targetScore}</span>
-                                </div>
-                                <div className="flex justify-between text-xs">
-                                  <span className="text-muted-foreground">Achievement:</span>
-                                  <span className="font-medium">{dimension.targetAchievementRate}%</span>
-                                </div>
-                              </div>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="w-full bg-transparent text-xs"
-                                onClick={() => {
-                                  const config = healthDimensionsConfig.find(d => d.id === dimension.id)
-                                  handleViewPatients(dimension.id, dimension.name, config?.color || "#000", "moderate")
-                                }}
-                              >
-                                <Eye className="h-3 w-3 mr-1" />
-                                View Patients
-                              </Button>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      )
-                    })}
-                  </div>
-                )}
-              </div>
-
-              {/* Low Performing Dimensions Section */}
-              <div className="mb-6">
-                <button
-                  onClick={() => toggleSection("low")}
-                  className="w-full flex items-center justify-between p-4 bg-red-50 hover:bg-red-100 rounded-lg border-2 border-red-200 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <AlertTriangle className="h-6 w-6 text-red-700" />
-                    <div className="text-left">
-                      <h3 className="font-semibold text-lg text-red-900">Low Performing Dimensions</h3>
-                      <p className="text-sm text-red-700">
-                        {groupedDimensions.low.length} dimensions requiring immediate attention
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge className="bg-red-600 text-white">{groupedDimensions.low.length}</Badge>
-                    {expandedSections.low ? (
-                      <ChevronUp className="h-5 w-5 text-red-700" />
-                    ) : (
-                      <ChevronDown className="h-5 w-5 text-red-700" />
-                    )}
-                  </div>
-                </button>
-                {expandedSections.low && (
-                  <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {groupedDimensions.low.map((dimension) => {
-                      const Icon = dimension.icon
-                      const performanceScore = calculateCompositePerformanceScore(dimension)
-                      return (
-                        <Card
-                          key={dimension.id}
-                          className="border-2 border-red-200 hover:shadow-md transition-shadow cursor-pointer"
-                        >
-                          <CardHeader className="pb-3">
-                            <div className="flex items-center justify-between">
-                              <Icon className="h-5 w-5 text-red-600" />
-                              <div className="flex items-center gap-2">
-                                {getTrendIcon(dimension.trend)}
-                                <Badge className="bg-red-600 text-white text-xs">{performanceScore}</Badge>
-                              </div>
-                            </div>
-                            <CardTitle className="text-sm font-medium">{dimension.name}</CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="space-y-3">
-                              <div className="space-y-2">
-                                <div className="flex items-center justify-between text-xs">
-                                  <span>Low Performing</span>
-                                  <span className="font-medium">{dimension.lowPerforming.count} pts</span>
-                                </div>
-                                <Progress value={dimension.lowPerforming.percentage} className="h-1.5" />
-                              </div>
-                              <div className="pt-2 border-t space-y-1">
-                                <div className="flex justify-between text-xs">
-                                  <span className="text-muted-foreground">Avg Score:</span>
-                                  <span className="font-medium">{dimension.avgScore}</span>
-                                </div>
-                                <div className="flex justify-between text-xs">
-                                  <span className="text-muted-foreground">Target:</span>
-                                  <span className="font-medium">{dimension.targetScore}</span>
-                                </div>
-                                <div className="flex justify-between text-xs">
-                                  <span className="text-muted-foreground">Achievement:</span>
-                                  <span className="font-medium">{dimension.targetAchievementRate}%</span>
-                                </div>
-                              </div>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="w-full bg-transparent text-xs"
-                                onClick={() => {
-                                  const config = healthDimensionsConfig.find(d => d.id === dimension.id)
-                                  handleViewPatients(dimension.id, dimension.name, config?.color || "#000", "low")
-                                }}
-                              >
-                                <Eye className="h-3 w-3 mr-1" />
-                                View Patients
-                              </Button>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      )
-                    })}
-                  </div>
-                )}
-              </div>
-
-              {/* Quick Actions */}
+              {/* Drill-down Actions */}
               <div className="mt-6 p-4 bg-muted rounded-lg">
-                <h4 className="font-medium mb-3">Quick Actions by Performance Tier</h4>
+                <h4 className="font-medium mb-3">Quick Actions</h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <Button
-                    variant="outline"
-                    className="justify-start bg-transparent border-green-300 hover:bg-green-50"
-                    onClick={() => setExpandedSections({ high: true, moderate: false, low: false })}
-                  >
-                    <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
-                    View High Performers
+                  <Button variant="outline" className="justify-start bg-transparent">
+                    <Target className="h-4 w-4 mr-2" />
+                    Top 5% High Performers
                   </Button>
-                  <Button
-                    variant="outline"
-                    className="justify-start bg-transparent border-amber-300 hover:bg-amber-50"
-                    onClick={() => setExpandedSections({ high: false, moderate: true, low: false })}
-                  >
-                    <Target className="h-4 w-4 mr-2 text-amber-600" />
-                    Address Moderate Performers
+                  <Button variant="outline" className="justify-start bg-transparent">
+                    <AlertTriangle className="h-4 w-4 mr-2" />
+                    New High Risk This Week
                   </Button>
-                  <Button
-                    variant="outline"
-                    className="justify-start bg-transparent border-red-300 hover:bg-red-50"
-                    onClick={() => setExpandedSections({ high: false, moderate: false, low: true })}
-                  >
-                    <AlertTriangle className="h-4 w-4 mr-2 text-red-600" />
-                    Urgent: Low Performers
+                  <Button variant="outline" className="justify-start bg-transparent">
+                    <TrendingDown className="h-4 w-4 mr-2" />
+                    No Improvement 30+ Days
                   </Button>
                 </div>
               </div>
@@ -920,64 +583,77 @@ export function AnalyticsCohortManagement() {
             <CardContent className="space-y-8">
               <div className="w-full">
                 <ChartContainer config={chartConfig}>
-                  <ResponsiveContainer width="100%" height={500}>
+                  <ResponsiveContainer width="100%" height={400}>
                     <LineChart data={cohortData.trendData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                       <XAxis dataKey="month" tick={{ fontSize: 12 }} tickLine={{ stroke: "#9ca3af" }} />
                       <YAxis tick={{ fontSize: 12 }} tickLine={{ stroke: "#9ca3af" }} />
                       <ChartTooltip content={<ChartTooltipContent />} />
                       <Legend wrapperStyle={{ paddingTop: "20px" }} iconType="line" />
-                      {healthDimensionsConfig.map((dimension) => (
-                        <Line
-                          key={dimension.id}
-                          type="monotone"
-                          dataKey={dimension.id}
-                          stroke={dimension.color}
-                          strokeWidth={2}
-                          dot={{ r: 3, strokeWidth: 1 }}
-                          name={dimension.name}
-                        />
-                      ))}
+                      <Line
+                        type="monotone"
+                        dataKey="depression"
+                        stroke={chartConfig.depression.color}
+                        strokeWidth={3}
+                        dot={{ r: 5, strokeWidth: 2 }}
+                        name="Depression (PHQ-9)"
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="anxiety"
+                        stroke={chartConfig.anxiety.color}
+                        strokeWidth={3}
+                        dot={{ r: 5, strokeWidth: 2 }}
+                        name="Anxiety (GAD-7)"
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="function"
+                        stroke={chartConfig.function.color}
+                        strokeWidth={3}
+                        dot={{ r: 5, strokeWidth: 2 }}
+                        name="Function (WHODAS)"
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="pain"
+                        stroke={chartConfig.pain.color}
+                        strokeWidth={3}
+                        dot={{ r: 5, strokeWidth: 2 }}
+                        name="Pain (BPI)"
+                      />
                     </LineChart>
                   </ResponsiveContainer>
                 </ChartContainer>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pt-4">
-                {cohortData.dimensions.map((dimension) => {
-                  const tier = classifyDimensionPerformance(dimension)
-                  const tierColors = {
-                    high: "border-green-300 bg-green-50",
-                    moderate: "border-amber-300 bg-amber-50",
-                    low: "border-red-300 bg-red-50",
-                  }
-                  return (
-                    <Card key={dimension.id} className={`border-2 ${tierColors[tier]}`}>
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between mb-3">
-                          <h4 className="font-semibold text-xs">{dimension.name}</h4>
-                          {getTrendIcon(dimension.trend)}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pt-4">
+                {cohortData.dimensions.map((dimension) => (
+                  <Card key={dimension.id} className="border-2">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="font-semibold text-sm">{dimension.name.split(" ")[0]}</h4>
+                        {getTrendIcon(dimension.trend)}
+                      </div>
+                      <div className="space-y-3">
+                        <div>
+                          <div className="text-3xl font-bold mb-1">{dimension.avgScore}</div>
+                          <div className="text-xs text-muted-foreground">Current Average</div>
                         </div>
-                        <div className="space-y-2">
-                          <div>
-                            <div className="text-2xl font-bold mb-1">{dimension.avgScore}</div>
-                            <div className="text-xs text-muted-foreground">Current Average</div>
+                        <div className="pt-3 border-t space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Target:</span>
+                            <span className="font-medium">{dimension.targetScore}</span>
                           </div>
-                          <div className="pt-2 border-t space-y-1">
-                            <div className="flex justify-between text-xs">
-                              <span className="text-muted-foreground">Target:</span>
-                              <span className="font-medium">{dimension.targetScore}</span>
-                            </div>
-                            <div className="flex justify-between text-xs">
-                              <span className="text-muted-foreground">Completion:</span>
-                              <span className="font-medium">{dimension.completionRate}%</span>
-                            </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Completion:</span>
+                            <span className="font-medium">{dimension.completionRate}%</span>
                           </div>
                         </div>
-                      </CardContent>
-                    </Card>
-                  )
-                })}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
             </CardContent>
           </Card>
@@ -1420,22 +1096,6 @@ export function AnalyticsCohortManagement() {
         </TabsContent>
       </Tabs>
       {/* end Provider vs Team */}
-
-      {/* Patient List Dialog */}
-      {patientListDialog && (
-        <CohortPatientListDialog
-          open={patientListDialog.open}
-          onOpenChange={(open) => {
-            if (!open) {
-              setPatientListDialog(null)
-            }
-          }}
-          dimensionId={patientListDialog.dimensionId}
-          dimensionName={patientListDialog.dimensionName}
-          dimensionColor={patientListDialog.dimensionColor}
-          performanceTier={patientListDialog.performanceTier}
-        />
-      )}
     </div>
   )
 }

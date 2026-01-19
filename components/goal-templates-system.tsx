@@ -17,7 +17,7 @@ const goalTemplates = [
   {
     id: "dep-1",
     category: "Depression",
-    template: "Reduce depression score by 50%",
+    template: "Reduce PHQ-9 score by 50%",
     dimension: "phq9",
     targetType: "percentage",
     defaultTimeframe: "6 months",
@@ -25,7 +25,7 @@ const goalTemplates = [
   {
     id: "dep-2",
     category: "Depression",
-    template: "Achieve depression score below 9 (mild threshold)",
+    template: "Achieve PHQ-9 score below 9 (mild depression threshold)",
     dimension: "phq9",
     targetType: "absolute",
     defaultTimeframe: "6 months",
@@ -33,7 +33,7 @@ const goalTemplates = [
   {
     id: "dep-3",
     category: "Depression",
-    template: "Reduce depression score to minimal range (0-4)",
+    template: "Reduce PHQ-9 score to minimal range (0-4)",
     dimension: "phq9",
     targetType: "absolute",
     defaultTimeframe: "12 months",
@@ -51,7 +51,7 @@ const goalTemplates = [
   {
     id: "anx-1",
     category: "Anxiety",
-    template: "Maintain anxiety score below 7",
+    template: "Maintain GAD-7 score below 7",
     dimension: "gad7",
     targetType: "absolute",
     defaultTimeframe: "6 months",
@@ -59,7 +59,7 @@ const goalTemplates = [
   {
     id: "anx-2",
     category: "Anxiety",
-    template: "Reduce anxiety score by 40%",
+    template: "Reduce GAD-7 score by 40%",
     dimension: "gad7",
     targetType: "percentage",
     defaultTimeframe: "6 months",
@@ -67,7 +67,7 @@ const goalTemplates = [
   {
     id: "anx-3",
     category: "Anxiety",
-    template: "Achieve minimal anxiety symptoms (score < 5)",
+    template: "Achieve minimal anxiety symptoms (GAD-7 < 5)",
     dimension: "gad7",
     targetType: "absolute",
     defaultTimeframe: "9 months",
@@ -85,7 +85,7 @@ const goalTemplates = [
   {
     id: "func-1",
     category: "Function",
-    template: "Improve functional health score by 30%",
+    template: "Improve WHODAS score by 30%",
     dimension: "whodas",
     targetType: "percentage",
     defaultTimeframe: "6 months",
@@ -93,7 +93,7 @@ const goalTemplates = [
   {
     id: "func-2",
     category: "Function",
-    template: "Reduce functional disability to mild range (5-9)",
+    template: "Reduce functional disability to mild range (WHODAS 5-9)",
     dimension: "whodas",
     targetType: "absolute",
     defaultTimeframe: "9 months",
@@ -287,19 +287,19 @@ export function GoalTemplatesSystem({
   defaultDimension,
   latestByDimension = {},
   openCreateDefault = false,
-  onGoalCreated,
+  onGoalCreated, // add callback to bubble up new goals
 }: {
   patientId?: number
   trackedDimensions?: { id: string; label: string }[]
   defaultDimension?: string
   latestByDimension?: Record<string, number>
   openCreateDefault?: boolean
-  onGoalCreated?: (goal: { id: string; description: string }) => void
+  onGoalCreated?: (goal: { id: string; description: string }) => void // new prop type
 }) {
   const [goals, setGoals] = useState<Goal[]>([
     {
       id: "g1",
-      description: "Reduce depression score by 50%",
+      description: "Reduce PHQ-9 score by 50%",
       dimension: "phq9",
       baseline: 18,
       target: 9,
@@ -329,10 +329,9 @@ export function GoalTemplatesSystem({
   const [newIntervention, setNewIntervention] = useState<string>("")
   const [current, setCurrent] = useState<number | "">("")
   const [reassessmentDate, setReassessmentDate] = useState<string>("")
-  const [newInterventionType, setNewInterventionType] = useState<"Medication" | "Lifestyle" | "Therapy" | "Social" | "Other">("Medication")
+  const [newInterventionType, setNewInterventionType] = useState<"Medication" | "Lifestyle" | "Therapy">("Medication")
   const [newInterventionDate, setNewInterventionDate] = useState<string>(new Date().toISOString().slice(0, 10))
   const [newInterventionNotes, setNewInterventionNotes] = useState<string>("")
-  const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
     const latest = latestByDimension[selectedDimension]
@@ -480,7 +479,7 @@ export function GoalTemplatesSystem({
       <div className="space-y-6">
         {/* Guidance */}
         <div className="rounded-lg border p-3 bg-muted/50 text-sm text-muted-foreground">
-          Enter a measurable goal for the chosen dimension (e.g., {'"Reduce depression score from 20 to 11 in 1 month"'}).
+          Enter a measurable goal for the chosen dimension (e.g., {'"Reduce PHQ-9 from 20 to 11 in 1 month"'}).
         </div>
 
         {/* Goal Description */}
@@ -544,11 +543,10 @@ export function GoalTemplatesSystem({
                 <SelectValue placeholder="Select timeframe" />
               </SelectTrigger>
               <SelectContent>
-                {timeframeOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
+                <SelectItem value="2weeks">2 Weeks</SelectItem>
+                <SelectItem value="1month">1 Month</SelectItem>
+                <SelectItem value="6weeks">6 Weeks</SelectItem>
+                <SelectItem value="3months">3 Months</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -582,8 +580,6 @@ export function GoalTemplatesSystem({
                 <SelectItem value="Medication">Medication</SelectItem>
                 <SelectItem value="Lifestyle">Lifestyle</SelectItem>
                 <SelectItem value="Therapy">Therapy</SelectItem>
-                <SelectItem value="Social">Social</SelectItem>
-                <SelectItem value="Other">Other</SelectItem>
               </SelectContent>
             </Select>
 
@@ -614,17 +610,6 @@ export function GoalTemplatesSystem({
                   <Input placeholder="Type (CBT/DBT/other)" />
                   <Input placeholder="Frequency" />
                   <Input placeholder="Provider" />
-                </>
-              )}
-              {newInterventionType === "Social" && (
-                <>
-                  <Input placeholder="Activity/Engagement" />
-                  <Input placeholder="Frequency" />
-                </>
-              )}
-              {newInterventionType === "Other" && (
-                <>
-                  <Input placeholder="Intervention name" />
                 </>
               )}
             </div>
@@ -1008,8 +993,6 @@ export function GoalTemplatesSystem({
                     <SelectItem value="Medication">Medication</SelectItem>
                     <SelectItem value="Lifestyle">Lifestyle</SelectItem>
                     <SelectItem value="Therapy">Therapy</SelectItem>
-                    <SelectItem value="Social">Social</SelectItem>
-                    <SelectItem value="Other">Other</SelectItem>
                   </SelectContent>
                 </Select>
 
@@ -1040,17 +1023,6 @@ export function GoalTemplatesSystem({
                       <Input placeholder="Type (CBT/DBT/other)" />
                       <Input placeholder="Frequency" />
                       <Input placeholder="Provider" />
-                    </>
-                  )}
-                  {newInterventionType === "Social" && (
-                    <>
-                      <Input placeholder="Activity/Engagement" />
-                      <Input placeholder="Frequency" />
-                    </>
-                  )}
-                  {newInterventionType === "Other" && (
-                    <>
-                      <Input placeholder="Intervention name" />
                     </>
                   )}
                 </div>
@@ -1127,9 +1099,7 @@ export function GoalTemplatesSystem({
             >
               Cancel
             </Button>
-            <Button onClick={handleCreateGoal} disabled={isLoading}>
-              {isLoading ? "Creating..." : "Create Goal"}
-            </Button>
+            <Button onClick={handleCreateGoal}>Create Goal</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

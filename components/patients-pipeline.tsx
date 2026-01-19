@@ -461,7 +461,7 @@ export function PatientsPipeline() {
                       <TableCell>
                         <div className="text-sm">{formatRelative(patient.lastAssessmentDate)}</div>
                         {patient.phq9Score && (
-                          <div className="text-xs text-muted-foreground">MCID: {patient.phq9Score}%</div>
+                          <div className="text-xs text-muted-foreground">PHQ-9: {patient.phq9Score}</div>
                         )}
                       </TableCell>
                       <TableCell>

@@ -1,48 +1,29 @@
 "use client"
 
-import { useState } from "react"
-import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { AlertTriangle, Users, MessageSquare, FileText } from "lucide-react"
-import { getPatientById, getAssessmentById } from "@/lib/nsh-assessment-mock"
 
-const mockPatients = [
-  { id: 1, healthIndexScore: 75, unreadMessages: 2 },
-  { id: 2, healthIndexScore: 42, unreadMessages: 3 },
-  { id: 3, healthIndexScore: 68, unreadMessages: 0 },
-  { id: 4, healthIndexScore: 55, unreadMessages: 1 },
-  { id: 5, healthIndexScore: 82, unreadMessages: 4 },
-  { id: 6, healthIndexScore: 38, unreadMessages: 2 },
-  { id: 7, healthIndexScore: 91, unreadMessages: 0 },
-  { id: 8, healthIndexScore: 47, unreadMessages: 3 },
-  { id: 9, healthIndexScore: 73, unreadMessages: 1 },
-  { id: 10, healthIndexScore: 29, unreadMessages: 2 },
-  { id: 11, healthIndexScore: 64, unreadMessages: 0 },
-  { id: 12, healthIndexScore: 51, unreadMessages: 1 },
-  { id: 13, healthIndexScore: 88, unreadMessages: 2 },
-  { id: 14, healthIndexScore: 35, unreadMessages: 4 },
-  { id: 15, healthIndexScore: 70, unreadMessages: 1 },
-]
+const mockPatients = Array.from({ length: 15 }, (_, i) => ({
+  id: i + 1,
+  healthIndexScore: Math.floor(Math.random() * 100),
+  unreadMessages: Math.floor(Math.random() * 5),
+}))
 
 const riskAlerts = [
   {
     id: 1,
-    patientId: 1,
     patient: "Sarah Johnson",
     type: "High Health Index",
     description: "Health Index Score is above 70.",
     action: "Review Assessment",
-    assessmentDate: "2025-01-01",
   },
   {
     id: 2,
-    patientId: 2,
     patient: "Robert Williams",
     type: "Critical Flags",
     description: "Patient has 3 critical flags.",
     action: "Immediate Follow-up",
-    assessmentDate: "2024-12-28",
   },
 ]
 
@@ -51,7 +32,6 @@ const statusCounts = {
 }
 
 export function DashboardOverview() {
-
   return (
     <div className="space-y-8">
       {riskAlerts.length > 0 && (
@@ -75,16 +55,12 @@ export function DashboardOverview() {
                     <p className="text-sm text-red-700">{alert.description}</p>
                   </div>
                   <div className="flex gap-2 flex-shrink-0">
-                    <Link href={`/patients/${alert.patientId}`}>
-                      <Button size="sm" variant="outline" className="text-xs bg-transparent">
-                        View Details
-                      </Button>
-                    </Link>
-                    <Link href={`/assessments/${alert.patientId}/${encodeURIComponent(alert.assessmentDate)}`}>
-                      <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white text-xs">
-                        {alert.action}
-                      </Button>
-                    </Link>
+                    <Button size="sm" variant="outline" className="text-xs bg-transparent">
+                      View Details
+                    </Button>
+                    <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white text-xs">
+                      {alert.action}
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -158,7 +134,6 @@ export function DashboardOverview() {
           </CardContent>
         </Card>
       </div>
-
     </div>
   )
 }

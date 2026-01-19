@@ -1,5 +1,5 @@
-import { OutcomeMeasuresView } from '@/components/outcome-measures-view';
+import { PatientAssessmentTracking } from "@/components/patient-assessment-tracking"
 
 export default function OutcomesPage() {
-  return <OutcomeMeasuresView />;
+  return <PatientAssessmentTracking />
 }
