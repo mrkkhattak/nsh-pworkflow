@@ -17,7 +17,7 @@ const goalTemplates = [
   {
     id: "dep-1",
     category: "Depression",
-    template: "Reduce PHQ-9 score by 50%",
+    template: "Reduce depression score by 50%",
     dimension: "phq9",
     targetType: "percentage",
     defaultTimeframe: "6 months",
@@ -25,7 +25,7 @@ const goalTemplates = [
   {
     id: "dep-2",
     category: "Depression",
-    template: "Achieve PHQ-9 score below 9 (mild depression threshold)",
+    template: "Achieve depression score below 9 (mild threshold)",
     dimension: "phq9",
     targetType: "absolute",
     defaultTimeframe: "6 months",
@@ -33,7 +33,7 @@ const goalTemplates = [
   {
     id: "dep-3",
     category: "Depression",
-    template: "Reduce PHQ-9 score to minimal range (0-4)",
+    template: "Reduce depression score to minimal range (0-4)",
     dimension: "phq9",
     targetType: "absolute",
     defaultTimeframe: "12 months",
@@ -51,7 +51,7 @@ const goalTemplates = [
   {
     id: "anx-1",
     category: "Anxiety",
-    template: "Maintain GAD-7 score below 7",
+    template: "Maintain anxiety score below 7",
     dimension: "gad7",
     targetType: "absolute",
     defaultTimeframe: "6 months",
@@ -59,7 +59,7 @@ const goalTemplates = [
   {
     id: "anx-2",
     category: "Anxiety",
-    template: "Reduce GAD-7 score by 40%",
+    template: "Reduce anxiety score by 40%",
     dimension: "gad7",
     targetType: "percentage",
     defaultTimeframe: "6 months",
@@ -67,7 +67,7 @@ const goalTemplates = [
   {
     id: "anx-3",
     category: "Anxiety",
-    template: "Achieve minimal anxiety symptoms (GAD-7 < 5)",
+    template: "Achieve minimal anxiety symptoms (score < 5)",
     dimension: "gad7",
     targetType: "absolute",
     defaultTimeframe: "9 months",
@@ -85,7 +85,7 @@ const goalTemplates = [
   {
     id: "func-1",
     category: "Function",
-    template: "Improve WHODAS score by 30%",
+    template: "Improve functional health score by 30%",
     dimension: "whodas",
     targetType: "percentage",
     defaultTimeframe: "6 months",
@@ -93,7 +93,7 @@ const goalTemplates = [
   {
     id: "func-2",
     category: "Function",
-    template: "Reduce functional disability to mild range (WHODAS 5-9)",
+    template: "Reduce functional disability to mild range (5-9)",
     dimension: "whodas",
     targetType: "absolute",
     defaultTimeframe: "9 months",
@@ -299,7 +299,7 @@ export function GoalTemplatesSystem({
   const [goals, setGoals] = useState<Goal[]>([
     {
       id: "g1",
-      description: "Reduce PHQ-9 score by 50%",
+      description: "Reduce depression score by 50%",
       dimension: "phq9",
       baseline: 18,
       target: 9,
@@ -479,7 +479,7 @@ export function GoalTemplatesSystem({
       <div className="space-y-6">
         {/* Guidance */}
         <div className="rounded-lg border p-3 bg-muted/50 text-sm text-muted-foreground">
-          Enter a measurable goal for the chosen dimension (e.g., {'"Reduce PHQ-9 from 20 to 11 in 1 month"'}).
+          Enter a measurable goal for the chosen dimension (e.g., {'"Reduce depression score from 20 to 11 in 1 month"'}).
         </div>
 
         {/* Goal Description */}

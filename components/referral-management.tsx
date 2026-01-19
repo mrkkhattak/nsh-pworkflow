@@ -22,7 +22,7 @@ const mockReferrals = [
     specialty: "Psychiatrist",
     status: "proposed",
     priority: "high",
-    reason: "Severe depression (PHQ-9: 18), medication management needed",
+    reason: "Severe depression (MCID: 18%), medication management needed",
     autoMatched: true,
     provider: {
       name: "Dr. Emily Chen",

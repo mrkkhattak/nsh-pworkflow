@@ -19,6 +19,7 @@ import ReferralManagement from "@/components/referral-management"
 import { SideNavigation } from "@/components/side-navigation"
 import { PatientDetailView } from "@/components/patient-detail-view"
 import { QuickScheduleDialog } from "@/components/quick-schedule-dialog"
+import { getPatientById, getAssessmentById } from "@/lib/nsh-assessment-mock"
 import { useToast } from "@/hooks/use-toast"
 import {
   AlertTriangle,
@@ -321,7 +322,7 @@ const mockPatients: Patient[] = [
     actionItemsClosed: 3,
     unreadMessages: 0,
     age: 49,
-    condition: "GAD",
+    condition: "Generalized Anxiety",
     phq9Score: 11,
     nextAppointment: "Not scheduled",
   },
@@ -612,7 +613,7 @@ export function ProviderDashboard() {
                         View Details
                       </Button>
                     </Link>
-                    <Link href={`/assessments/${alert.patientId}/${encodeURIComponent(alert.assessmentDate)}`}>
+                    <Link href={`/assessments/${alert.patientId}/${encodeURIComponent(alert.assessmentDate || '')}`}>
                       <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white text-xs">
                         {alert.action}
                       </Button>
@@ -927,9 +928,7 @@ export function ProviderDashboard() {
                       </TableCell>
                       <TableCell>
                         <div className="text-sm">{formatRelative(patient.lastAssessmentDate)}</div>
-                        {patient.phq9Score && (
-                          <div className="text-xs text-muted-foreground">PHQ-9: {patient.phq9Score}</div>
-                        )}
+                        <div className="text-xs text-muted-foreground">MCID: {patient.healthIndexScore}%</div>
                       </TableCell>
                       <TableCell>
                         <Badge variant={getStatusBadgeVariant(patient.status)} className="capitalize">
@@ -1125,6 +1124,7 @@ export function ProviderDashboard() {
         patient={selectedPatientForScheduling}
         onScheduled={() => setSelectedPatientForScheduling(null)}
       />
+
     </div>
   )
 }
