@@ -39,7 +39,7 @@ const mockTasks = [
     dueDate: "2025-01-15",
     priority: "high",
     category: "patient-level",
-    status: "todo",
+    status: "pending",
     description: "Schedule follow-up assessment after medication adjustment",
     blockers: [],
     slaStatus: "on-time",
@@ -56,7 +56,7 @@ const mockTasks = [
     dueDate: "2025-01-16",
     priority: "high",
     category: "system-level",
-    status: "in-progress",
+    status: "in-contact",
     description: "Refer to Dr. Smith for psychiatric evaluation",
     blockers: [],
     slaStatus: "at-risk",
@@ -73,7 +73,7 @@ const mockTasks = [
     dueDate: "2025-01-17",
     priority: "medium",
     category: "community-level",
-    status: "waiting-patient",
+    status: "in-progress",
     description: "Contact patient about missed medication doses",
     blockers: ["Patient not responding to calls"],
     slaStatus: "overdue",
@@ -90,7 +90,7 @@ const mockTasks = [
     dueDate: "2025-01-14",
     priority: "medium",
     category: "system-level",
-    status: "done",
+    status: "completed",
     description: "Process insurance authorization for specialist visit",
     blockers: [],
     slaStatus: "completed",
@@ -107,7 +107,7 @@ const mockTasks = [
     dueDate: "2025-01-18",
     priority: "low",
     category: "patient-level",
-    status: "todo",
+    status: "pending",
     description: "Review and update care plan based on recent assessment",
     blockers: [],
     slaStatus: "on-time",
@@ -144,8 +144,8 @@ const mockTasks = [
     assignee: "Dr. Anderson",
     dueDate: "2025-01-16",
     priority: "high",
-    category: "physician-level",
-    status: "todo",
+    category: "provider-level",
+    status: "pending",
     description: "Weekly review of all high-risk patients in panel for care coordination",
     blockers: [],
     slaStatus: "on-time",
@@ -161,8 +161,8 @@ const mockTasks = [
     assignee: "Dr. Anderson",
     dueDate: "2025-01-20",
     priority: "medium",
-    category: "physician-level",
-    status: "in-progress",
+    category: "provider-level",
+    status: "scheduled",
     description: "Complete required continuing medical education on depression management",
     blockers: [],
     slaStatus: "on-time",
@@ -178,8 +178,8 @@ const mockTasks = [
     assignee: "Dr. Anderson",
     dueDate: "2025-01-17",
     priority: "high",
-    category: "physician-level",
-    status: "todo",
+    category: "provider-level",
+    status: "pending",
     description: "Consult with psychiatrist regarding treatment-resistant depression case",
     blockers: [],
     slaStatus: "on-time",
@@ -213,7 +213,7 @@ const mockTasks = [
     dueDate: "2025-01-30",
     priority: "medium",
     category: "provider-level",
-    status: "in-progress",
+    status: "scheduled",
     description: "Onboard 3 new therapists to provider network",
     blockers: [],
     slaStatus: "on-time",
@@ -230,7 +230,7 @@ const mockTasks = [
     dueDate: "2025-01-19",
     priority: "high",
     category: "provider-level",
-    status: "todo",
+    status: "pending",
     description: "Monthly review of provider quality metrics and outcomes",
     blockers: [],
     slaStatus: "on-time",
@@ -247,7 +247,7 @@ const mockTasks = [
     dueDate: "2025-01-21",
     priority: "medium",
     category: "patient-level",
-    status: "todo",
+    status: "pending",
     description: "Check progress on mobility exercises and adjust therapy plan",
     blockers: [],
     slaStatus: "on-time",
@@ -264,7 +264,7 @@ const mockTasks = [
     dueDate: "2025-01-22",
     priority: "medium",
     category: "patient-level",
-    status: "in-progress",
+    status: "acknowledged",
     description: "Review dietary changes and meal planning for diabetes management",
     blockers: [],
     slaStatus: "on-time",
@@ -281,7 +281,7 @@ const mockTasks = [
     dueDate: "2025-01-19",
     priority: "high",
     category: "patient-level",
-    status: "todo",
+    status: "pending",
     description: "Discuss sleep study findings and potential CPAP therapy",
     blockers: [],
     slaStatus: "on-time",
@@ -298,7 +298,7 @@ const mockTasks = [
     dueDate: "2025-01-23",
     priority: "high",
     category: "system-level",
-    status: "in-progress",
+    status: "in-contact",
     description: "Refer to pain management specialist for chronic back pain",
     blockers: [],
     slaStatus: "on-time",
@@ -307,22 +307,46 @@ const mockTasks = [
   },
 ]
 
+const categoryStatusColumns: Record<string, Array<{ id: string; title: string; color: string }>> = {
+  "provider-level": [
+    { id: "pending", title: "Pending", color: "bg-gray-50 border-gray-200" },
+    { id: "scheduled", title: "Scheduled", color: "bg-blue-50 border-blue-200" },
+    { id: "completed", title: "Completed", color: "bg-green-50 border-green-200" },
+    { id: "declined", title: "Declined", color: "bg-red-50 border-red-200" },
+    { id: "no-show", title: "No Show", color: "bg-orange-50 border-orange-200" },
+    { id: "canceled", title: "Canceled", color: "bg-gray-50 border-gray-200" },
+  ],
+  "patient-level": [
+    { id: "acknowledged", title: "Acknowledged", color: "bg-blue-50 border-blue-200" },
+    { id: "declined", title: "Declined", color: "bg-red-50 border-red-200" },
+    { id: "pending", title: "Pending", color: "bg-gray-50 border-gray-200" },
+  ],
+  "system-level": [
+    { id: "completed", title: "Completed", color: "bg-green-50 border-green-200" },
+    { id: "unreachable", title: "Unreachable", color: "bg-orange-50 border-orange-200" },
+    { id: "declined", title: "Declined", color: "bg-red-50 border-red-200" },
+    { id: "pending", title: "Pending", color: "bg-gray-50 border-gray-200" },
+    { id: "in-contact", title: "In Contact", color: "bg-blue-50 border-blue-200" },
+  ],
+  "community-level": [
+    { id: "enrolled", title: "Enrolled", color: "bg-blue-50 border-blue-200" },
+    { id: "in-progress", title: "In Progress", color: "bg-yellow-50 border-yellow-200" },
+    { id: "completed", title: "Completed", color: "bg-green-50 border-green-200" },
+    { id: "withdrawn", title: "Withdrawn", color: "bg-orange-50 border-orange-200" },
+    { id: "declined", title: "Declined", color: "bg-red-50 border-red-200" },
+    { id: "pending", title: "Pending", color: "bg-gray-50 border-gray-200" },
+  ],
+}
+
 const taskColumns = [
-  { id: "todo", title: "To Do", color: "bg-blue-50 border-blue-200" },
+  { id: "pending", title: "Pending", color: "bg-gray-50 border-gray-200" },
+  { id: "scheduled", title: "Scheduled", color: "bg-blue-50 border-blue-200" },
   { id: "in-progress", title: "In Progress", color: "bg-yellow-50 border-yellow-200" },
-  { id: "waiting-patient", title: "Waiting on Patient", color: "bg-orange-50 border-orange-200" },
-  { id: "done", title: "Completed", color: "bg-green-50 border-green-200" },
-  { id: "cancelled", title: "Cancelled", color: "bg-gray-50 border-gray-200" },
+  { id: "completed", title: "Completed", color: "bg-green-50 border-green-200" },
+  { id: "declined", title: "Declined", color: "bg-red-50 border-red-200" },
 ]
 
 const taskCategories = [
-  {
-    id: "physician-level",
-    title: "Physician Level",
-    icon: UserCog,
-    color: "bg-indigo-100 text-indigo-800",
-    description: "Direct physician responsibilities and clinical decisions",
-  },
   {
     id: "provider-level",
     title: "Provider Level",
@@ -357,12 +381,33 @@ export function TaskKanbanBoard() {
   const [tasks, setTasks] = useState(mockTasks)
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [selectedDimension, setSelectedDimension] = useState("all")
+  const [selectedPatient, setSelectedPatient] = useState("all")
   const [viewMode, setViewMode] = useState<"category" | "dimension">("category")
   const [draggedTask, setDraggedTask] = useState<number | null>(null)
 
-  const filteredTasks = viewMode === "category"
-    ? (selectedCategory === "all" ? tasks : tasks.filter((task) => task.category === selectedCategory))
-    : (selectedDimension === "all" ? tasks : tasks.filter((task) => task.dimension === selectedDimension))
+  const uniquePatients = Array.from(new Set(mockTasks.filter(t => t.patientId > 0).map(t => t.patient)))
+    .sort()
+    .map((name, idx) => {
+      const task = mockTasks.find(t => t.patient === name)
+      return { id: task?.patientId || idx, name }
+    })
+
+  const filteredTasks = tasks.filter(task => {
+    const categoryMatch = viewMode === "category"
+      ? (selectedCategory === "all" || task.category === selectedCategory)
+      : (selectedDimension === "all" || task.dimension === selectedDimension)
+
+    const patientMatch = selectedPatient === "all" || task.patient === selectedPatient
+
+    return categoryMatch && patientMatch
+  })
+
+  const getActiveColumns = () => {
+    if (viewMode === "category" && selectedCategory !== "all" && categoryStatusColumns[selectedCategory]) {
+      return categoryStatusColumns[selectedCategory]
+    }
+    return taskColumns
+  }
 
   const getTasksByStatus = (status: string) => {
     return filteredTasks.filter((task) => task.status === status)
@@ -438,13 +483,31 @@ export function TaskKanbanBoard() {
         <div>
           <h2 className="text-2xl font-bold text-foreground">Task Status Board</h2>
           <p className="text-muted-foreground">
-            Manage care tasks across physician, provider, patient, system, community levels, and health dimensions
+            Manage care tasks across provider, patient, system, and community levels, and health dimensions
           </p>
         </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Task
-        </Button>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <User className="h-4 w-4 text-muted-foreground" />
+            <Select value={selectedPatient} onValueChange={setSelectedPatient}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Filter by patient" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Patients</SelectItem>
+                {uniquePatients.map((patient) => (
+                  <SelectItem key={patient.id} value={patient.name}>
+                    {patient.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <Button>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Task
+          </Button>
+        </div>
       </div>
 
       <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "category" | "dimension")} className="space-y-6">
@@ -453,42 +516,60 @@ export function TaskKanbanBoard() {
             <TabsTrigger value="category">By Category</TabsTrigger>
             <TabsTrigger value="dimension">By Health Dimension</TabsTrigger>
           </TabsList>
-          <Badge variant="outline" className="text-sm">
-            {tasks.length} Total Tasks
-          </Badge>
+          <div className="flex items-center gap-3">
+            {selectedPatient !== "all" && (
+              <Badge variant="secondary" className="text-sm">
+                Showing: {selectedPatient}
+              </Badge>
+            )}
+            <Badge variant="outline" className="text-sm">
+              {filteredTasks.length} of {tasks.length} Tasks
+            </Badge>
+          </div>
         </div>
 
         <TabsContent value="category" className="space-y-6">
-          {/* Filter */}
-          <div className="flex items-center gap-4">
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="w-56">
-                <SelectValue placeholder="Filter by category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                {taskCategories.map((category) => (
-                  <SelectItem key={category.id} value={category.id}>
-                    {category.title}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
           {/* Category Overview */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-foreground">Task Categories Overview</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-foreground">Task Categories Overview</h3>
+              {(selectedCategory !== "all" || selectedPatient !== "all") && (
+                <div className="flex gap-2">
+                  {selectedCategory !== "all" && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setSelectedCategory("all")}
+                      className="text-xs"
+                    >
+                      Clear Category
+                    </Button>
+                  )}
+                  {selectedPatient !== "all" && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setSelectedPatient("all")}
+                      className="text-xs"
+                    >
+                      Clear Patient
+                    </Button>
+                  )}
+                </div>
+              )}
+            </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {taskCategories.map((category) => {
             const categoryTasks = tasks.filter((task) => task.category === category.id)
-            const completedTasks = categoryTasks.filter((t) => t.status === "done")
+            const completedTasks = categoryTasks.filter((t) => t.status === "completed")
             const overdueTasks = categoryTasks.filter((t) => t.slaStatus === "overdue")
             const Icon = category.icon
             return (
               <Card
                 key={category.id}
-                className={`cursor-pointer transition-all hover:shadow-md ${selectedCategory === category.id ? "ring-2 ring-primary shadow-lg" : ""}`}
+                className={`cursor-pointer transition-all hover:shadow-md ${
+                  selectedCategory === category.id ? "ring-2 ring-primary shadow-lg" : ""
+                }`}
                 onClick={() => setSelectedCategory(category.id)}
               >
                 <CardContent className="p-4">
@@ -529,7 +610,7 @@ export function TaskKanbanBoard() {
 
       {/* Kanban Board */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        {taskColumns.map((column) => {
+        {getActiveColumns().map((column) => {
           const columnTasks = getTasksByStatus(column.id)
           return (
             <Card key={column.id} className={column.color}>
@@ -669,7 +750,7 @@ export function TaskKanbanBoard() {
                           <Button variant="ghost" size="sm" className="h-7 px-2">
                             <Phone className="h-3 w-3" />
                           </Button>
-                          {task.status === "done" && <CheckCircle className="h-4 w-4 text-green-600 ml-auto" />}
+                          {task.status === "completed" && <CheckCircle className="h-4 w-4 text-green-600 ml-auto" />}
                         </div>
                       </CardContent>
                     </Card>
@@ -700,39 +781,39 @@ export function TaskKanbanBoard() {
           {/* Status Summary */}
           <div>
             <h4 className="text-sm font-semibold text-foreground mb-3">By Status</h4>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-              <div className="text-center p-4 bg-blue-50 rounded-lg">
-                <div className="text-2xl font-bold text-blue-600">{getTasksByStatus("todo").length}</div>
-                <div className="text-sm text-muted-foreground">To Do</div>
-              </div>
-              <div className="text-center p-4 bg-yellow-50 rounded-lg">
-                <div className="text-2xl font-bold text-yellow-600">{getTasksByStatus("in-progress").length}</div>
-                <div className="text-sm text-muted-foreground">In Progress</div>
-              </div>
-              <div className="text-center p-4 bg-orange-50 rounded-lg">
-                <div className="text-2xl font-bold text-orange-600">{getTasksByStatus("waiting-patient").length}</div>
-                <div className="text-sm text-muted-foreground">Waiting on Patient</div>
-              </div>
-              <div className="text-center p-4 bg-green-50 rounded-lg">
-                <div className="text-2xl font-bold text-green-600">{getTasksByStatus("done").length}</div>
-                <div className="text-sm text-muted-foreground">Completed</div>
-              </div>
-              <div className="text-center p-4 bg-gray-50 rounded-lg">
-                <div className="text-2xl font-bold text-gray-600">{getTasksByStatus("cancelled").length}</div>
-                <div className="text-sm text-muted-foreground">Cancelled</div>
-              </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              {getActiveColumns().map((column) => {
+                const statusTasks = getTasksByStatus(column.id)
+                const colorClass = column.color.includes("blue")
+                  ? "text-blue-600"
+                  : column.color.includes("yellow")
+                    ? "text-yellow-600"
+                    : column.color.includes("green")
+                      ? "text-green-600"
+                      : column.color.includes("red")
+                        ? "text-red-600"
+                        : column.color.includes("orange")
+                          ? "text-orange-600"
+                          : "text-gray-600"
+                return (
+                  <div key={column.id} className={`text-center p-4 rounded-lg ${column.color}`}>
+                    <div className={`text-2xl font-bold ${colorClass}`}>{statusTasks.length}</div>
+                    <div className="text-sm text-muted-foreground">{column.title}</div>
+                  </div>
+                )
+              })}
             </div>
           </div>
 
           {/* Category Breakdown */}
           <div>
             <h4 className="text-sm font-semibold text-foreground mb-3">By Category</h4>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {taskCategories.map((category) => {
                 const categoryTasks = tasks.filter((task) => task.category === category.id)
                 const completionRate =
                   categoryTasks.length > 0
-                    ? Math.round((categoryTasks.filter((t) => t.status === "done").length / categoryTasks.length) * 100)
+                    ? Math.round((categoryTasks.filter((t) => t.status === "completed").length / categoryTasks.length) * 100)
                     : 0
                 const Icon = category.icon
 
@@ -759,7 +840,7 @@ export function TaskKanbanBoard() {
 
         <TabsContent value="dimension" className="space-y-6">
           {/* Filter */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center justify-between">
             <Select value={selectedDimension} onValueChange={setSelectedDimension}>
               <SelectTrigger className="w-56">
                 <SelectValue placeholder="Filter by dimension" />
@@ -773,6 +854,30 @@ export function TaskKanbanBoard() {
                 ))}
               </SelectContent>
             </Select>
+            {(selectedDimension !== "all" || selectedPatient !== "all") && (
+              <div className="flex gap-2">
+                {selectedDimension !== "all" && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSelectedDimension("all")}
+                    className="text-xs"
+                  >
+                    Clear Dimension
+                  </Button>
+                )}
+                {selectedPatient !== "all" && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSelectedPatient("all")}
+                    className="text-xs"
+                  >
+                    Clear Patient
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Health Dimensions Overview */}
@@ -781,7 +886,7 @@ export function TaskKanbanBoard() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {healthDimensionsConfig.map((dimension) => {
                 const dimensionTasks = tasks.filter((task) => task.dimension === dimension.id)
-                const completedTasks = dimensionTasks.filter((t) => t.status === "done")
+                const completedTasks = dimensionTasks.filter((t) => t.status === "completed")
                 const overdueTasks = dimensionTasks.filter((t) => t.slaStatus === "overdue")
                 return (
                   <Card
@@ -830,7 +935,7 @@ export function TaskKanbanBoard() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-                {taskColumns.map((column) => (
+                {getActiveColumns().map((column) => (
                   <div
                     key={column.id}
                     className={`rounded-lg border-2 ${column.color} p-4 min-h-[500px]`}

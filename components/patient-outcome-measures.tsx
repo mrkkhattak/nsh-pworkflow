@@ -4,14 +4,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { TrendingDown, TrendingUp, Activity, Heart, AlertCircle, Users } from 'lucide-react';
+import { TrendingDown, TrendingUp, Activity, Heart, AlertCircle, Users, UserCheck, ThumbsUp } from 'lucide-react';
 import {
   getPatientOutcomeStats,
   getPatientOutcomeTrends,
   getCurrentQuarterStats,
+  getSmokingStatusLabel,
   PatientOutcomeStats,
 } from '@/lib/outcome-measures-mock';
-import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Bar, BarChart, Legend } from 'recharts';
+import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Bar, BarChart, Legend, ReferenceLine } from 'recharts';
 import { useState } from 'react';
 
 interface MetricCardProps {
@@ -114,9 +115,12 @@ export function PatientOutcomeMeasures({ patientId }: PatientOutcomeMeasuresProp
           Risk Level: {latest.riskLevel}
         </Badge>
         <Badge variant="outline">Primary Dimension: {latest.primaryDimension}</Badge>
+        <Badge variant={latest.smokingStatus === 'current' ? 'destructive' : latest.smokingStatus === 'former' ? 'secondary' : 'outline'}>
+          Smoking: {getSmokingStatusLabel(latest.smokingStatus)}
+        </Badge>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <MetricCard
           title="30-Day Readmissions"
           value={latest.readmissions}
@@ -153,6 +157,24 @@ export function PatientOutcomeMeasures({ patientId }: PatientOutcomeMeasuresProp
           benchmark={cohortStats.benchmark.functionalCapacity}
           lowerIsBetter={false}
         />
+        <MetricCard
+          title="Patient Engagement"
+          value={latest.engagementScore}
+          unit="score"
+          icon={<UserCheck className="h-4 w-4" />}
+          change={patientStats.engagementScoreChange}
+          benchmark={cohortStats.benchmark.engagementScore}
+          lowerIsBetter={true}
+        />
+        <MetricCard
+          title="Patient Satisfaction"
+          value={latest.satisfactionScore}
+          unit="score"
+          icon={<ThumbsUp className="h-4 w-4" />}
+          change={patientStats.satisfactionScoreChange}
+          benchmark={cohortStats.benchmark.satisfactionScore}
+          lowerIsBetter={true}
+        />
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
@@ -160,6 +182,18 @@ export function PatientOutcomeMeasures({ patientId }: PatientOutcomeMeasuresProp
           <CardHeader>
             <CardTitle>Readmissions Trend</CardTitle>
             <CardDescription>30-day readmissions over time</CardDescription>
+            <div className="flex items-center gap-4 mt-3">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Risk Category:</span>
+                <Badge variant={latest.riskLevel === 'high' ? 'destructive' : latest.riskLevel === 'medium' ? 'secondary' : 'outline'}>
+                  {latest.riskLevel.toUpperCase()}
+                </Badge>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Current Score:</span>
+                <span className="text-lg font-semibold">{latest.readmissions.toFixed(1)} events</span>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -168,7 +202,9 @@ export function PatientOutcomeMeasures({ patientId }: PatientOutcomeMeasuresProp
                 <XAxis dataKey="quarter" />
                 <YAxis />
                 <Tooltip />
-                <Line type="monotone" dataKey="readmissions" stroke="#ef4444" strokeWidth={2} dot={{ r: 4 }} />
+                <Legend />
+                <ReferenceLine y={cohortStats.benchmark.readmissions} stroke="#94a3b8" strokeDasharray="5 5" label="Benchmark" />
+                <Line type="monotone" dataKey="readmissions" stroke="#ef4444" strokeWidth={2} dot={{ r: 4 }} name="Patient" />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
@@ -178,6 +214,18 @@ export function PatientOutcomeMeasures({ patientId }: PatientOutcomeMeasuresProp
           <CardHeader>
             <CardTitle>Hospitalizations Trend</CardTitle>
             <CardDescription>Hospitalizations over time</CardDescription>
+            <div className="flex items-center gap-4 mt-3">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Risk Category:</span>
+                <Badge variant={latest.riskLevel === 'high' ? 'destructive' : latest.riskLevel === 'medium' ? 'secondary' : 'outline'}>
+                  {latest.riskLevel.toUpperCase()}
+                </Badge>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Current Score:</span>
+                <span className="text-lg font-semibold">{latest.hospitalizations.toFixed(1)} events</span>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -186,7 +234,9 @@ export function PatientOutcomeMeasures({ patientId }: PatientOutcomeMeasuresProp
                 <XAxis dataKey="quarter" />
                 <YAxis />
                 <Tooltip />
-                <Line type="monotone" dataKey="hospitalizations" stroke="#f59e0b" strokeWidth={2} dot={{ r: 4 }} />
+                <Legend />
+                <ReferenceLine y={cohortStats.benchmark.hospitalizations} stroke="#94a3b8" strokeDasharray="5 5" label="Benchmark" />
+                <Line type="monotone" dataKey="hospitalizations" stroke="#f59e0b" strokeWidth={2} dot={{ r: 4 }} name="Patient" />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
@@ -196,6 +246,18 @@ export function PatientOutcomeMeasures({ patientId }: PatientOutcomeMeasuresProp
           <CardHeader>
             <CardTitle>ED Visits Trend</CardTitle>
             <CardDescription>Emergency department visits over time</CardDescription>
+            <div className="flex items-center gap-4 mt-3">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Risk Category:</span>
+                <Badge variant={latest.riskLevel === 'high' ? 'destructive' : latest.riskLevel === 'medium' ? 'secondary' : 'outline'}>
+                  {latest.riskLevel.toUpperCase()}
+                </Badge>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Current Score:</span>
+                <span className="text-lg font-semibold">{latest.edVisits.toFixed(1)} visits</span>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -204,7 +266,9 @@ export function PatientOutcomeMeasures({ patientId }: PatientOutcomeMeasuresProp
                 <XAxis dataKey="quarter" />
                 <YAxis />
                 <Tooltip />
-                <Line type="monotone" dataKey="edVisits" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 4 }} />
+                <Legend />
+                <ReferenceLine y={cohortStats.benchmark.edVisits} stroke="#94a3b8" strokeDasharray="5 5" label="Benchmark" />
+                <Line type="monotone" dataKey="edVisits" stroke="#3b82f6" strokeWidth={2} dot={{ r: 4 }} name="Patient" />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
@@ -214,6 +278,18 @@ export function PatientOutcomeMeasures({ patientId }: PatientOutcomeMeasuresProp
           <CardHeader>
             <CardTitle>Functional Capacity Trend</CardTitle>
             <CardDescription>Functional capacity score over time (higher is better)</CardDescription>
+            <div className="flex items-center gap-4 mt-3">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Risk Category:</span>
+                <Badge variant={latest.riskLevel === 'high' ? 'destructive' : latest.riskLevel === 'medium' ? 'secondary' : 'outline'}>
+                  {latest.riskLevel.toUpperCase()}
+                </Badge>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Current Score:</span>
+                <span className="text-lg font-semibold">{latest.functionalCapacity.toFixed(1)} score</span>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -222,7 +298,73 @@ export function PatientOutcomeMeasures({ patientId }: PatientOutcomeMeasuresProp
                 <XAxis dataKey="quarter" />
                 <YAxis domain={[0, 100]} />
                 <Tooltip />
-                <Line type="monotone" dataKey="functionalCapacity" stroke="#10b981" strokeWidth={2} dot={{ r: 4 }} />
+                <Legend />
+                <ReferenceLine y={cohortStats.benchmark.functionalCapacity} stroke="#94a3b8" strokeDasharray="5 5" label="Benchmark" />
+                <Line type="monotone" dataKey="functionalCapacity" stroke="#10b981" strokeWidth={2} dot={{ r: 4 }} name="Patient" />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Patient Engagement Trend</CardTitle>
+            <CardDescription>Patient engagement score over time (lower is better)</CardDescription>
+            <div className="flex items-center gap-4 mt-3">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Risk Category:</span>
+                <Badge variant={latest.riskLevel === 'high' ? 'destructive' : latest.riskLevel === 'medium' ? 'secondary' : 'outline'}>
+                  {latest.riskLevel.toUpperCase()}
+                </Badge>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Current Score:</span>
+                <span className="text-lg font-semibold">{latest.engagementScore.toFixed(1)} score</span>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={trendData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="quarter" />
+                <YAxis domain={[0, 100]} />
+                <Tooltip />
+                <Legend />
+                <ReferenceLine y={cohortStats.benchmark.engagementScore} stroke="#94a3b8" strokeDasharray="5 5" label="Benchmark" />
+                <Line type="monotone" dataKey="engagementScore" stroke="#f43f5e" strokeWidth={2} dot={{ r: 4 }} name="Patient" />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Patient Satisfaction Trend</CardTitle>
+            <CardDescription>Patient satisfaction score over time (lower is better)</CardDescription>
+            <div className="flex items-center gap-4 mt-3">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Risk Category:</span>
+                <Badge variant={latest.riskLevel === 'high' ? 'destructive' : latest.riskLevel === 'medium' ? 'secondary' : 'outline'}>
+                  {latest.riskLevel.toUpperCase()}
+                </Badge>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Current Score:</span>
+                <span className="text-lg font-semibold">{latest.satisfactionScore.toFixed(1)} score</span>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={trendData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="quarter" />
+                <YAxis domain={[0, 100]} />
+                <Tooltip />
+                <Legend />
+                <ReferenceLine y={cohortStats.benchmark.satisfactionScore} stroke="#94a3b8" strokeDasharray="5 5" label="Benchmark" />
+                <Line type="monotone" dataKey="satisfactionScore" stroke="#14b8a6" strokeWidth={2} dot={{ r: 4 }} name="Patient" />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
@@ -257,6 +399,16 @@ export function PatientOutcomeMeasures({ patientId }: PatientOutcomeMeasuresProp
                   metric: 'Functional Capacity',
                   'This Patient': latest.functionalCapacity,
                   'Cohort Benchmark': cohortStats.benchmark.functionalCapacity,
+                },
+                {
+                  metric: 'Engagement',
+                  'This Patient': latest.engagementScore,
+                  'Cohort Benchmark': cohortStats.benchmark.engagementScore,
+                },
+                {
+                  metric: 'Satisfaction',
+                  'This Patient': latest.satisfactionScore,
+                  'Cohort Benchmark': cohortStats.benchmark.satisfactionScore,
                 },
               ]}
             >

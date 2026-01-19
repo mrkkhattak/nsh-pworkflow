@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { createDimensionIntervention } from "@/lib/intervention-service"
 import type { DimensionGoal } from "@/lib/nsh-assessment-mock"
 
 interface AddInterventionDialogProps {
@@ -15,14 +16,8 @@ interface AddInterventionDialogProps {
   dimensionId: string
   dimensionName: string
   goals: DimensionGoal[]
-  onSave: (intervention: {
-    type: "Medication" | "Lifestyle" | "Therapy" | "Social" | "Other"
-    date: string
-    endDate?: string
-    details: Record<string, string>
-    notes?: string
-    goalId?: string
-  }) => void
+  patientId?: number
+  onSave: (intervention: any) => void
 }
 
 export function AddInterventionDialog({
@@ -31,6 +26,7 @@ export function AddInterventionDialog({
   dimensionId,
   dimensionName,
   goals,
+  patientId = 1,
   onSave,
 }: AddInterventionDialogProps) {
   const [interventionType, setInterventionType] = useState<"Medication" | "Lifestyle" | "Therapy" | "Social" | "Other">("Medication")
@@ -55,6 +51,7 @@ export function AddInterventionDialog({
   const [socialContact, setSocialContact] = useState("")
 
   const [customName, setCustomName] = useState("")
+  const [saving, setSaving] = useState(false)
 
   const resetForm = () => {
     setInterventionType("Medication")
@@ -76,8 +73,11 @@ export function AddInterventionDialog({
     setCustomName("")
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    if (saving) return
+
     const details: Record<string, string> = {}
+    let interventionName = ''
 
     switch (interventionType) {
       case "Medication":
@@ -85,41 +85,62 @@ export function AddInterventionDialog({
         details.drugName = drugName.trim()
         details.dose = dose.trim()
         details.frequency = frequency.trim()
+        interventionName = `${drugName.trim()} ${dose.trim()}`
         break
       case "Lifestyle":
         if (!lifestyleCategory.trim() || !specificChange.trim()) return
         details.category = lifestyleCategory.trim()
         details.specificChange = specificChange.trim()
+        interventionName = lifestyleCategory.trim()
         break
       case "Therapy":
         if (!therapyType.trim() || !therapyFrequency.trim() || !provider.trim()) return
         details.type = therapyType.trim()
         details.frequency = therapyFrequency.trim()
         details.provider = provider.trim()
+        interventionName = therapyType.trim()
         break
       case "Social":
         if (!socialActivity.trim() || !socialFrequency.trim()) return
         details.activity = socialActivity.trim()
         details.frequency = socialFrequency.trim()
         if (socialContact.trim()) details.contact = socialContact.trim()
+        interventionName = socialActivity.trim()
         break
       case "Other":
         if (!customName.trim()) return
         details.name = customName.trim()
+        interventionName = customName.trim()
         break
     }
 
-    onSave({
-      type: interventionType,
-      date: startDate,
-      endDate: endDate.trim() || undefined,
-      details,
-      notes: notes.trim() || undefined,
-      goalId: selectedGoalId,
-    })
+    setSaving(true)
+    try {
+      const result = await createDimensionIntervention({
+        patient_id: patientId,
+        dimension_id: dimensionId,
+        dimension_name: dimensionName,
+        goal_id: selectedGoalId || null,
+        intervention_type: interventionType,
+        intervention_name: interventionName,
+        details,
+        notes: notes.trim() || null,
+        start_date: startDate,
+        end_date: endDate.trim() || null,
+        status: 'active',
+        created_by: 'Dr. Anderson',
+      })
 
-    resetForm()
-    onOpenChange(false)
+      if (result) {
+        onSave(result)
+        resetForm()
+        onOpenChange(false)
+      }
+    } catch (error) {
+      console.error('Error saving intervention:', error)
+    } finally {
+      setSaving(false)
+    }
   }
 
   const isFormValid = () => {
@@ -378,8 +399,8 @@ export function AddInterventionDialog({
           <Button variant="outline" onClick={() => { resetForm(); onOpenChange(false); }}>
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={!isFormValid()}>
-            Add Intervention
+          <Button onClick={handleSave} disabled={!isFormValid() || saving}>
+            {saving ? 'Adding...' : 'Add Intervention'}
           </Button>
         </DialogFooter>
       </DialogContent>

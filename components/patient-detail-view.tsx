@@ -22,6 +22,13 @@ import { BiometricsTracking } from "@/components/biometrics-tracking"
 import { PatientCohortComparison } from "@/components/patient-cohort-comparison"
 import { getPatientById, getAssessmentById, healthDimensionsConfig, getGoalsByDimension, getActiveInterventionsByDimension, getRiskLevel } from "@/lib/nsh-assessment-mock"
 import {
+  getInterventionsByGoalId,
+  getDimensionInterventionsByGoalId,
+  type Intervention,
+  type DimensionIntervention,
+} from "@/lib/intervention-service"
+import { InterventionListItem } from "@/components/intervention-list-item"
+import {
   Phone,
   Mail,
   MapPin,
@@ -42,6 +49,8 @@ import {
   Video,
   Target,
   CheckCircle,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react"
 
 // Mock patient data
@@ -224,6 +233,9 @@ export function PatientDetailView() {
   const [responsesOpenFor, setResponsesOpenFor] = useState<string | null>(null)
   const [assessmentRefreshKey, setAssessmentRefreshKey] = useState(0)
   const [cohortContext, setCohortContext] = useState<any>(null)
+  const [expandedGoalIds, setExpandedGoalIds] = useState<Set<string>>(new Set())
+  const [goalInterventions, setGoalInterventions] = useState<Record<string, (Intervention | DimensionIntervention)[]>>({})
+  const [loadingGoalId, setLoadingGoalId] = useState<string | null>(null)
 
   const latestAssessment = getAssessmentById(mockPatientDetail.id)
 
@@ -272,6 +284,38 @@ export function PatientDetailView() {
       default:
         return <Activity className="h-4 w-4 text-gray-600" />
     }
+  }
+
+  const loadGoalInterventions = async (goalId: string) => {
+    if (goalInterventions[goalId]) {
+      return
+    }
+
+    setLoadingGoalId(goalId)
+    try {
+      const [regularInterventions, dimensionInterventions] = await Promise.all([
+        getInterventionsByGoalId(goalId),
+        getDimensionInterventionsByGoalId(goalId),
+      ])
+
+      setGoalInterventions(prev => ({
+        ...prev,
+        [goalId]: [...regularInterventions, ...dimensionInterventions],
+      }))
+    } finally {
+      setLoadingGoalId(null)
+    }
+  }
+
+  const toggleGoalExpanded = async (goalId: string) => {
+    const newExpanded = new Set(expandedGoalIds)
+    if (newExpanded.has(goalId)) {
+      newExpanded.delete(goalId)
+    } else {
+      newExpanded.add(goalId)
+      await loadGoalInterventions(goalId)
+    }
+    setExpandedGoalIds(newExpanded)
   }
 
   const patientForScheduling = {
@@ -470,7 +514,7 @@ export function PatientDetailView() {
         }}
         className="space-y-6"
       >
-        <TabsList className="grid w-full grid-cols-8 bg-gray-100 p-1 rounded-lg">
+        <TabsList className="grid w-full grid-cols-9 bg-gray-100 p-1 rounded-lg">
           <TabsTrigger value="overview" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
             Overview
           </TabsTrigger>
@@ -488,6 +532,9 @@ export function PatientDetailView() {
           </TabsTrigger>
           <TabsTrigger value="medications" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
             Medications
+          </TabsTrigger>
+          <TabsTrigger value="biometrics" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+            Biometrics
           </TabsTrigger>
           <TabsTrigger value="outcomes" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
             Outcome Measures
@@ -892,32 +939,82 @@ export function PatientDetailView() {
                     const goals = getGoalsByDimension(dimension.id)
                     if (goals.length === 0) return null
                     const goal = goals[0]
+                    const isExpanded = expandedGoalIds.has(goal.id)
+                    const interventions = goalInterventions[goal.id] || []
+                    const activeInterventionsCount = interventions.filter(i => i.status === 'active').length
 
                     return (
                       <Card key={dimension.id} className="border-l-4" style={{ borderLeftColor: dimension.color }}>
                         <CardContent className="p-4">
-                          <div className="flex items-center justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-2">
-                                <Badge className="bg-blue-100 text-blue-800 text-xs">
-                                  {dimension.name}
-                                </Badge>
-                                <Badge className={`${goal.status === "achieved" ? "bg-green-100 text-green-800" : goal.status === "at-risk" ? "bg-red-100 text-red-800" : "bg-blue-100 text-blue-800"} text-xs`}>
-                                  {goal.status}
-                                </Badge>
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <Badge className="bg-blue-100 text-blue-800 text-xs">
+                                    {dimension.name}
+                                  </Badge>
+                                  <Badge className={`${goal.status === "achieved" ? "bg-green-100 text-green-800" : goal.status === "at-risk" ? "bg-red-100 text-red-800" : "bg-blue-100 text-blue-800"} text-xs`}>
+                                    {goal.status}
+                                  </Badge>
+                                </div>
+                                <h4 className="font-medium text-gray-900 text-sm mb-1">{goal.description}</h4>
+                                <div className="flex items-center gap-4 text-xs text-gray-600">
+                                  <span>Baseline: {goal.baseline}</span>
+                                  <TrendingDown className="h-3 w-3" />
+                                  <span>Current: {goal.current}</span>
+                                  <TrendingDown className="h-3 w-3" />
+                                  <span>Target: {goal.target}</span>
+                                </div>
+                                <div className="mt-2">
+                                  <Progress value={goal.progress} className="h-1.5" />
+                                  <p className="text-xs text-gray-500 mt-1">{goal.progress}% progress</p>
+                                </div>
                               </div>
-                              <h4 className="font-medium text-gray-900 text-sm mb-1">{goal.description}</h4>
-                              <div className="flex items-center gap-4 text-xs text-gray-600">
-                                <span>Baseline: {goal.baseline}</span>
-                                <TrendingDown className="h-3 w-3" />
-                                <span>Current: {goal.current}</span>
-                                <TrendingDown className="h-3 w-3" />
-                                <span>Target: {goal.target}</span>
-                              </div>
-                              <div className="mt-2">
-                                <Progress value={goal.progress} className="h-1.5" />
-                                <p className="text-xs text-gray-500 mt-1">{goal.progress}% progress</p>
-                              </div>
+                            </div>
+
+                            <div className="border-t border-gray-200 pt-3">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => toggleGoalExpanded(goal.id)}
+                                className="w-full justify-between hover:bg-gray-50 h-8"
+                              >
+                                <div className="flex items-center gap-2">
+                                  <Pill className="h-3.5 w-3.5" />
+                                  <span className="text-xs font-medium">
+                                    Interventions ({activeInterventionsCount} active)
+                                  </span>
+                                </div>
+                                {isExpanded ? (
+                                  <ChevronUp className="h-3.5 w-3.5" />
+                                ) : (
+                                  <ChevronDown className="h-3.5 w-3.5" />
+                                )}
+                              </Button>
+
+                              {isExpanded && (
+                                <div className="mt-2 space-y-2">
+                                  {loadingGoalId === goal.id ? (
+                                    <div className="text-center py-4 text-gray-500">
+                                      <div className="animate-spin h-6 w-6 mx-auto mb-2 border-2 border-gray-300 border-t-blue-600 rounded-full" />
+                                      <p className="text-xs">Loading interventions...</p>
+                                    </div>
+                                  ) : interventions.length > 0 ? (
+                                    interventions.map((intervention) => (
+                                      <InterventionListItem
+                                        key={intervention.id}
+                                        intervention={intervention}
+                                        showStopButton={false}
+                                      />
+                                    ))
+                                  ) : (
+                                    <div className="text-center py-4 text-gray-500">
+                                      <Pill className="h-6 w-6 mx-auto mb-2 text-gray-400" />
+                                      <p className="text-xs">No interventions for this goal</p>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
                             </div>
                           </div>
                         </CardContent>
@@ -934,12 +1031,15 @@ export function PatientDetailView() {
           <PatientTasksView patientId={mockPatientDetail.id} />
         </TabsContent>
 
+        <TabsContent value="biometrics" className="space-y-6">
+          <BiometricsTracking patientId={mockPatientDetail.id} />
+        </TabsContent>
+
         <TabsContent value="outcomes" className="space-y-6">
           <PatientOutcomeMeasures patientId={mockPatientDetail.id.toString()} />
         </TabsContent>
 
         <TabsContent value="progress" className="space-y-6">
-          <BiometricsTracking patientId={mockPatientDetail.id} />
 
           {latestAssessment ? (
             <>

@@ -39,9 +39,9 @@ export interface HealthDimension {
   mcid?: MCIDData
 }
 
-export interface PhysicianActionItem {
+export interface ProviderActionItem {
   id: string
-  type: "physician"
+  type: "provider"
   providerName: string
   designation: string
   action: string
@@ -84,7 +84,7 @@ export interface SystemActionItem {
   expectedImpact: string
 }
 
-export type ActionItem = PhysicianActionItem | PatientActionItem | CommunityActionItem | SystemActionItem
+export type ActionItem = ProviderActionItem | PatientActionItem | CommunityActionItem | SystemActionItem
 
 export interface OpportunityArea {
   dimensionId: string
@@ -548,10 +548,10 @@ const costSubcategories: Subcategory[] = [
   },
 ]
 
-const physicianActionItems: PhysicianActionItem[] = [
+const providerActionItems: ProviderActionItem[] = [
   {
     id: "phy-001",
-    type: "physician",
+    type: "provider",
     providerName: "Dr. Sarah Martinez",
     designation: "Primary Care Physician",
     action: "Review and adjust antidepressant medication dosage based on recent symptom assessment",
@@ -561,7 +561,7 @@ const physicianActionItems: PhysicianActionItem[] = [
   },
   {
     id: "phy-002",
-    type: "physician",
+    type: "provider",
     providerName: "Dr. James Wilson",
     designation: "Psychiatrist",
     action: "Conduct comprehensive psychiatric evaluation for anxiety management optimization",
@@ -571,7 +571,7 @@ const physicianActionItems: PhysicianActionItem[] = [
   },
   {
     id: "phy-003",
-    type: "physician",
+    type: "provider",
     providerName: "Dr. Emily Chen",
     designation: "Cardiologist",
     action: "Order cardiac stress test to establish baseline cardiovascular fitness",
@@ -580,7 +580,7 @@ const physicianActionItems: PhysicianActionItem[] = [
   },
   {
     id: "phy-004",
-    type: "physician",
+    type: "provider",
     providerName: "Dr. Sarah Martinez",
     designation: "Primary Care Physician",
     action: "Refer to sleep medicine specialist for evaluation of sleep disorders",
@@ -590,7 +590,7 @@ const physicianActionItems: PhysicianActionItem[] = [
   },
   {
     id: "phy-005",
-    type: "physician",
+    type: "provider",
     providerName: "Dr. Michael Rodriguez",
     designation: "Pain Management Specialist",
     action: "Develop multimodal pain management strategy to reduce opioid reliance",
@@ -1053,7 +1053,7 @@ export const mockAssessmentData: Record<number, { patient: Patient; assessments:
           },
         ],
         actionItems: [
-          ...physicianActionItems,
+          ...providerActionItems,
           ...patientActionItems,
           ...communityActionItems,
           ...systemActionItems,
@@ -1204,7 +1204,7 @@ export function getDimensionById(assessment: Assessment, dimensionId: string): H
 
 export function getActionItemsByDimension(assessment: Assessment, dimensionId: string): ActionItem[] {
   return assessment.actionItems.filter((item) => {
-    if (item.type === "physician" || item.type === "patient" || item.type === "community") {
+    if (item.type === "provider" || item.type === "patient" || item.type === "community") {
       return item.dimensionId === dimensionId
     }
     if (item.type === "system") {

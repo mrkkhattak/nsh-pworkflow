@@ -175,11 +175,11 @@ export function AssessmentDetail({ patient, assessment }: Props) {
           <div>
             <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
               <Stethoscope className="h-4 w-4" />
-              Physician-Level Actions
+              Provider-Level Actions
             </h3>
             <div className="space-y-2">
               {assessment.actionItems
-                .filter((item) => item.type === "physician")
+                .filter((item) => item.type === "provider")
                 .map((item) => (
                   <div key={item.id} className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
                     <div className="flex items-start justify-between mb-1">
