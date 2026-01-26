@@ -75,14 +75,16 @@ const mockPatientDetail = {
     groupNumber: "GRP001",
   },
   primaryConditions: [
-    { name: "Major Depressive Disorder", icd10: "F33.1", severity: "Moderate", dateOnset: "2024-08-15" },
-    { name: "Generalized Anxiety Disorder", icd10: "F41.1", severity: "Mild", dateOnset: "2024-09-01" },
+    { name: "Pre Diabetes", status: "Poorly controlled (symptoms or tests getting worse)", dateOnset: "2026-01-06" },
+    { name: "Skin Cancer - Metastatic", status: "Poorly controlled (symptoms or tests getting worse)", dateOnset: "2026-01-06" },
   ],
-  riskFactors: [
-    { factor: "Family History of Depression", level: "High", description: "Mother and sister with MDD" },
-    { factor: "Work-related Stress", level: "Moderate", description: "Recent job transition" },
-    { factor: "Sleep Disturbance", level: "Moderate", description: "Difficulty maintaining sleep" },
-  ],
+  functionalIndependenceScore: 68,
+  socialDeterminants: {
+    employmentStatus: "Employed Part-time",
+    housing: "Sometimes",
+    socialSupport: "Often",
+    transportation: "Sometimes",
+  },
   currentMedications: [
     {
       name: "Sertraline",
@@ -395,8 +397,8 @@ export function PatientDetailView() {
 
                 <div className="flex items-center gap-3">
                   {mockPatientDetail.primaryConditions.map((condition, index) => (
-                    <Badge key={index} variant={getRiskBadgeVariant(condition.severity)} className="text-xs">
-                      {condition.name} ({condition.severity})
+                    <Badge key={index} variant="destructive" className="text-xs">
+                      {condition.name}
                     </Badge>
                   ))}
                 </div>
@@ -594,77 +596,83 @@ export function PatientDetailView() {
           </Card>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Medical History */}
+            {/* Active Problem List */}
             <Card className="shadow-sm border-gray-200 bg-white">
               <CardHeader>
                 <CardTitle className="text-lg font-semibold flex items-center gap-2">
                   <FileText className="h-5 w-5" />
-                  Medical History
+                  Active Problem List
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {mockPatientDetail.primaryConditions.map((condition, index) => (
                   <div key={index} className="p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-medium text-gray-900">{condition.name}</h4>
-                      <Badge variant={getRiskBadgeVariant(condition.severity)} className="text-xs">
-                        {condition.severity}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-gray-600">ICD-10: {condition.icd10}</p>
-                    <p className="text-sm text-gray-600">Onset: {new Date(condition.dateOnset).toLocaleDateString()}</p>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-
-            {/* Risk Factors */}
-            <Card className="shadow-sm border-gray-200 bg-white">
-              <CardHeader>
-                <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                  <AlertTriangle className="h-5 w-5" />
-                  Risk Factors
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {mockPatientDetail.riskFactors.map((risk, index) => (
-                  <div key={index} className="p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-medium text-gray-900">{risk.factor}</h4>
-                      <Badge variant={getRiskBadgeVariant(risk.level)} className="text-xs">
-                        {risk.level}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-gray-600">{risk.description}</p>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-
-            {/* Care Team */}
-            <Card className="shadow-sm border-gray-200 bg-white">
-              <CardHeader>
-                <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                  <UserCheck className="h-5 w-5" />
-                  Care Team
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {mockPatientDetail.careTeam.map((member, index) => (
-                  <div key={index} className="p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-medium text-gray-900">{member.name}</h4>
-                      <Button variant="ghost" size="sm">
-                        <ExternalLink className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    <p className="text-sm text-gray-600">{member.role}</p>
-                    <p className="text-sm text-gray-600">{member.specialty}</p>
-                    <p className="text-xs text-gray-500">
-                      Last contact: {new Date(member.lastContact).toLocaleDateString()}
+                    <h4 className="font-medium text-gray-900 mb-2">{condition.name}</h4>
+                    <p className="text-sm text-gray-600 mb-1">
+                      <span className="font-medium">Status:</span> {condition.status}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      <span className="font-medium">Onset:</span> {new Date(condition.dateOnset).toLocaleDateString()}
                     </p>
                   </div>
                 ))}
+              </CardContent>
+            </Card>
+
+            {/* Functional Independence Score */}
+            <Card className="shadow-sm border-gray-200 bg-white">
+              <CardHeader>
+                <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                  <Activity className="h-5 w-5" />
+                  Functional Independence Score
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="p-6 bg-gray-50 rounded-lg text-center">
+                  <div className="text-5xl font-bold text-gray-900 mb-2">
+                    {mockPatientDetail.functionalIndependenceScore}
+                  </div>
+                  <p className="text-sm text-gray-600">out of 100</p>
+                  <div className="mt-4">
+                    <Progress value={mockPatientDetail.functionalIndependenceScore} className="h-2" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Social Determinants */}
+            <Card className="shadow-sm border-gray-200 bg-white">
+              <CardHeader>
+                <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                  <Heart className="h-5 w-5" />
+                  Social Determinants
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium text-gray-900">Employment Status</span>
+                    <span className="text-sm text-gray-600">{mockPatientDetail.socialDeterminants.employmentStatus}</span>
+                  </div>
+                </div>
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium text-gray-900">Housing</span>
+                    <span className="text-sm text-gray-600">{mockPatientDetail.socialDeterminants.housing}</span>
+                  </div>
+                </div>
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium text-gray-900">Social Support</span>
+                    <span className="text-sm text-gray-600">{mockPatientDetail.socialDeterminants.socialSupport}</span>
+                  </div>
+                </div>
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium text-gray-900">Transportation</span>
+                    <span className="text-sm text-gray-600">{mockPatientDetail.socialDeterminants.transportation}</span>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </div>
