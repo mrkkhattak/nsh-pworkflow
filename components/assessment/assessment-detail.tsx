@@ -1,13 +1,15 @@
 "use client"
 
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { ScoreCard } from "./score-card"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import type { Assessment, Patient } from "@/lib/nsh-assessment-mock"
-import { getRiskColor, getRiskLabel } from "@/lib/nsh-assessment-mock"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import type { Assessment, Patient, QuestionResponse } from "@/lib/nsh-assessment-mock"
+import { getRiskColor, getRiskLabel, getAllAssessmentsForPatient } from "@/lib/nsh-assessment-mock"
 import { Activity, Brain, Heart, Zap, Users, Stethoscope, Building2, TrendingUp, ArrowLeft } from "lucide-react"
 
 type Props = {
@@ -17,6 +19,11 @@ type Props = {
 
 export function AssessmentDetail({ patient, assessment }: Props) {
   const router = useRouter()
+  const allAssessments = getAllAssessmentsForPatient(patient.id)
+  const [selectedQuestionnaireDate, setSelectedQuestionnaireDate] = useState(assessment.date)
+
+  const selectedAssessmentForQuestionnaire = allAssessments.find((a) => a.date === selectedQuestionnaireDate) || assessment
+
   const ghi = assessment.globalHealthIndex
   const ghiRiskLevel = assessment.dimensions.find((d) => d.score === ghi)?.riskLevel || "green"
 
@@ -323,9 +330,33 @@ export function AssessmentDetail({ patient, assessment }: Props) {
               <CardTitle className="text-lg font-semibold">Questionnaire Responses</CardTitle>
               <CardDescription>Patient responses from the assessment questionnaire</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
+              {allAssessments.length > 1 && (
+                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                  <label htmlFor="assessment-select" className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                    View responses from:
+                  </label>
+                  <Select value={selectedQuestionnaireDate} onValueChange={setSelectedQuestionnaireDate}>
+                    <SelectTrigger id="assessment-select" className="flex-1 bg-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {allAssessments.map((assess) => (
+                        <SelectItem key={assess.id} value={assess.date}>
+                          {new Date(assess.date).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          })}
+                          {assess.id === assessment.id && " (Current)"}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <div className="space-y-3">
-                {assessment.questionnaireResponses.map((response) => (
+                {selectedAssessmentForQuestionnaire.questionnaireResponses.map((response) => (
                   <div key={response.questionId} className="p-3 bg-gray-50 rounded-lg border border-gray-200">
                     <p className="text-sm font-medium text-gray-900 mb-1">{response.question}</p>
                     <p className="text-sm text-gray-700">
