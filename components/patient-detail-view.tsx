@@ -325,7 +325,7 @@ export function PatientDetailView() {
     name: mockPatientDetail.name,
     avatar: mockPatientDetail.avatar,
     condition: mockPatientDetail.primaryConditions[0]?.name || "General Care",
-    riskLevel: mockPatientDetail.primaryConditions[0]?.severity.toLowerCase() || "moderate",
+    riskLevel: "high",
   }
 
   return (
