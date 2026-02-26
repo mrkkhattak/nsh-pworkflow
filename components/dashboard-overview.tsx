@@ -4,6 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { DashboardAppointmentsView } from "@/components/dashboard-appointments-view"
 import { AlertTriangle, Users, MessageSquare, FileText } from "lucide-react"
 import { getPatientById, getAssessmentById } from "@/lib/nsh-assessment-mock"
 
@@ -92,6 +93,8 @@ export function DashboardOverview() {
           </CardContent>
         </Card>
       )}
+
+      <DashboardAppointmentsView mockPatients={mockPatients} />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card className="border-border">
