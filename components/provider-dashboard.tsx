@@ -19,6 +19,7 @@ import ReferralManagement from "@/components/referral-management"
 import { SideNavigation } from "@/components/side-navigation"
 import { PatientDetailView } from "@/components/patient-detail-view"
 import { QuickScheduleDialog } from "@/components/quick-schedule-dialog"
+import { DashboardAppointmentsView } from "@/components/dashboard-appointments-view"
 import { getPatientById, getAssessmentById } from "@/lib/nsh-assessment-mock"
 import { useToast } from "@/hooks/use-toast"
 import {
@@ -625,6 +626,8 @@ export function ProviderDashboard() {
           </CardContent>
         </Card>
       )}
+
+      <DashboardAppointmentsView mockPatients={mockPatients} />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card className="border-border">
